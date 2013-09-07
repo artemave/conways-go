@@ -6,11 +6,11 @@ import (
 )
 
 var GliderSeed = game.Generation{
-  &game.Cell{Row: 2, Col: 2},
-  &game.Cell{Row: 2, Col: 3},
-  &game.Cell{Row: 2, Col: 4},
-  &game.Cell{Row: 1, Col: 4},
-  &game.Cell{Row: 0, Col: 3},
+  game.Cell{Row: 2, Col: 2},
+  game.Cell{Row: 2, Col: 3},
+  game.Cell{Row: 2, Col: 4},
+  game.Cell{Row: 1, Col: 4},
+  game.Cell{Row: 0, Col: 3},
 }
 
 

@@ -6,11 +6,11 @@ import (
 )
 
 var GliderSeed = Generation{
-  &Cell{Row: 2, Col: 2},
-  &Cell{Row: 2, Col: 3},
-  &Cell{Row: 2, Col: 4},
-  &Cell{Row: 1, Col: 4},
-  &Cell{Row: 0, Col: 3},
+  Cell{Row: 2, Col: 2, State: Live},
+  Cell{Row: 2, Col: 3, State: Live},
+  Cell{Row: 2, Col: 4, State: Live},
+  Cell{Row: 1, Col: 4, State: Live},
+  Cell{Row: 0, Col: 3, State: Live},
 }
 
 type ByGeneration Generation
@@ -52,11 +52,11 @@ func (this Generation) equal(other Generation) bool {
 func TestGliderGen1(t *testing.T) {
 
   ExpectedGen := Generation{
-    &Cell{Row: 3, Col: 3},
-    &Cell{Row: 2, Col: 3},
-    &Cell{Row: 2, Col: 4},
-    &Cell{Row: 1, Col: 2},
-    &Cell{Row: 1, Col: 4},
+    Cell{Row: 3, Col: 3, State: Live},
+    Cell{Row: 2, Col: 3, State: Live},
+    Cell{Row: 2, Col: 4, State: Live},
+    Cell{Row: 1, Col: 2, State: Live},
+    Cell{Row: 1, Col: 4, State: Live},
   }
 
   game := &Game{20, 20}
@@ -64,7 +64,6 @@ func TestGliderGen1(t *testing.T) {
   ActualGen := game.NextGeneration(&GliderSeed)
 
   if !ActualGen.equal(ExpectedGen) {
-    t.Errorf("Boom!")
+    t.Errorf("Actual generation: ", *ActualGen, " is not equal to expected generation: ", ExpectedGen)
   }
 }
-
