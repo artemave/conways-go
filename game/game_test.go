@@ -6,11 +6,11 @@ import (
 )
 
 var GliderSeed = Generation{
+  Cell{Row: 2, Col: 1, State: Live},
   Cell{Row: 2, Col: 2, State: Live},
   Cell{Row: 2, Col: 3, State: Live},
-  Cell{Row: 2, Col: 4, State: Live},
-  Cell{Row: 1, Col: 4, State: Live},
-  Cell{Row: 0, Col: 3, State: Live},
+  Cell{Row: 1, Col: 3, State: Live},
+  Cell{Row: 0, Col: 2, State: Live},
 }
 
 type ByGeneration Generation
@@ -48,20 +48,57 @@ func (this Generation) equal(other Generation) bool {
   return true
 }
 
-
 func TestGliderGen1(t *testing.T) {
 
   ExpectedGen := Generation{
-    Cell{Row: 3, Col: 3, State: Live},
+    Cell{Row: 3, Col: 2, State: Live},
+    Cell{Row: 2, Col: 2, State: Live},
     Cell{Row: 2, Col: 3, State: Live},
-    Cell{Row: 2, Col: 4, State: Live},
-    Cell{Row: 1, Col: 2, State: Live},
-    Cell{Row: 1, Col: 4, State: Live},
+    Cell{Row: 1, Col: 1, State: Live},
+    Cell{Row: 1, Col: 3, State: Live},
   }
 
   game := &Game{20, 20}
 
   ActualGen := game.NextGeneration(&GliderSeed)
+
+  if !ActualGen.equal(ExpectedGen) {
+    t.Errorf("Actual generation: ", *ActualGen, " is not equal to expected generation: ", ExpectedGen)
+  }
+}
+
+func TestGliderGen2(t *testing.T) {
+
+  ExpectedGen := Generation{
+    Cell{Row: 3, Col: 3, State: Live},
+    Cell{Row: 3, Col: 2, State: Live},
+    Cell{Row: 2, Col: 3, State: Live},
+    Cell{Row: 2, Col: 1, State: Live},
+    Cell{Row: 1, Col: 3, State: Live},
+  }
+
+  game := &Game{20, 20}
+
+  ActualGen := game.NextGeneration(&GliderSeed)
+  ActualGen = game.NextGeneration(ActualGen)
+
+  if !ActualGen.equal(ExpectedGen) {
+    t.Errorf("Actual generation: ", *ActualGen, " is not equal to expected generation: ", ExpectedGen)
+  }
+}
+
+func TestStillLife(t *testing.T) {
+  ExpectedGen := Generation{
+    Cell{Row: 1, Col: 1, State: Live},
+    Cell{Row: 1, Col: 2, State: Live},
+    Cell{Row: 2, Col: 1, State: Live},
+    Cell{Row: 2, Col: 2, State: Live},
+  }
+
+  game := &Game{20, 20}
+
+  ActualGen := game.NextGeneration(&ExpectedGen)
+  ActualGen = game.NextGeneration(ActualGen)
 
   if !ActualGen.equal(ExpectedGen) {
     t.Errorf("Actual generation: ", *ActualGen, " is not equal to expected generation: ", ExpectedGen)
