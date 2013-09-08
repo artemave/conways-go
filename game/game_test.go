@@ -104,3 +104,21 @@ func TestStillLife(t *testing.T) {
     t.Errorf("Actual generation: ", *ActualGen, " is not equal to expected generation: ", ExpectedGen)
   }
 }
+
+func TestCellsDontSpreadBeyondGameBoundaries(t *testing.T) {
+  ExpectedGen := Generation{
+    //Cell{Row: 3, Col: 2, State: Live},
+    Cell{Row: 2, Col: 2, State: Live},
+    //Cell{Row: 2, Col: 3, State: Live},
+    Cell{Row: 1, Col: 1, State: Live},
+    //Cell{Row: 1, Col: 3, State: Live},
+  }
+
+  game := &Game{2, 2}
+
+  ActualGen := game.NextGeneration(&GliderSeed)
+
+  if !ActualGen.equal(ExpectedGen) {
+    t.Errorf("Actual generation: ", *ActualGen, " is not equal to expected generation: ", ExpectedGen)
+  }
+}

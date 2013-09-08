@@ -59,7 +59,17 @@ func (this *Game) NextGeneration(g *Generation) (next_generation *Generation) {
       *next_generation = append(*next_generation, cell)
     }
   }
-  return next_generation
+  return this.DiscardOutOfBoundsCells(next_generation)
+}
+
+func (this *Game) DiscardOutOfBoundsCells(next_generation *Generation) *Generation {
+  var filtered_generation Generation
+  for _, cell := range *next_generation {
+    if cell.Row <= this.Rows && cell.Col <= this.Cols {
+      filtered_generation = append(filtered_generation, cell)
+    }
+  }
+  return &filtered_generation
 }
 
 func ThereIsCellAtPoint(point [2]int, g *Generation) bool {
