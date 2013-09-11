@@ -1,7 +1,7 @@
 package main
 
 import (
-  "github.com/conways-go/game"
+  "github.com/artemave/conways-go/game"
   "github.com/araddon/gou"
   "net/http"
   "io/ioutil"
