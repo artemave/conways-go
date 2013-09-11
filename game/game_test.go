@@ -6,11 +6,11 @@ import (
 )
 
 var GliderSeed = Generation{
-  Cell{Row: 2, Col: 1, State: Live},
-  Cell{Row: 2, Col: 2, State: Live},
-  Cell{Row: 2, Col: 3, State: Live},
-  Cell{Row: 1, Col: 3, State: Live},
-  Cell{Row: 0, Col: 2, State: Live},
+  Cell{Point: Point{Row: 2, Col: 1}, State: Live},
+  Cell{Point: Point{Row: 2, Col: 2}, State: Live},
+  Cell{Point: Point{Row: 2, Col: 3}, State: Live},
+  Cell{Point: Point{Row: 1, Col: 3}, State: Live},
+  Cell{Point: Point{Row: 0, Col: 2}, State: Live},
 }
 
 type ByGeneration Generation
@@ -51,11 +51,11 @@ func (this Generation) equal(other Generation) bool {
 func TestGliderGen1(t *testing.T) {
 
   ExpectedGen := Generation{
-    Cell{Row: 3, Col: 2, State: Live},
-    Cell{Row: 2, Col: 2, State: Live},
-    Cell{Row: 2, Col: 3, State: Live},
-    Cell{Row: 1, Col: 1, State: Live},
-    Cell{Row: 1, Col: 3, State: Live},
+    Cell{Point: Point{Row: 3, Col: 2}, State: Live},
+    Cell{Point: Point{Row: 2, Col: 2}, State: Live},
+    Cell{Point: Point{Row: 2, Col: 3}, State: Live},
+    Cell{Point: Point{Row: 1, Col: 1}, State: Live},
+    Cell{Point: Point{Row: 1, Col: 3}, State: Live},
   }
 
   game := &Game{20, 20}
@@ -70,11 +70,11 @@ func TestGliderGen1(t *testing.T) {
 func TestGliderGen2(t *testing.T) {
 
   ExpectedGen := Generation{
-    Cell{Row: 3, Col: 3, State: Live},
-    Cell{Row: 3, Col: 2, State: Live},
-    Cell{Row: 2, Col: 3, State: Live},
-    Cell{Row: 2, Col: 1, State: Live},
-    Cell{Row: 1, Col: 3, State: Live},
+    Cell{Point: Point{Row: 3, Col: 3}, State: Live},
+    Cell{Point: Point{Row: 3, Col: 2}, State: Live},
+    Cell{Point: Point{Row: 2, Col: 3}, State: Live},
+    Cell{Point: Point{Row: 2, Col: 1}, State: Live},
+    Cell{Point: Point{Row: 1, Col: 3}, State: Live},
   }
 
   game := &Game{20, 20}
@@ -89,10 +89,10 @@ func TestGliderGen2(t *testing.T) {
 
 func TestStillLife(t *testing.T) {
   ExpectedGen := Generation{
-    Cell{Row: 1, Col: 1, State: Live},
-    Cell{Row: 1, Col: 2, State: Live},
-    Cell{Row: 2, Col: 1, State: Live},
-    Cell{Row: 2, Col: 2, State: Live},
+    Cell{Point: Point{Row: 1, Col: 1}, State: Live},
+    Cell{Point: Point{Row: 1, Col: 2}, State: Live},
+    Cell{Point: Point{Row: 2, Col: 1}, State: Live},
+    Cell{Point: Point{Row: 2, Col: 2}, State: Live},
   }
 
   game := &Game{20, 20}
@@ -107,11 +107,11 @@ func TestStillLife(t *testing.T) {
 
 func TestCellsDontSpreadBeyondGameBoundaries(t *testing.T) {
   ExpectedGen := Generation{
-    //Cell{Row: 3, Col: 2, State: Live},
-    Cell{Row: 2, Col: 2, State: Live},
-    //Cell{Row: 2, Col: 3, State: Live},
-    Cell{Row: 1, Col: 1, State: Live},
-    //Cell{Row: 1, Col: 3, State: Live},
+    //Cell{Point: Point{Row: 3, Col: 2}, State: Live},
+    Cell{Point: Point{Row: 2, Col: 2}, State: Live},
+    //Cell{Point: Point{Row: 2, Col: 3}, State: Live},
+    Cell{Point: Point{Row: 1, Col: 1}, State: Live},
+    //Cell{Point: Point{Row: 1, Col: 3}, State: Live},
   }
 
   game := &Game{2, 2}

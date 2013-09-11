@@ -2,25 +2,61 @@ package main
 
 import (
   "github.com/conways-go/game"
-  "github.com/conways-go/screen"
+  "github.com/araddon/gou"
+  "net/http"
+  "io/ioutil"
+  "os"
+  "log"
+  "encoding/json"
 )
 
-var GliderSeed = game.Generation{
-  game.Cell{Row: 2, Col: 2},
-  game.Cell{Row: 2, Col: 3},
-  game.Cell{Row: 2, Col: 4},
-  game.Cell{Row: 1, Col: 4},
-  game.Cell{Row: 0, Col: 3},
-}
-
-
 func main() {
-  g := game.Game{Rows: 10, Cols: 20}
-  s := screen.Screen{}
-  generation := &GliderSeed
+  g := game.Game{Rows: 500, Cols: 500}
 
-  for {
-    s.RenderGeneration(generation)
-    generation = g.NextGeneration(generation)
+  port := os.Getenv("PORT")
+  if (port == "") {
+    port = "9999"
   }
+
+  gou.SetLogger(log.New(os.Stderr, "", log.LstdFlags), "debug")
+
+  http.HandleFunc("/go", func(w http.ResponseWriter, r *http.Request) {
+    w.Header().Set("Content-Type", "application/json")
+
+    gou.Debug("POST /go")
+
+    // Get json from request
+    body, err := ioutil.ReadAll(r.Body)
+    if err != nil {
+      gou.Error("error: ", err)
+    } else {
+      gou.Debug("request body: ", string(body))
+    }
+
+    // Unmarshal to points
+    points := []game.Point{}
+    err = json.Unmarshal(body, &points)
+    if err != nil {
+      gou.Error("error: ", err)
+    }
+
+    // Create generation from points
+    current_generation := g.PointsToGeneration(&points)
+
+    // Calculate next generation
+    next_generation := g.NextGeneration(current_generation)
+
+    // Dump it to json
+    b, err := json.Marshal(next_generation)
+    if err != nil {
+      gou.Error("error: ", err)
+    }
+
+    w.Write(b)
+  })
+
+  http.Handle("/", http.FileServer(http.Dir("./public/")))
+
+  gou.Debug("listening at " + port)
+  http.ListenAndServe(":" + port, nil)
 }

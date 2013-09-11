@@ -7,9 +7,13 @@ const (
   Live
 )
 
-type Cell struct {
+type Point struct {
   Row int
   Col int
+}
+
+type Cell struct {
+  Point
   State State
 }
 
@@ -18,6 +22,14 @@ type Generation []Cell
 type Game struct {
   Rows int
   Cols int
+}
+
+func (this *Game) PointsToGeneration(points *[]Point) *Generation {
+  generation := Generation{}
+  for _, point := range *points {
+    generation = append(generation, Cell{Point: point, State: Live})
+  }
+  return &generation
 }
 
 func (this *Game) NextGeneration(g *Generation) (next_generation *Generation) {
@@ -50,7 +62,7 @@ func (this *Game) NextGeneration(g *Generation) (next_generation *Generation) {
             }
           }
           if live_arount_dead_cnt == 3 {
-            *next_generation = append(*next_generation, Cell{Row: point[0], Col: point[1], State: Live})
+            *next_generation = append(*next_generation, Cell{Point: Point{Row: point[0], Col: point[1]}, State: Live})
           }
         }
       }

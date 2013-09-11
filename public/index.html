@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>Conway's Game of Life</title>
+    <script src="./jquery-2.0.3.min.js" type="text/javascript" charset="utf-8"></script>
+    <style type="text/css" media="all">
+      html {
+        height: 100%;
+      }
+      body {
+        height: 100%;
+      }
+      #main {
+        position: relative;
+        width: 965px;
+        height: 100%;
+        margin: 0 auto; 
+        overflow: hidden;
+      }
+      .cell {
+        position: absolute;
+        display: none;
+        width: 10px;
+        height: 10px;
+        background-color: green;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript" charset="utf-8">
+      var GliderSeed = [
+        {Row: 2, Col: 1},
+        {Row: 2, Col: 2},
+        {Row: 2, Col: 3},
+        {Row: 1, Col: 3},
+        {Row: 0, Col: 2}
+      ];
+      var current_generation = GliderSeed;
+
+      function gameRound() {
+        $.post("/go", JSON.stringify(current_generation), renderNextGeneration);
+      }
+
+      function renderNextGeneration(data) {
+        $('.cell').remove();
+
+        data.forEach(function(cell) {
+            $('<div class="cell">').css({top: cell.Row * 10, left: cell.Col * 10}).appendTo($('#main')).show();
+        });
+
+        current_generation = data;
+      }
+
+      $(function() {
+          setInterval(gameRound, 1000);
+      })
+    </script>
+
+    <div id="main"></div>
+  </body>
+</html>
