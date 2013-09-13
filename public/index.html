@@ -4,26 +4,17 @@
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <title>Conway's Game of Life</title>
     <script src="./jquery-2.0.3.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="./d3.v3.min.js"></script>
     <style type="text/css" media="all">
       html {
         height: 100%;
       }
       body {
         height: 100%;
+        margin: 0 auto;
       }
-      #main {
-        position: relative;
-        width: 965px;
-        height: 100%;
-        margin: 0 auto; 
-        overflow: hidden;
-      }
-      .cell {
-        position: absolute;
-        display: none;
-        width: 10px;
-        height: 10px;
-        background-color: green;
+      rect {
+        fill: slategrey;
       }
     </style>
   </head>
@@ -97,21 +88,34 @@
 
       var current_generation = GliderSeed;
 
-      function gameRound() {
-        $.post("/go", JSON.stringify(current_generation), renderNextGeneration);
-      }
-
-      function renderNextGeneration(data) {
-        $('.cell').remove();
-
-        data.forEach(function(cell) {
-            $('<div class="cell">').css({top: cell.Row * 10, left: cell.Col * 10}).appendTo($('#main')).show();
-        });
-
-        current_generation = data;
-      }
-
       $(function() {
+          var width = 960,
+            height = 600;
+
+          var svg = d3.select("body").append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+          var gameRound = function() {
+            $.post("/go", JSON.stringify(current_generation), renderNextGeneration);
+          };
+
+          var renderNextGeneration = function(data) {
+            var rect = svg.selectAll('rect').data(data, function(d) {
+              return String(d.Row) + d.Col;
+            });
+
+            rect.enter().append('rect').
+              attr('width', 10).
+              attr('height', 10).
+              attr('y', function(d) { return d.Row * 10 }).
+              attr('x', function(d) { return d.Col * 10  });
+
+            rect.exit().remove();
+
+            current_generation = data;
+          };
+
           setInterval(gameRound, 500);
 
           $('#seed').change(function() {
@@ -120,13 +124,11 @@
       })
     </script>
 
-    <div id="main">
-      <select id="seed">
-        <option value="glider" selected>Glider</option>
-        <option value="gospers_glider_gun">Gosper's Glider Gun</option>
-        <option value="diehard">Diehard</option>
-        <option value="beacon">Beacon</option>
-      </select>
-    </div>
+    <select id="seed">
+      <option value="glider" selected>Glider</option>
+      <option value="gospers_glider_gun">Gosper's Glider Gun</option>
+      <option value="diehard">Diehard</option>
+      <option value="beacon">Beacon</option>
+    </select>
   </body>
 </html>
