@@ -36,6 +36,65 @@
         {Row: 1, Col: 3},
         {Row: 0, Col: 2}
       ];
+
+      var GosperGliderGun = [
+        {Row: 5, Col: 1},
+        {Row: 5, Col: 2},
+        {Row: 6, Col: 1},
+        {Row: 6, Col: 2},
+        {Row: 3, Col: 13},
+        {Row: 3, Col: 14},
+        {Row: 4, Col: 12},
+        {Row: 4, Col: 16},
+        {Row: 5, Col: 11},
+        {Row: 5, Col: 17},
+        {Row: 6, Col: 11},
+        {Row: 6, Col: 15},
+        {Row: 6, Col: 17},
+        {Row: 6, Col: 18},
+        {Row: 7, Col: 11},
+        {Row: 7, Col: 17},
+        {Row: 8, Col: 12},
+        {Row: 8, Col: 16},
+        {Row: 9, Col: 13},
+        {Row: 9, Col: 14},
+        {Row: 1, Col: 25},
+        {Row: 2, Col: 23},
+        {Row: 2, Col: 25},
+        {Row: 3, Col: 21},
+        {Row: 3, Col: 22},
+        {Row: 4, Col: 21},
+        {Row: 4, Col: 22},
+        {Row: 5, Col: 21},
+        {Row: 5, Col: 22},
+        {Row: 6, Col: 23},
+        {Row: 6, Col: 25},
+        {Row: 7, Col: 25},
+        {Row: 3, Col: 35},
+        {Row: 3, Col: 36},
+        {Row: 4, Col: 35},
+        {Row: 4, Col: 36}
+      ];
+
+      var diehard = [
+        {Row: 50, Col: 50},
+        {Row: 50, Col: 51},
+        {Row: 51, Col: 51},
+        {Row: 49, Col: 56},
+        {Row: 51, Col: 55},
+        {Row: 51, Col: 56},
+        {Row: 51, Col: 57},
+      ];
+
+      var beacon = [
+        {Row: 40, Col: 40},
+        {Row: 40, Col: 41},
+        {Row: 41, Col: 40},
+        {Row: 43, Col: 42},
+        {Row: 43, Col: 43},
+        {Row: 42, Col: 43},
+      ];
+
       var current_generation = GliderSeed;
 
       function gameRound() {
@@ -53,10 +112,21 @@
       }
 
       $(function() {
-          setInterval(gameRound, 1000);
+          setInterval(gameRound, 500);
+
+          $('#seed').change(function() {
+            var seed = $(this).val();
+          });
       })
     </script>
 
-    <div id="main"></div>
+    <div id="main">
+      <select id="seed">
+        <option value="glider" selected>Glider</option>
+        <option value="gospers_glider_gun">Gosper's Glider Gun</option>
+        <option value="diehard">Diehard</option>
+        <option value="beacon">Beacon</option>
+      </select>
+    </div>
   </body>
 </html>
