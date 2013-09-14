@@ -13,8 +13,13 @@
         height: 100%;
         margin: 0 auto;
       }
-      rect {
+      rect.live {
         fill: slategrey;
+      }
+      rect.dead {
+        stroke: #70DBD1;
+        stroke-width: 0.1;
+        fill: transparent;
       }
     </style>
   </head>
@@ -86,15 +91,32 @@
         {Row: 42, Col: 43},
       ];
 
-      var current_generation = GliderSeed;
+      var current_generation = GosperGliderGun;
 
       $(function() {
           var width = 960,
-            height = 600;
+            height = 600
+            cell_size = 10;
+
+          var grid = [];
+          // XXX Why swapping two fors fucks things up???
+          for (var y = 0, my = height / cell_size; y < my; y++) {
+            for (var x = 0, mx = width / cell_size; x < mx; x++) {
+              grid.push({Row: y, Col: x});
+            }
+          }
 
           var svg = d3.select("body").append("svg")
             .attr("width", width)
             .attr("height", height);
+
+          svg.selectAll('rect').data(grid)
+            .enter().append('rect')
+            .attr('width', cell_size)
+            .attr('height', cell_size)
+            .attr('class', 'dead')
+            .attr('x', function(d) { return d.Col * cell_size })
+            .attr('y', function(d) { return d.Row * cell_size })
 
           var gameRound = function() {
             $.post("/go", JSON.stringify(current_generation), renderNextGeneration);
@@ -102,33 +124,26 @@
 
           var renderNextGeneration = function(data) {
             var rect = svg.selectAll('rect').data(data, function(d) {
-              return String(d.Row) + d.Col;
+              return String(d.Row) + String(d.Col);
             });
 
-            rect.enter().append('rect').
-              attr('width', 10).
-              attr('height', 10).
-              attr('y', function(d) { return d.Row * 10 }).
-              attr('x', function(d) { return d.Col * 10  });
+            rect.attr('class', 'live')
 
-            rect.exit().remove();
+            rect.exit().attr('class', 'dead')
 
             current_generation = data;
           };
 
-          setInterval(gameRound, 500);
+          setInterval(gameRound, 100);
 
-          $('#seed').change(function() {
-            var seed = $(this).val();
-          });
       })
     </script>
 
-    <select id="seed">
-      <option value="glider" selected>Glider</option>
-      <option value="gospers_glider_gun">Gosper's Glider Gun</option>
-      <option value="diehard">Diehard</option>
-      <option value="beacon">Beacon</option>
-    </select>
+    <!-- <select id="seed"> -->
+    <!--   <option value="glider" selected>Glider</option> -->
+    <!--   <option value="gospers_glider_gun">Gosper's Glider Gun</option> -->
+    <!--   <option value="diehard">Diehard</option> -->
+    <!--   <option value="beacon">Beacon</option> -->
+    <!-- </select> -->
   </body>
 </html>

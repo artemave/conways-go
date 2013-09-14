@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-  g := game.Game{Rows: 500, Cols: 500}
+  g := game.Game{Rows: 2000, Cols: 2000}
 
   port := os.Getenv("PORT")
   if (port == "") {
