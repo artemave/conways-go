@@ -21,6 +21,9 @@
         stroke-width: 0.1;
         fill: transparent;
       }
+      rect.dead:hover {
+        fill: #CCFFFF;
+      }
     </style>
   </head>
   <body>
@@ -119,7 +122,11 @@
             .attr('y', function(d) { return d.Row * cell_size })
 
           var gameRound = function() {
-            $.post("/go", JSON.stringify(current_generation), renderNextGeneration);
+            $.post("/go", JSON.stringify(current_generation), function(data) {
+                renderNextGeneration(data);
+                current_generation = data;
+                setTimeout(gameRound, 100);
+            });
           };
 
           var renderNextGeneration = function(data) {
@@ -128,14 +135,10 @@
             });
 
             rect.attr('class', 'live')
-
             rect.exit().attr('class', 'dead')
-
-            current_generation = data;
           };
 
-          setInterval(gameRound, 100);
-
+          gameRound();
       })
     </script>
 
