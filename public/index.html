@@ -3,7 +3,6 @@
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <title>Conway's Game of Life</title>
-    <script src="./jquery-2.0.3.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="./d3.v3.min.js"></script>
     <style type="text/css" media="all">
       html {
@@ -94,52 +93,56 @@
         {Row: 42, Col: 43},
       ];
 
-      var current_generation = GosperGliderGun;
+      var width = 960,
+        height = 600
+        cell_size = 10;
 
-      $(function() {
-          var width = 960,
-            height = 600
-            cell_size = 10;
+      var grid = [];
+      // XXX Why swapping two fors fucks things up???
+      for (var y = 0, my = height / cell_size; y < my; y++) {
+        for (var x = 0, mx = width / cell_size; x < mx; x++) {
+          grid.push({Row: y, Col: x});
+        }
+      }
 
-          var grid = [];
-          // XXX Why swapping two fors fucks things up???
-          for (var y = 0, my = height / cell_size; y < my; y++) {
-            for (var x = 0, mx = width / cell_size; x < mx; x++) {
-              grid.push({Row: y, Col: x});
-            }
-          }
+      var svg = d3.select("body").append("svg")
+        .attr("width", width)
+        .attr("height", height);
 
-          var svg = d3.select("body").append("svg")
-            .attr("width", width)
-            .attr("height", height);
+      svg.selectAll('rect').data(grid)
+        .enter().append('rect')
+        .attr('width', cell_size)
+        .attr('height', cell_size)
+        .attr('class', 'dead')
+        .attr('x', function(d) { return d.Col * cell_size })
+        .attr('y', function(d) { return d.Row * cell_size })
 
-          svg.selectAll('rect').data(grid)
-            .enter().append('rect')
-            .attr('width', cell_size)
-            .attr('height', cell_size)
-            .attr('class', 'dead')
-            .attr('x', function(d) { return d.Col * cell_size })
-            .attr('y', function(d) { return d.Row * cell_size })
+      var renderNextGeneration = function(data) {
+        var rect = svg.selectAll('rect').data(data, function(d) {
+          return String(d.Row) + String(d.Col);
+        });
 
-          var gameRound = function() {
-            $.post("/go", JSON.stringify(current_generation), function(data) {
-                renderNextGeneration(data);
-                current_generation = data;
-                setTimeout(gameRound, 100);
-            });
-          };
+        rect.attr('class', 'live');
+        rect.exit().attr('class', 'dead');
+      };
 
-          var renderNextGeneration = function(data) {
-            var rect = svg.selectAll('rect').data(data, function(d) {
-              return String(d.Row) + String(d.Col);
-            });
+      var ws = new WebSocket("ws://" + window.location.host + "/go-ws");
 
-            rect.attr('class', 'live')
-            rect.exit().attr('class', 'dead')
-          };
+      ws.onopen = function() {
+        ws.send(JSON.stringify(GosperGliderGun));
+      }
 
-          gameRound();
-      })
+      ws.onclose = function(e) {
+        console.log("connection closed: ", e);
+      }
+
+      ws.onmessage = function(event) {
+        renderNextGeneration(JSON.parse(event.data));
+
+        setTimeout(function() {
+            ws.send(event.data);
+        }, 100);
+      }
     </script>
 
     <!-- <select id="seed"> -->

@@ -32,6 +32,14 @@ func (this *Game) PointsToGeneration(points *[]Point) *Generation {
   return &generation
 }
 
+func (this *Game) GenerationToPoints(generation *Generation) *[]Point {
+  points := []Point{}
+  for _, cell := range *generation {
+    points = append(points, Point{Row: cell.Row, Col: cell.Col})
+  }
+  return &points
+}
+
 func (this *Game) NextGeneration(g *Generation) (next_generation *Generation) {
 
   next_generation = &Generation{}
