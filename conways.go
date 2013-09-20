@@ -25,6 +25,8 @@ func main() {
 }
 
 func GameServerWs(ws *websocket.Conn) {
+  defer ws.Close()
+
   gou.Debug("WS /go-ws")
 
   var g = game.Game{Rows: 3000, Cols: 4000}
@@ -32,7 +34,8 @@ func GameServerWs(ws *websocket.Conn) {
   for {
     var points []game.Point
     if err := websocket.JSON.Receive(ws, &points); err != nil {
-      gou.Error("error: ", err)
+      gou.Error(err)
+      return
     } else {
       current_generation := g.PointsToGeneration(&points)
       next_generation := g.NextGeneration(current_generation)
