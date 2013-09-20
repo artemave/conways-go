@@ -1,0 +1,18 @@
+#!/bin/sh
+
+unset GIT_DIR
+
+cd ..
+
+git reset --hard
+
+echo "Restarting server ..."
+
+go build || exit
+
+killall conways-go
+./conways-go > /dev/null 2>&1 &
+
+echo "Done."
+
+exec git update-server-info
