@@ -20,6 +20,9 @@
         stroke-width: 0.1;
         fill: transparent;
       }
+      rect.new {
+        fill: #CB60E6;
+      }
       rect.dead:hover {
         fill: #CCFFFF;
       }
@@ -123,19 +126,57 @@
 
       svg.selectAll('rect').data(grid)
         .enter().append('rect')
+        .on('mousedown', startSelection)
+        .on('mousemove', addCellToSelection)
+        .on('mouseup', finishSelection)
         .attr('width', function(d) { return x(1) })
         .attr('height', function(d) { return y(1) })
         .attr('class', 'dead')
         .attr('x', function(d) { return x(d.Col) })
         .attr('y', function(d) { return y(d.Row) });
 
+      var selection = [], selection_in_progress = false;
+      function startSelection() {
+        selection_in_progress = true;
+      }
+      function addCellToSelection(data) {
+        if (selection_in_progress) {
+          d3.select(this).attr('class', 'new');
+          selection.push(data);
+        }
+      }
+      function finishSelection(data) {
+        selection_in_progress = false
+      }
+
       var renderNextGeneration = function(data) {
-        var rect = svg.selectAll('rect').data(data, function(d) {
+        var data_plus_selection = data;
+        if (!selection_in_progress && selection.length > 0) {
+          data_plus_selection = data.concat(selection);
+          selection = [];
+        }
+
+        var rect = svg.selectAll('rect').data(data_plus_selection, function(d) {
           return String(d.Row) + String(d.Col);
         });
 
-        rect.attr('class', 'live');
-        rect.exit().attr('class', 'dead');
+        var calculateLiveClass = function(d) {
+          if (selection_in_progress && d3.select(this).attr('class') == 'new') {
+            return 'new';
+          }
+          return 'live';
+        };
+        var calculateDeadClass = function(d) {
+          if (selection_in_progress && d3.select(this).attr('class') == 'new') {
+            return 'new';
+          }
+          return 'dead';
+        }
+
+        rect.attr('class', calculateLiveClass);
+        rect.exit().attr('class', calculateDeadClass);
+
+        return data_plus_selection;
       };
 
       var ws = new WebSocket("ws://" + window.location.host + "/go-ws");
@@ -149,10 +190,10 @@
       }
 
       ws.onmessage = function(event) {
-        renderNextGeneration(JSON.parse(event.data));
+        var breed = renderNextGeneration(JSON.parse(event.data));
 
         setTimeout(function() {
-            ws.send(event.data);
+            ws.send(JSON.stringify(breed));
         }, 100);
       }
     </script>
