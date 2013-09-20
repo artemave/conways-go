@@ -96,10 +96,11 @@
         {Row: 42, Col: 43},
       ];
 
+      var cells_in_row = 150;
       window.onresize = function() {
         svg.attr("width", window.innerWidth).attr("height", window.innerHeight);
 
-        x = d3.scale.linear().domain([0, 99]).rangeRound([0, window.innerWidth]);
+        x = d3.scale.linear().domain([0, cells_in_row-1]).rangeRound([0, window.innerWidth]);
         y = d3.scale.linear().domain([0, window.innerHeight / x(1)]).rangeRound([0, window.innerHeight]);
 
         svg.selectAll('rect')
@@ -109,13 +110,13 @@
           .attr('y', function(d) { return y(d.Row) });
       }
 
-      var x = d3.scale.linear().domain([0, 99]).rangeRound([0, window.innerWidth]);
+      var x = d3.scale.linear().domain([0, cells_in_row-1]).rangeRound([0, window.innerWidth]);
       var y = d3.scale.linear().domain([0, window.innerHeight / x(1)]).rangeRound([0, window.innerHeight]);
 
       var grid = [];
       // XXX Why swapping two fors fucks things up???
       for (var ey = 0; ey < window.innerHeight/x(1); ey++) {
-        for (var ex = 0; ex < 100; ex++) {
+        for (var ex = 0; ex < cells_in_row; ex++) {
           grid.push({Row: ey, Col: ex});
         }
       }
