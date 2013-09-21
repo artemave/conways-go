@@ -96,61 +96,51 @@
         {Row: 42, Col: 43},
       ];
 
-      var cells_in_row = 150;
-      window.onresize = function() {
-        svg.attr("width", window.innerWidth).attr("height", window.innerHeight);
+      var x, y, cells_in_row = 150;
 
+      function scaleXY() {
         x = d3.scale.linear().domain([0, cells_in_row-1]).rangeRound([0, window.innerWidth]);
         y = d3.scale.linear().domain([0, window.innerHeight / x(1)]).rangeRound([0, window.innerHeight]);
-
-        svg.selectAll('rect')
-          .attr('width', function(d) { return x(1) })
-          .attr('height', function(d) { return y(1) })
-          .attr('x', function(d) { return x(d.Col) })
-          .attr('y', function(d) { return y(d.Row) });
       }
-
-      var x = d3.scale.linear().domain([0, cells_in_row-1]).rangeRound([0, window.innerWidth]);
-      var y = d3.scale.linear().domain([0, window.innerHeight / x(1)]).rangeRound([0, window.innerHeight]);
-
-      var grid = [];
-      // XXX Why swapping two fors fucks things up???
-      for (var ey = 0; ey < window.innerHeight/x(1); ey++) {
-        for (var ex = 0; ex < cells_in_row; ex++) {
-          grid.push({Row: ey, Col: ex});
-        }
-      }
-
-      var svg = d3.select("body").append("svg")
-        .attr("width", window.innerWidth)
-        .attr("height", window.innerHeight);
-
-      svg.selectAll('rect').data(grid)
-        .enter().append('rect')
-        .on('mousedown', startSelection)
-        .on('mousemove', addCellToSelection)
-        .on('mouseup', finishSelection)
-        .attr('width', function(d) { return x(1) })
-        .attr('height', function(d) { return y(1) })
-        .attr('class', 'dead')
-        .attr('x', function(d) { return x(d.Col) })
-        .attr('y', function(d) { return y(d.Row) });
 
       var selection = [], selection_in_progress = false;
-      function startSelection() {
-        selection_in_progress = true;
-      }
-      function addCellToSelection(data) {
-        if (selection_in_progress) {
-          d3.select(this).attr('class', 'new');
-          selection.push(data);
+      function drawGrid(svg) {
+        scaleXY();
+
+        var grid = [];
+        // XXX Why swapping two fors fucks things up???
+        for (var ey = 0; ey < window.innerHeight/x(1); ey++) {
+          for (var ex = 0; ex < cells_in_row; ex++) {
+            grid.push({Row: ey, Col: ex});
+          }
+        }
+
+        svg.selectAll('rect').data(grid)
+          .enter().append('rect')
+          .on('mousedown', startSelection)
+          .on('mousemove', addCellToSelection)
+          .on('mouseup', finishSelection)
+          .attr('width', function(d) { return x(1) })
+          .attr('height', function(d) { return y(1) })
+          .attr('class', 'dead')
+          .attr('x', function(d) { return x(d.Col) })
+          .attr('y', function(d) { return y(d.Row) });
+
+        function startSelection() {
+          selection_in_progress = true;
+        }
+        function addCellToSelection(data) {
+          if (selection_in_progress) {
+            d3.select(this).attr('class', 'new');
+            selection.push(data);
+          }
+        }
+        function finishSelection(data) {
+          selection_in_progress = false
         }
       }
-      function finishSelection(data) {
-        selection_in_progress = false
-      }
 
-      var renderNextGeneration = function(data) {
+      function renderNextGeneration(data) {
         var data_plus_selection = data;
         if (!selection_in_progress && selection.length > 0) {
           data_plus_selection = data.concat(selection);
@@ -180,22 +170,38 @@
         return data_plus_selection;
       };
 
+      var svg = d3.select("body").append("svg")
+        .attr("width", window.innerWidth)
+        .attr("height", window.innerHeight);
+
+      drawGrid(svg);
+
       var ws = new WebSocket("ws://" + window.location.host + "/go-ws");
 
       ws.onopen = function() {
         ws.send(JSON.stringify(GosperGliderGun));
       }
-
       ws.onclose = function(e) {
         console.log("connection closed: ", e);
       }
-
       ws.onmessage = function(event) {
         var breed = renderNextGeneration(JSON.parse(event.data));
 
         setTimeout(function() {
             ws.send(JSON.stringify(breed));
         }, 100);
+      }
+
+      window.onresize = function() {
+        svg.attr("width", window.innerWidth).attr("height", window.innerHeight);
+
+        scaleXY();
+
+        svg.selectAll('rect')
+          .attr('width', function(d) { return x(1) })
+          .attr('height', function(d) { return y(1) })
+          .attr('x', function(d) { return x(d.Col) })
+          .attr('y', function(d) { return y(d.Row) });
       }
     </script>
 
