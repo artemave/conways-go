@@ -24,6 +24,13 @@ type Game struct {
   Cols int
 }
 
+func (this *Generation) AddPoints(points []Point) *Generation {
+  for _, point := range points {
+    *this = append(*this, Cell{Point: point, State: Live})
+  }
+  return this
+}
+
 func (this *Game) PointsToGeneration(points *[]Point) *Generation {
   generation := Generation{}
   for _, point := range *points {
@@ -115,4 +122,46 @@ func neighbour_cells_coords(row int, col int) (result *[8][2]int) {
   }
 
   return result
+}
+
+func GosperGliderGun() *Generation {
+  GosperGliderGun := Generation{
+    Cell{Point: Point{Row: 5, Col: 1}, State: Live},
+    Cell{Point: Point{Row: 5, Col: 2}, State: Live},
+    Cell{Point: Point{Row: 6, Col: 1}, State: Live},
+    Cell{Point: Point{Row: 6, Col: 2}, State: Live},
+    Cell{Point: Point{Row: 3, Col: 13}, State: Live},
+    Cell{Point: Point{Row: 3, Col: 14}, State: Live},
+    Cell{Point: Point{Row: 4, Col: 12}, State: Live},
+    Cell{Point: Point{Row: 4, Col: 16}, State: Live},
+    Cell{Point: Point{Row: 5, Col: 11}, State: Live},
+    Cell{Point: Point{Row: 5, Col: 17}, State: Live},
+    Cell{Point: Point{Row: 6, Col: 11}, State: Live},
+    Cell{Point: Point{Row: 6, Col: 15}, State: Live},
+    Cell{Point: Point{Row: 6, Col: 17}, State: Live},
+    Cell{Point: Point{Row: 6, Col: 18}, State: Live},
+    Cell{Point: Point{Row: 7, Col: 11}, State: Live},
+    Cell{Point: Point{Row: 7, Col: 17}, State: Live},
+    Cell{Point: Point{Row: 8, Col: 12}, State: Live},
+    Cell{Point: Point{Row: 8, Col: 16}, State: Live},
+    Cell{Point: Point{Row: 9, Col: 13}, State: Live},
+    Cell{Point: Point{Row: 9, Col: 14}, State: Live},
+    Cell{Point: Point{Row: 1, Col: 25}, State: Live},
+    Cell{Point: Point{Row: 2, Col: 23}, State: Live},
+    Cell{Point: Point{Row: 2, Col: 25}, State: Live},
+    Cell{Point: Point{Row: 3, Col: 21}, State: Live},
+    Cell{Point: Point{Row: 3, Col: 22}, State: Live},
+    Cell{Point: Point{Row: 4, Col: 21}, State: Live},
+    Cell{Point: Point{Row: 4, Col: 22}, State: Live},
+    Cell{Point: Point{Row: 5, Col: 21}, State: Live},
+    Cell{Point: Point{Row: 5, Col: 22}, State: Live},
+    Cell{Point: Point{Row: 6, Col: 23}, State: Live},
+    Cell{Point: Point{Row: 6, Col: 25}, State: Live},
+    Cell{Point: Point{Row: 7, Col: 25}, State: Live},
+    Cell{Point: Point{Row: 3, Col: 35}, State: Live},
+    Cell{Point: Point{Row: 3, Col: 36}, State: Live},
+    Cell{Point: Point{Row: 4, Col: 35}, State: Live},
+    Cell{Point: Point{Row: 4, Col: 36}, State: Live},
+  }
+  return &GosperGliderGun
 }

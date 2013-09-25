@@ -7,7 +7,14 @@ import (
   "os"
   "log"
   "code.google.com/p/go.net/websocket"
+  "time"
 )
+
+
+var g = game.Game{Rows: 3000, Cols: 4000}
+var selection = make(chan []game.Point)
+var current_generation = game.GosperGliderGun()
+var errors = make(chan error)
 
 func main() {
   gou.SetLogger(log.New(os.Stderr, "", log.LstdFlags), "debug")
@@ -29,18 +36,38 @@ func GameServerWs(ws *websocket.Conn) {
 
   gou.Debug("WS /go-ws")
 
-  var g = game.Game{Rows: 3000, Cols: 4000}
+  go Listen(ws, selection, errors)
 
+  for {
+    time.Sleep(time.Millisecond * 100)
+
+    select {
+    case points := <- selection:
+      current_generation.AddPoints(points)
+    case err := <- errors:
+      gou.Error(err)
+      return
+    default:
+    }
+
+    next_generation := g.NextGeneration(current_generation)
+    websocket.JSON.Send(ws, g.GenerationToPoints(next_generation))
+
+    current_generation = next_generation
+  }
+}
+
+func Listen(ws *websocket.Conn, selection chan []game.Point, errors chan error) {
   for {
     var points []game.Point
     if err := websocket.JSON.Receive(ws, &points); err != nil {
-      gou.Error(err)
-      return
+      errors <- err
+      break
     } else {
-      current_generation := g.PointsToGeneration(&points)
-      next_generation := g.NextGeneration(current_generation)
-
-      websocket.JSON.Send(ws, g.GenerationToPoints(next_generation))
+      for _, point := range points {
+        gou.Debug("point from client: ", point, "\n")
+      }
+      selection <- points
     }
   }
 }

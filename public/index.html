@@ -30,71 +30,6 @@
   </head>
   <body>
     <script type="text/javascript" charset="utf-8">
-      var GliderSeed = [
-        {Row: 2, Col: 1},
-        {Row: 2, Col: 2},
-        {Row: 2, Col: 3},
-        {Row: 1, Col: 3},
-        {Row: 0, Col: 2}
-      ];
-
-      var GosperGliderGun = [
-        {Row: 5, Col: 1},
-        {Row: 5, Col: 2},
-        {Row: 6, Col: 1},
-        {Row: 6, Col: 2},
-        {Row: 3, Col: 13},
-        {Row: 3, Col: 14},
-        {Row: 4, Col: 12},
-        {Row: 4, Col: 16},
-        {Row: 5, Col: 11},
-        {Row: 5, Col: 17},
-        {Row: 6, Col: 11},
-        {Row: 6, Col: 15},
-        {Row: 6, Col: 17},
-        {Row: 6, Col: 18},
-        {Row: 7, Col: 11},
-        {Row: 7, Col: 17},
-        {Row: 8, Col: 12},
-        {Row: 8, Col: 16},
-        {Row: 9, Col: 13},
-        {Row: 9, Col: 14},
-        {Row: 1, Col: 25},
-        {Row: 2, Col: 23},
-        {Row: 2, Col: 25},
-        {Row: 3, Col: 21},
-        {Row: 3, Col: 22},
-        {Row: 4, Col: 21},
-        {Row: 4, Col: 22},
-        {Row: 5, Col: 21},
-        {Row: 5, Col: 22},
-        {Row: 6, Col: 23},
-        {Row: 6, Col: 25},
-        {Row: 7, Col: 25},
-        {Row: 3, Col: 35},
-        {Row: 3, Col: 36},
-        {Row: 4, Col: 35},
-        {Row: 4, Col: 36}
-      ];
-
-      var diehard = [
-        {Row: 50, Col: 50},
-        {Row: 50, Col: 51},
-        {Row: 51, Col: 51},
-        {Row: 49, Col: 56},
-        {Row: 51, Col: 55},
-        {Row: 51, Col: 56},
-        {Row: 51, Col: 57},
-      ];
-
-      var beacon = [
-        {Row: 40, Col: 40},
-        {Row: 40, Col: 41},
-        {Row: 41, Col: 40},
-        {Row: 43, Col: 42},
-        {Row: 43, Col: 43},
-        {Row: 42, Col: 43},
-      ];
 
       var x, y, cells_in_row = 150;
 
@@ -141,13 +76,7 @@
       }
 
       function renderNextGeneration(data) {
-        var data_plus_selection = data;
-        if (!selection_in_progress && selection.length > 0) {
-          data_plus_selection = data.concat(selection);
-          selection = [];
-        }
-
-        var rect = svg.selectAll('rect').data(data_plus_selection, function(d) {
+        var rect = svg.selectAll('rect').data(data, function(d) {
           return String(d.Row) + String(d.Col);
         });
 
@@ -166,8 +95,6 @@
 
         rect.attr('class', calculateLiveClass);
         rect.exit().attr('class', calculateDeadClass);
-
-        return data_plus_selection;
       };
 
       var svg = d3.select("body").append("svg")
@@ -178,18 +105,13 @@
 
       var ws = new WebSocket("ws://" + window.location.host + "/go-ws");
 
-      ws.onopen = function() {
-        ws.send(JSON.stringify(GosperGliderGun));
-      }
-      ws.onclose = function(e) {
-        console.log("connection closed: ", e);
-      }
       ws.onmessage = function(event) {
-        var breed = renderNextGeneration(JSON.parse(event.data));
+        renderNextGeneration(JSON.parse(event.data));
 
-        setTimeout(function() {
-            ws.send(JSON.stringify(breed));
-        }, 100);
+        if (!selection_in_progress && selection.length > 0) {
+          ws.send(JSON.stringify(selection));
+          selection = [];
+        }
       }
 
       window.onresize = function() {
