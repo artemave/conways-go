@@ -66,7 +66,7 @@
         }
         function addCellToSelection(data) {
           if (selection_in_progress) {
-            d3.select(this).attr('class', 'new');
+            this.setAttribute('class', 'new');
             selection.push(data);
           }
         }
@@ -75,23 +75,32 @@
         }
       }
 
+      function cell_is_being_drawn(elem) {
+        return selection_in_progress && elem.getAttribute('class') == 'new'
+      };
+
+      function calculateLiveClass(d) {
+        if (cell_is_being_drawn(this)) {
+          return 'new';
+        }
+        return 'live';
+      };
+
+      function calculateDeadClass(d) {
+        if (cell_is_being_drawn(this)) {
+          return 'new';
+        }
+        return 'dead';
+      };
+
+      function cantors_pairing(a, b) {
+        return 0.5 * (a + b) * (a + b + 1) + b;
+      };
+
       function renderNextGeneration(data) {
         var rect = svg.selectAll('rect').data(data, function(d) {
-          return String(d.Row) + String(d.Col);
+            return cantors_pairing(d.Row, d.Col);
         });
-
-        var calculateLiveClass = function(d) {
-          if (selection_in_progress && d3.select(this).attr('class') == 'new') {
-            return 'new';
-          }
-          return 'live';
-        };
-        var calculateDeadClass = function(d) {
-          if (selection_in_progress && d3.select(this).attr('class') == 'new') {
-            return 'new';
-          }
-          return 'dead';
-        }
 
         rect.attr('class', calculateLiveClass);
         rect.exit().attr('class', calculateDeadClass);
