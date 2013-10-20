@@ -3,138 +3,16 @@
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <title>Conway's Game of Life</title>
-    <script src="./d3.v3.min.js"></script>
     <style type="text/css" media="all">
-      html {
-        height: 100%;
-      }
-      body {
-        height: 100%;
-        margin: 0 auto;
-      }
-      rect.live {
-        fill: slategrey;
-      }
-      rect.dead {
-        stroke: #70DBD1;
-        stroke-width: 0.1;
-        fill: transparent;
-      }
-      rect.new {
-        fill: #CB60E6;
-      }
-      rect.dead:hover {
-        fill: #CCFFFF;
+      #container {
+        height: 400px;
+        width: 600px;
       }
     </style>
   </head>
   <body>
-    <script type="text/javascript" charset="utf-8">
-
-      var x, y, cells_in_row = 150;
-
-      function scaleXY() {
-        x = d3.scale.linear().domain([0, cells_in_row-1]).rangeRound([0, window.innerWidth]);
-        y = d3.scale.linear().domain([0, window.innerHeight / x(1)]).rangeRound([0, window.innerHeight]);
-      }
-
-      var selection = [], selection_in_progress = false;
-      function drawGrid(svg) {
-        scaleXY();
-
-        var grid = [];
-        // XXX Why swapping two fors fucks things up???
-        for (var ey = 0; ey < window.innerHeight/x(1); ey++) {
-          for (var ex = 0; ex < cells_in_row; ex++) {
-            grid.push({Row: ey, Col: ex});
-          }
-        }
-
-        svg.selectAll('rect').data(grid)
-          .enter().append('rect')
-          .on('mousedown', startSelection)
-          .on('mousemove', addCellToSelection)
-          .on('mouseup', finishSelection)
-          .attr('width', function(d) { return x(1) })
-          .attr('height', function(d) { return y(1) })
-          .attr('class', 'dead')
-          .attr('x', function(d) { return x(d.Col) })
-          .attr('y', function(d) { return y(d.Row) });
-
-        function startSelection() {
-          selection_in_progress = true;
-        }
-        function addCellToSelection(data) {
-          if (selection_in_progress) {
-            this.setAttribute('class', 'new');
-            selection.push(data);
-          }
-        }
-        function finishSelection(data) {
-          selection_in_progress = false
-        }
-      }
-
-      function cell_is_being_drawn(elem) {
-        return selection_in_progress && elem.getAttribute('class') == 'new'
-      };
-
-      function calculateLiveClass(d) {
-        if (cell_is_being_drawn(this)) {
-          return 'new';
-        }
-        return 'live';
-      };
-
-      function calculateDeadClass(d) {
-        if (cell_is_being_drawn(this)) {
-          return 'new';
-        }
-        return 'dead';
-      };
-
-      function cantors_pairing(a, b) {
-        return 0.5 * (a + b) * (a + b + 1) + b;
-      };
-
-      function renderNextGeneration(data) {
-        var rect = svg.selectAll('rect').data(data, function(d) {
-            return cantors_pairing(d.Row, d.Col);
-        });
-
-        rect.attr('class', calculateLiveClass);
-        rect.exit().attr('class', calculateDeadClass);
-      };
-
-      var svg = d3.select("body").append("svg")
-        .attr("width", window.innerWidth)
-        .attr("height", window.innerHeight);
-
-      drawGrid(svg);
-
-      var ws = new WebSocket("ws://" + window.location.host + "/go-ws");
-
-      ws.onmessage = function(event) {
-        renderNextGeneration(JSON.parse(event.data));
-
-        if (!selection_in_progress && selection.length > 0) {
-          ws.send(JSON.stringify(selection));
-          selection = [];
-        }
-      }
-
-      window.onresize = function() {
-        svg.attr("width", window.innerWidth).attr("height", window.innerHeight);
-
-        scaleXY();
-
-        svg.selectAll('rect')
-          .attr('width', function(d) { return x(1) })
-          .attr('height', function(d) { return y(1) })
-          .attr('x', function(d) { return x(d.Col) })
-          .attr('y', function(d) { return y(d.Row) });
-      }
-    </script>
-
+    <div id="container"></div>
   </body>
+  <script src="three.min.js"></script>
+  <script src="app.js"></script>
 </html>
