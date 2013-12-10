@@ -11,7 +11,9 @@ init camera () =
   c
 
 init scene () =
-  @new THREE.Scene
+  scene = @new THREE.Scene
+  scene.fog = @new THREE.FogExp2( 0xcccccc, 0.002 )
+  scene
 
 init controls (camera) =
   c = @new THREE.Trackball controls(camera)
@@ -32,9 +34,10 @@ init controls (camera) =
   c
 
 init renderer () =
-  r = @new THREE.WebGL renderer
-  r.set size (WIDTH, HEIGHT)
-  r
+  renderer = @new THREE.WebGL renderer
+  renderer.setClearColor( scene.fog.color, 1 )
+  renderer.setSize( window.innerWidth, window.innerHeight )
+  renderer
 
 add light (scene) =
   point light = @new THREE.Point light(0xFFFFFF)
@@ -67,6 +70,13 @@ animate () =
 render () =
   renderer.render(scene, camera)
 
+on window resize () =
+  camera.aspect = window.inner width / window.inner height
+  camera.updateProjectionMatrix()
+  renderer.setSize( window.innerWidth, window.innerHeight )
+  controls.handleResize()
+  render()
+
 camera   = init camera ()
 scene    = init scene ()
 controls = init controls (camera)
@@ -81,6 +91,8 @@ container.append child (renderer.dom element)
 animate ()
 
 ws = @new Web socket "ws://#(window.location.host)/go-ws"
+
+window.addEventListener( 'resize', onWindowResize, false )
 
 ws.onmessage (event) =
   generation = JSON.parse(event.data)
