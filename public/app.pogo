@@ -7,9 +7,12 @@ init camera () =
   c.position.z = 300
   c
 
+add lights (scene) =
+  light = @new THREE.AmbientLight( 0xCCCCFF )
+  scene.add(light)
+
 init scene () =
   scene = @new THREE.Scene
-  scene.fog = @new THREE.FogExp2( 0xcccccc, 0.002 )
   scene
 
 init controls (camera) =
@@ -32,51 +35,46 @@ init controls (camera) =
 
 init renderer () =
   renderer = @new THREE.WebGL renderer
-  renderer.setClearColor( scene.fog.color, 1 )
   renderer.setSize( window.innerWidth, window.innerHeight )
   renderer
-
-add lights (scene) =
-  light = @new THREE.Point light(0xFFFFFF)
-  light.position.x = 10
-  light.position.y = 50
-  light.position.z = 130
-  scene.add (light)
-
-  light := @new THREE.DirectionalLight( 0x002288 )
-  light.position.set( -1, -1, -1 )
-  scene.add( light )
-
-  light := @new THREE.AmbientLight( 0x222222 )
-  scene.add( light )
 
 cantors pairing (a,b) =
   0.5 * (a + b) * (a + b + 1) + b
 
 init grid (scene) =
   grid = {}
-  cube material = @new THREE.Mesh lambert material(
-    color: 0xCC0000
+  cube material = @new THREE.Mesh phong material(
+    ambient: 0x555555
+    transparent: true
+    opacity: 0.6
+    color: 0x555555
+    specular: 0xffffff
+    shininess: 50
+    shading: THREE.SmoothShading
   )
-  for (x = 0, x < window.inner width / 2, x := x + 10)
-    for (y = 0, y < window.inner height / 2, y := y + 10)
+  for (x = 0, x < window.inner width / 4, x := x + 10)
+    for (y = 0, y < window.inner height / 4, y := y + 10)
       cube = @new THREE.Mesh(
-        @new THREE.Cube geometry(5, 5, 5)
+        @new THREE.Cube geometry(6, 6, 2)
         cube material
       )
-      cube.position.x = x - window.inner width / 4
-      cube.position.y = window.inner height / 4 - y
-      cube.position.z = 0
-      cube.updateMatrix()
+      cube x = x - window.inner width / 8
+      cube y = window.inner height / 8 - y
+      cube.position.set(cube x, cube y, 0)
       cube.matrixAutoUpdate = false
+      cube.updateMatrix()
       scene.add (cube)
-      grid.(cantors pairing (x/10, y/10)) = cube
+
+      grid.(cantors pairing (x/10, y/10)) = {
+        cube = cube
+      }
 
   grid
 
 
 animate () =
   request animation frame (animate)
+  render()
   controls.update()
 
 render () =
@@ -89,8 +87,30 @@ on window resize () =
   controls.handleResize()
   render()
 
-render generation (generation) =
-  1
+render next (generation) =
+  for @(key) in (grid)
+    lights on = false
+
+    for each @(point) in (generation)
+      if (Number(key) == cantors pairing (point.Col, point.Row))
+        if (!grid.(key).light)
+          cube = grid.(key).cube
+
+          light = @new THREE.Spot light(0xffff00)
+          light.position.set((cube.position.x) + 3, (cube.position.y) + 3, 40)
+          light.angle = Math.PI/12
+          light.exponent = 90
+          light.intensity = 2
+          light.target = cube
+
+          scene.add (light)
+          grid.(key).light = light
+
+        lights on := true
+
+    if (!lights on && (grid.(key).light))
+      scene.remove (grid.(key).light)
+      delete (grid.(key).light)
 
 camera   = init camera ()
 scene    = init scene ()
