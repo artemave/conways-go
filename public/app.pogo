@@ -74,7 +74,7 @@ init grid (scene) =
 
 animate () =
   request animation frame (animate)
-  render()
+  render next (generation)
   controls.update()
 
 render () =
@@ -93,7 +93,9 @@ render next (generation) =
 
     for each @(point) in (generation)
       if (Number(key) == cantors pairing (point.Col, point.Row))
-        if (!grid.(key).light)
+        if (grid.(key).light)
+          grid.(key).light.intensity = 2
+        else
           cube = grid.(key).cube
 
           light = @new THREE.Spot light(0xffff00)
@@ -103,14 +105,14 @@ render next (generation) =
           light.intensity = 2
           light.target = cube
 
+          console.log (light)
           scene.add (light)
           grid.(key).light = light
 
         lights on := true
 
     if (!lights on && (grid.(key).light))
-      scene.remove (grid.(key).light)
-      delete (grid.(key).light)
+      grid.(key).light.intensity = 0
 
 camera   = init camera ()
 scene    = init scene ()
@@ -118,6 +120,7 @@ controls = init controls (camera)
 renderer = init renderer ()
 add lights (scene)
 grid = init grid (scene)
+generation = []
 
 container = document.get element by id "container"
 container.append child (renderer.dom element)
@@ -129,5 +132,4 @@ ws = @new Web socket "ws://#(window.location.host)/go-ws"
 window.addEventListener( 'resize', onWindowResize, false )
 
 ws.onmessage (event) =
-  generation = JSON.parse(event.data)
-  render next (generation)
+  generation := JSON.parse(event.data)
