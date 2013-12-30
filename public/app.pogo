@@ -35,7 +35,7 @@ init controls (camera) =
 
 init renderer () =
   renderer = @new THREE.WebGL renderer
-  renderer.setSize( window.innerWidth, window.innerHeight )
+  renderer.set size (window.innerWidth, window.innerHeight)
   renderer
 
 cantors pairing (a,b) =
@@ -43,23 +43,21 @@ cantors pairing (a,b) =
 
 init grid (scene) =
   grid = {}
-  cube material = @new THREE.Mesh phong material(
-    ambient: 0x555555
-    transparent: true
-    opacity: 0.6
-    color: 0x555555
-    specular: 0xffffff
-    shininess: 50
-    shading: THREE.SmoothShading
-  )
-  for (x = 0, x < window.inner width / 4, x := x + 10)
-    for (y = 0, y < window.inner height / 4, y := y + 10)
+  for (x = 0, x < window.inner width / 3, x := x + 10)
+    for (y = 0, y < window.inner height / 3, y := y + 10)
+      cube material = @new THREE.Mesh phong material(
+        ambient: 0x555555
+        transparent: true
+        opacity: 0.6
+        shininess: 50
+        shading: THREE.SmoothShading
+      )
       cube = @new THREE.Mesh(
         @new THREE.Cube geometry(6, 6, 2)
         cube material
       )
-      cube x = x - window.inner width / 8
-      cube y = window.inner height / 8 - y
+      cube x = x - window.inner width / 6
+      cube y = window.inner height / 6 - y
       cube.position.set(cube x, cube y, 0)
       cube.matrixAutoUpdate = false
       cube.updateMatrix()
@@ -76,6 +74,7 @@ animate () =
   request animation frame (animate)
   render next (generation)
   controls.update()
+  render ()
 
 render () =
   renderer.render(scene, camera)
@@ -89,30 +88,18 @@ on window resize () =
 
 render next (generation) =
   for @(key) in (grid)
-    lights on = false
+    hit = false
+    cube = grid.(key).cube
 
     for each @(point) in (generation)
       if (Number(key) == cantors pairing (point.Col, point.Row))
-        if (grid.(key).light)
-          grid.(key).light.intensity = 2
-        else
-          cube = grid.(key).cube
+        cube.material.ambient.setHex(0xffff00)
+        hit := true
 
-          light = @new THREE.Spot light(0xffff00)
-          light.position.set((cube.position.x) + 3, (cube.position.y) + 3, 40)
-          light.angle = Math.PI/12
-          light.exponent = 90
-          light.intensity = 2
-          light.target = cube
+    if (! hit)
+      cube.material.ambient.setHex(0x555555)
 
-          console.log (light)
-          scene.add (light)
-          grid.(key).light = light
-
-        lights on := true
-
-    if (!lights on && (grid.(key).light))
-      grid.(key).light.intensity = 0
+    cube.geometry.colorsNeedUpdate = true
 
 camera   = init camera ()
 scene    = init scene ()
