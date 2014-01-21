@@ -1,3 +1,10 @@
+non hit specular = 0x3498db
+non hit color = 0x8e44ad
+non hit emissive = 0x34495e
+hit specular = 0xf39c12
+hit color = 0xd35400
+hit emissive = 0xc0392b
+
 init camera () =
   far          = 10000
   near         = 0.1
@@ -8,8 +15,12 @@ init camera () =
   c
 
 add lights (scene) =
-  light = @new THREE.AmbientLight( 0xCCCCFF )
+  light = @new THREE.AmbientLight( 0x222222 )
   scene.add(light)
+  directional light = @new THREE.Directional light 0xffffff, 0.2
+  directional light.position.set 0 0 1000
+  directional light.target.position.copy( scene.position )
+  scene.add(directional light)
 
 init scene () =
   scene = @new THREE.Scene
@@ -34,7 +45,7 @@ init controls (camera) =
   c
 
 init renderer () =
-  renderer = @new THREE.WebGL renderer
+  renderer = @new THREE.WebGL renderer(antialias: true)
   renderer.set size (window.innerWidth, window.innerHeight)
   renderer
 
@@ -46,10 +57,12 @@ init grid (scene) =
   for (x = 0, x < window.inner width / 3, x := x + 10)
     for (y = 0, y < window.inner height / 3, y := y + 10)
       cube material = @new THREE.Mesh phong material(
-        ambient: 0x555555
+        specular: (non hit specular)
+        color: (non hit color)
+        emissive: (non hit emissive)
         transparent: true
-        opacity: 0.6
-        shininess: 50
+        opacity: 0.7
+        shininess: 200
         shading: THREE.SmoothShading
       )
       cube = @new THREE.Mesh(
@@ -93,11 +106,15 @@ render next (generation) =
 
     for each @(point) in (generation)
       if (Number(key) == cantors pairing (point.Col, point.Row))
-        cube.material.ambient.setHex(0xffff00)
+        cube.material.specular.set hex (hit specular)
+        cube.material.color.set hex (hit specular)
+        cube.material.emissive.set hex (hit emissive)
         hit := true
 
     if (! hit)
-      cube.material.ambient.setHex(0x555555)
+      cube.material.specular.set hex (non hit specular)
+      cube.material.color.set hex (non hit color)
+      cube.material.emissive.set hex (non hit emissive)
 
     cube.geometry.colorsNeedUpdate = true
 
