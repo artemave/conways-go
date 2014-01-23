@@ -1,0 +1,24 @@
+{
+  "name": "conways-go",
+  "version": "0.0.0",
+  "description": "Learning golang: Conway's Game of Life",
+  "main": "app.js",
+  "dependencies": {
+    "browserify": "*",
+    "d3": "*"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/artemave/conways-go.git"
+  },
+  "author": "",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/artemave/conways-go/issues"
+  },
+  "homepage": "https://github.com/artemave/conways-go"
+}
