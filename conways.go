@@ -1,41 +1,40 @@
 package main
 
 import (
-  "github.com/artemave/conways-go/comm"
-  "github.com/araddon/gou"
-  "net/http"
-  "os"
-  "log"
-  "code.google.com/p/go.net/websocket"
+	"code.google.com/p/go.net/websocket"
+	"github.com/araddon/gou"
+	"github.com/artemave/conways-go/comm"
+	"log"
+	"net/http"
+	"os"
 )
 
-
 func main() {
-  gou.SetLogger(log.New(os.Stderr, "", log.LstdFlags), "debug")
+	gou.SetLogger(log.New(os.Stderr, "", log.LstdFlags), "debug")
 
-  port := os.Getenv("PORT")
-  if (port == "") {
-    port = "9999"
-  }
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "9999"
+	}
 
-  server := comm.NewServer()
+	server := comm.NewServer()
 
-  go server.ServeTheGame()
+	go server.ServeTheGame()
 
-  http.Handle("/go-ws", websocket.Handler(func(ws *websocket.Conn) {
-    client := comm.NewClient(ws, server)
-    gou.Debug("Connected: ", client.Id())
+	http.Handle("/go-ws", websocket.Handler(func(ws *websocket.Conn) {
+		client := comm.NewClient(ws, server)
+		gou.Debug("Connected: ", client.Id())
 
-    client.ListenAndServeBackToWebClient()
+		client.ListenAndServeBackToWebClient()
 
-    defer func() {
-      ws.Close()
-      gou.Debug("Diconnected: ", client.Id())
-    }()
-  }))
+		defer func() {
+			ws.Close()
+			gou.Debug("Diconnected: ", client.Id())
+		}()
+	}))
 
-  http.Handle("/", http.FileServer(http.Dir("./public/")))
+	http.Handle("/public/", http.FileServer(http.Dir("./")))
 
-  gou.Debug("listening at " + port)
-  http.ListenAndServe(":" + port, nil)
+	gou.Debug("listening at " + port)
+	http.ListenAndServe(":"+port, nil)
 }

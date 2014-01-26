@@ -17,7 +17,7 @@ function Grid(svg, window, cells_in_row) {
     if (cell_is_being_drawn(this)) {
       return 'new';
     }
-    return 'live';
+    return 'player' + d.PlayerId + ' live';
   };
 
   function calculateDeadClass(d) {
