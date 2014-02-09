@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/araddon/gou"
-	"github.com/artemave/conways-go/comm"
 	"github.com/artemave/conways-go/routes"
 	"log"
 	"net/http"
@@ -12,11 +11,7 @@ import (
 func main() {
 	gou.SetLogger(log.New(os.Stderr, "", log.LstdFlags), "debug")
 
-	server := comm.NewServer()
-
-	go server.ServeTheGame()
-
-	routes.InitRoutes(server)
+	routes.RegisterRoutes()
 
 	port := os.Getenv("PORT")
 	if port == "" {
