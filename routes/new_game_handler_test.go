@@ -35,10 +35,4 @@ var _ = Describe("NewGameHandler", func() {
 		resp.Body.Close()
 		Expect(string(body)).To(MatchRegexp("public/bundle.js"))
 	})
-
-	Context("Creating new game", func() {
-	})
-
-	Context("Joining existing game", func() {
-	})
 })

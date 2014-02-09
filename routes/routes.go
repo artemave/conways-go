@@ -1,7 +1,7 @@
 package routes
 
 import (
-	// "code.google.com/p/go.net/websocket"
+	"code.google.com/p/go.net/websocket"
 	// "github.com/araddon/gou"
 	// "github.com/artemave/conways-go/comm"
 	"net/http"
@@ -26,6 +26,8 @@ func RegisterRoutes() {
 
 	http.HandleFunc("/", StartNewGameHandler)
 	http.HandleFunc("/games/", NewGameHandler)
+	http.Handle("/games/handshake", websocket.Handler(GameHandshakeHandler))
+	/* http.Handle("/games/play", websocket.Handler(GamePlayHandler)) */
 
 	http.Handle("/public/", http.FileServer(http.Dir("./")))
 }
