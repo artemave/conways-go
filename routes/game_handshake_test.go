@@ -1,31 +1,46 @@
 package routes_test
 
 import (
+	"code.google.com/p/go.net/websocket"
 	. "github.com/artemave/conways-go/dependencies/ginkgo"
 	. "github.com/artemave/conways-go/dependencies/gomega"
-	. "github.com/artemave/conways-go/routes"
-	// "io/ioutil"
-	/* "net/http" */
-	"code.google.com/p/go.net/websocket"
+	"github.com/artemave/conways-go/routes"
+	"github.com/artemave/conways-go/testhelpers"
 	"net/http/httptest"
 	"net/url"
 )
 
+type mockGame struct {
+	gameReadyness chan bool
+}
+
+func (this *mockGame) AddPlayer(*routes.Player) {
+	this.gameReadyness <- true
+}
+
 var _ = Describe("GameHandshakeHandler", func() {
-	RegisterRoutes()
 
 	Context("New game", func() {
 		It("tells web client to wait", func() {
-			ws := wsRequest("/handshake/games/123")
+			ws := wsRequest("/games/handshake/123")
 			defer ws.Close()
 
 			output := justRead(ws)
-			Expect(output).To(Equal("{\"handshake\": \"wait\"}"))
+			Expect(output).To(Equal("{\"handshake\":\"wait\"}"))
 		})
 	})
 
 	Context("Existing game", func() {
 		It("tells all web clients to join the game", func() {
+			defer testhelpers.Patch(routes.FindOrCreateGameById, func(id string) *mockGame {
+				return &mockGame{}
+			}).Restore()
+
+			ws := wsRequest("/games/handshake/123")
+			defer ws.Close()
+
+			output := justRead(ws)
+			Expect(output).To(Equal("{\"handshake\":\"ready\"}"))
 		})
 	})
 })
@@ -45,11 +60,11 @@ func wsRequest(path string) *websocket.Conn {
 	return ws
 }
 
-func justRead(ws *websocket.Conn) []byte {
+func justRead(ws *websocket.Conn) string {
 	msg := make([]byte, 512)
 	n, err := ws.Read(msg)
 	if err != nil {
 		panic("Read: " + err.Error())
 	}
-	return msg[0:n]
+	return string(msg[0:n])
 }

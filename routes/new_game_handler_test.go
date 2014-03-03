@@ -3,7 +3,6 @@ package routes_test
 import (
 	. "github.com/artemave/conways-go/dependencies/ginkgo"
 	. "github.com/artemave/conways-go/dependencies/gomega"
-	. "github.com/artemave/conways-go/routes"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -11,7 +10,6 @@ import (
 
 var _ = Describe("NewGameHandler", func() {
 	server := httptest.NewServer(nil)
-	RegisterRoutes()
 
 	Describe("StartNewGameHandler", func() {
 		It("redirects from root to new game url", func() {
