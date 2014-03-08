@@ -8,29 +8,79 @@ import (
 type Player struct{}
 
 type Game struct {
-	gameReadyness chan bool
+	Id        string
+	GameReady chan bool
+	Players   []*Player
 }
 
-func (g *Game) AddPlayer(p *Player) error {
-	return nil
+func NewGame(id string) *Game {
+	game := &Game{
+		Id:        id,
+		GameReady: make(chan bool),
+		Players:   []*Player{},
+	}
+	return game
 }
 
-func FindOrCreateGameById(id string) *Game {
-	return &Game{}
+func (g *Game) AddPlayer(p *Player) {
+	g.Players = append(g.Players, p)
+	go func() {
+		if len(g.Players) >= 2 {
+			g.GameReady <- true
+		} else {
+			g.GameReady <- false
+		}
+	}()
 }
+
+type GamesRepo struct {
+	GetGame       chan string
+	GetGameResult chan *Game
+	Games         []*Game
+}
+
+func NewGamesRepo() *GamesRepo {
+	gr := &GamesRepo{
+		Games:         []*Game{},
+		GetGame:       make(chan string),
+		GetGameResult: make(chan *Game),
+	}
+
+	go func() {
+		for {
+			id := <-gr.GetGame
+			for i := 0; i < len(gr.Games); i++ {
+				if gr.Games[i].Id == id {
+					gr.GetGameResult <- gr.Games[i]
+					break
+				}
+			}
+			newGame := NewGame(id)
+			gr.Games = append(gr.Games, newGame)
+			gr.GetGameResult <- newGame
+		}
+	}()
+	return gr
+}
+
+func (gr *GamesRepo) FindOrCreateGameById(id string) *Game {
+	gr.GetGame <- id
+	game := <-gr.GetGameResult
+	return game
+}
+
+var gamesRepo = NewGamesRepo()
 
 func GameHandshakeHandler(ws *websocket.Conn) {
 	re := regexp.MustCompile("[^/]+$")
 	id := re.FindString(ws.Request().URL.Path)
-	game := FindOrCreateGameById(id)
+	game := gamesRepo.FindOrCreateGameById(id)
 
 	game.AddPlayer(&Player{})
 
 	for {
 		// fired after number of players changes
-		isGameReady := <-game.gameReadyness
-
-		if isGameReady {
+		if <-game.GameReady {
 			websocket.JSON.Send(ws, map[string]string{"handshake": "ready"})
 			break
 		} else {
