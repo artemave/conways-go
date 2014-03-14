@@ -1,22 +1,21 @@
 package routes_test
 
 import (
-  "code.google.com/p/go.net/websocket"
   . "github.com/artemave/conways-go/dependencies/ginkgo"
   . "github.com/artemave/conways-go/dependencies/gomega"
+  "github.com/gorilla/websocket"
   "net/http/httptest"
-  "net/url"
 )
 
 var _ = Describe("GameHandshakeHandler", func() {
 
   Context("New game", func() {
     It("tells web client to wait", func() {
-      ws := wsRequest("/games/handshake/123")
+      ws := wsRequest("/games/handshake/122")
       defer ws.Close()
 
       output := justRead(ws)
-      Expect(output).To(Equal("{\"handshake\":\"wait\"}"))
+      Expect(output["handshake"]).To(Equal("wait"))
     })
   })
 
@@ -35,31 +34,30 @@ var _ = Describe("GameHandshakeHandler", func() {
       defer ws.Close()
 
       output := justRead(ws)
-      Expect(output).To(Equal("{\"handshake\":\"ready\"}"))
+      Expect(output["handshake"]).To(Equal("ready"))
     })
   })
 })
 
+var server = httptest.NewServer(nil)
+
 func wsRequest(path string) *websocket.Conn {
-  server := httptest.NewServer(nil)
-  u, err := url.Parse(server.URL)
-
+  ws, _, err := websocket.DefaultDialer.Dial(httpToWs(server.URL+path), nil)
   if err != nil {
-    panic(err)
-  }
-
-  ws, err := websocket.Dial("ws://"+u.Host+path, "", server.URL)
-  if err != nil {
-    panic(err)
+    panic("Dial() returned error " + err.Error())
   }
   return ws
 }
 
-func justRead(ws *websocket.Conn) string {
-  msg := make([]byte, 512)
-  n, err := ws.Read(msg)
+func justRead(ws *websocket.Conn) map[string]string {
+  var output map[string]string
+  err := ws.ReadJSON(&output)
   if err != nil {
-    panic("Read: " + err.Error())
+    panic(err)
   }
-  return string(msg[0:n])
+  return output
+}
+
+func httpToWs(u string) string {
+  return "ws" + u[len("http"):]
 }

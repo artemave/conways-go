@@ -1,33 +1,32 @@
 package routes
 
 import (
-	"code.google.com/p/go.net/websocket"
-	// "github.com/araddon/gou"
-	// "github.com/artemave/conways-go/comm"
-	"net/http"
+  // "github.com/araddon/gou"
+  // "github.com/artemave/conways-go/comm"
+  "net/http"
 )
 
 func RegisterRoutes() {
-	// server := comm.NewServer()
+  // server := comm.NewServer()
 
-	// go server.ServeTheGame()
+  // go server.ServeTheGame()
 
-	// http.Handle("/go-ws", websocket.Handler(func(ws *websocket.Conn) {
-	// 	client := comm.NewClient(ws, server)
-	// 	gou.Debug("Connected: ", client.Id())
+  // http.Handle("/go-ws", websocket.Handler(func(ws *websocket.Conn) {
+  // 	client := comm.NewClient(ws, server)
+  // 	gou.Debug("Connected: ", client.Id())
 
-	// 	client.ListenAndServeBackToWebClient()
+  // 	client.ListenAndServeBackToWebClient()
 
-	// 	defer func() {
-	// 		ws.Close()
-	// 		gou.Debug("Diconnected: ", client.Id())
-	// 	}()
-	// }))
+  // 	defer func() {
+  // 		ws.Close()
+  // 		gou.Debug("Diconnected: ", client.Id())
+  // 	}()
+  // }))
 
-	http.HandleFunc("/", StartNewGameHandler)
-	http.HandleFunc("/games/", NewGameHandler)
-	http.Handle("/games/handshake/", websocket.Handler(GameHandshakeHandler))
-	/* http.Handle("/games/play", websocket.Handler(GamePlayHandler)) */
+  http.HandleFunc("/", StartNewGameHandler)
+  http.HandleFunc("/games/", NewGameHandler)
+  http.HandleFunc("/games/handshake/", GameHandshakeHandler)
+  /* http.Handle("/games/play", websocket.Handler(GamePlayHandler)) */
 
-	http.Handle("/public/", http.FileServer(http.Dir("./")))
+  http.Handle("/public/", http.FileServer(http.Dir("./")))
 }
