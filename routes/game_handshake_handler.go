@@ -1,6 +1,7 @@
 package routes
 
 import (
+  "errors"
   "github.com/araddon/gou"
   "github.com/gorilla/websocket"
   "net/http"
@@ -31,7 +32,11 @@ func NewGame(id string) *Game {
   return game
 }
 
-func (g *Game) AddPlayer(p *Player) {
+func (g *Game) AddPlayer(p *Player) error {
+  if len(g.Players) >= 2 {
+    return errors.New("Game has already reached maximum number players")
+  }
+
   g.Players = append(g.Players, p)
   go func() {
     for _, p := range g.Players {
@@ -42,6 +47,7 @@ func (g *Game) AddPlayer(p *Player) {
       }
     }
   }()
+  return nil
 }
 
 type GamesRepo struct {
@@ -60,15 +66,21 @@ func NewGamesRepo() *GamesRepo {
   go func() {
     for {
       id := <-gr.GetGame
-      for i := 0; i < len(gr.Games); i++ {
-        if gr.Games[i].Id == id {
-          gr.GetGameResult <- gr.Games[i]
+      found := false
+
+      for _, game := range gr.Games {
+        if game.Id == id {
+          gr.GetGameResult <- game
+          found = true
           break
         }
       }
-      newGame := NewGame(id)
-      gr.Games = append(gr.Games, newGame)
-      gr.GetGameResult <- newGame
+
+      if !found {
+        newGame := NewGame(id)
+        gr.Games = append(gr.Games, newGame)
+        gr.GetGameResult <- newGame
+      }
     }
   }()
   return gr
@@ -98,13 +110,17 @@ func GameHandshakeHandler(w http.ResponseWriter, r *http.Request) {
   game := gamesRepo.FindOrCreateGameById(id)
 
   player := NewPlayer()
-  game.AddPlayer(player)
+  err = game.AddPlayer(player)
+
+  if err != nil {
+    ws.WriteJSON(map[string]string{"handshake": "game_taken"})
+    return
+  }
 
   for {
     // fired after number of players changes
     if <-player.GameReady {
       ws.WriteJSON(map[string]string{"handshake": "ready"})
-      break
     } else {
       ws.WriteJSON(map[string]string{"handshake": "wait"})
     }

@@ -3,11 +3,16 @@ package routes_test
 import (
   . "github.com/artemave/conways-go/dependencies/ginkgo"
   . "github.com/artemave/conways-go/dependencies/gomega"
+  . "github.com/artemave/conways-go/routes"
   "github.com/gorilla/websocket"
   "net/http/httptest"
 )
 
 var _ = Describe("GameHandshakeHandler", func() {
+
+  BeforeEach(func() {
+    TestGameRepo.Empty()
+  })
 
   Context("New game", func() {
     It("tells web client to wait", func() {
@@ -24,17 +29,41 @@ var _ = Describe("GameHandshakeHandler", func() {
 
     BeforeEach(func() {
       firstWs = wsRequest("/games/handshake/123")
+      justRead(firstWs)
     })
     AfterEach(func() {
       firstWs.Close()
     })
 
-    It("tells all web clients to join the game", func() {
-      ws := wsRequest("/games/handshake/123")
-      defer ws.Close()
+    Context("second client", func() {
+      It("tells all web clients to join the game", func() {
+        ws := wsRequest("/games/handshake/123")
+        defer ws.Close()
 
-      output := justRead(ws)
-      Expect(output["handshake"]).To(Equal("ready"))
+        output := justRead(ws)
+        Expect(output["handshake"]).To(Equal("ready"))
+        output = justRead(firstWs)
+        Expect(output["handshake"]).To(Equal("ready"))
+      })
+    })
+
+    Context("third client", func() {
+      var secondWs *websocket.Conn
+
+      BeforeEach(func() {
+        secondWs = wsRequest("/games/handshake/123")
+      })
+      AfterEach(func() {
+        secondWs.Close()
+      })
+
+      It("tells web client that the game has already started", func() {
+        ws := wsRequest("/games/handshake/123")
+        defer ws.Close()
+
+        output := justRead(ws)
+        Expect(output["handshake"]).To(Equal("game_taken"))
+      })
     })
   })
 })
