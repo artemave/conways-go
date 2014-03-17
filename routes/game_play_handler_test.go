@@ -8,7 +8,7 @@ import (
   "net/http/httptest"
 )
 
-var _ = Describe("GameHandshakeHandler", func() {
+var _ = Describe("GamePlayHandler", func() {
 
   BeforeEach(func() {
     TestGameRepo.Empty()
@@ -16,7 +16,7 @@ var _ = Describe("GameHandshakeHandler", func() {
 
   Context("New game", func() {
     It("tells web client to wait", func() {
-      ws := wsRequest("/games/handshake/122")
+      ws := wsRequest("/games/play/122")
       defer ws.Close()
 
       output := justRead(ws)
@@ -28,7 +28,7 @@ var _ = Describe("GameHandshakeHandler", func() {
     var firstWs *websocket.Conn
 
     BeforeEach(func() {
-      firstWs = wsRequest("/games/handshake/123")
+      firstWs = wsRequest("/games/play/123")
       justRead(firstWs)
     })
     AfterEach(func() {
@@ -37,7 +37,7 @@ var _ = Describe("GameHandshakeHandler", func() {
 
     Context("second client", func() {
       It("tells all web clients to join the game", func() {
-        ws := wsRequest("/games/handshake/123")
+        ws := wsRequest("/games/play/123")
         defer ws.Close()
 
         output := justRead(ws)
@@ -51,14 +51,14 @@ var _ = Describe("GameHandshakeHandler", func() {
       var secondWs *websocket.Conn
 
       BeforeEach(func() {
-        secondWs = wsRequest("/games/handshake/123")
+        secondWs = wsRequest("/games/play/123")
       })
       AfterEach(func() {
         secondWs.Close()
       })
 
       It("tells web client that the game has already started", func() {
-        ws := wsRequest("/games/handshake/123")
+        ws := wsRequest("/games/play/123")
         defer ws.Close()
 
         output := justRead(ws)

@@ -25,8 +25,7 @@ func RegisterRoutes() {
 
   http.HandleFunc("/", StartNewGameHandler)
   http.HandleFunc("/games/", NewGameHandler)
-  http.HandleFunc("/games/handshake/", GameHandshakeHandler)
-  /* http.Handle("/games/play", websocket.Handler(GamePlayHandler)) */
+  http.HandleFunc("/games/play/", GamePlayHandler)
 
   http.Handle("/public/", http.FileServer(http.Dir("./")))
 }
