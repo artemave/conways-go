@@ -65,6 +65,18 @@ var _ = Describe("GamePlayHandler", func() {
         Expect(output["handshake"]).To(Equal("game_taken"))
       })
     })
+
+    Describe("second client disconnects", func() {
+      It("tells first client to wait", func() {
+        ws := wsRequest("/games/play/123")
+        ws.Close()
+
+        // ready message after second client connected
+        output := justRead(firstWs)
+        output = justRead(firstWs)
+        Expect(output["handshake"]).To(Equal("wait"))
+      })
+    })
   })
 })
 
