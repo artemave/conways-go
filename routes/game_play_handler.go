@@ -2,7 +2,6 @@ package routes
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"regexp"
 
@@ -42,8 +41,6 @@ func (g *Game) AddPlayer(p *Player) error {
 	if len(g.Players) >= 2 {
 		return errors.New("Game has already reached maximum number players")
 	}
-
-	fmt.Printf("AddPlayer: %s\n", p.Id)
 	g.Players = append(g.Players, p)
 	go func() {
 		for _, p := range g.Players {
@@ -60,16 +57,13 @@ func (g *Game) AddPlayer(p *Player) error {
 func (self *Game) RemovePlayer(p *Player) error {
 	for i, player := range self.Players {
 		if *player.Id == *p.Id {
-			fmt.Printf("Remove player: %s\n", p.Id)
 			self.Players = append(self.Players[:i], self.Players[i+1:]...)
 
 			go func() {
 				for _, p := range self.Players {
 					if len(self.Players) >= 2 {
-						fmt.Printf("%s\n", "true")
 						p.GameReady <- true
 					} else {
-						fmt.Printf("%s\n", "false")
 						p.GameReady <- false
 					}
 				}
@@ -81,45 +75,25 @@ func (self *Game) RemovePlayer(p *Player) error {
 }
 
 type GamesRepo struct {
-	GetGame       chan string
-	GetGameResult chan *Game
-	Games         []*Game
+	Games []*Game
 }
 
 func NewGamesRepo() *GamesRepo {
 	gr := &GamesRepo{
-		Games:         []*Game{},
-		GetGame:       make(chan string),
-		GetGameResult: make(chan *Game),
+		Games: []*Game{},
 	}
-
-	go func() {
-		for {
-			id := <-gr.GetGame
-			found := false
-
-			for _, game := range gr.Games {
-				if game.Id == id {
-					gr.GetGameResult <- game
-					found = true
-					break
-				}
-			}
-
-			if !found {
-				newGame := NewGame(id)
-				gr.Games = append(gr.Games, newGame)
-				gr.GetGameResult <- newGame
-			}
-		}
-	}()
 	return gr
 }
 
 func (gr *GamesRepo) FindOrCreateGameById(id string) *Game {
-	gr.GetGame <- id
-	game := <-gr.GetGameResult
-	return game
+	for _, game := range gr.Games {
+		if game.Id == id {
+			return game
+		}
+	}
+	newGame := NewGame(id)
+	gr.Games = append(gr.Games, newGame)
+	return newGame
 }
 
 var gamesRepo = NewGamesRepo()
@@ -164,14 +138,11 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 		case ready := <-player.GameReady:
 			// fired after number of players changes
 			if ready {
-				fmt.Printf("Player %s, ready\n", player.Id)
 				ws.WriteJSON(map[string]string{"handshake": "ready"})
 			} else {
-				fmt.Printf("Player %s, wait\n", player.Id)
 				ws.WriteJSON(map[string]string{"handshake": "wait"})
 			}
 		case <-disconnected:
-			fmt.Printf("Player %s disconnected\n", player.Id)
 			return
 		}
 	}
