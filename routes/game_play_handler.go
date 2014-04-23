@@ -85,6 +85,7 @@ func NewGamesRepo() *GamesRepo {
 	return gr
 }
 
+// FIXME this is not thread-safe
 func (gr *GamesRepo) FindOrCreateGameById(id string) *Game {
 	for _, game := range gr.Games {
 		if game.Id == id {
