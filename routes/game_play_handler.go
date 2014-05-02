@@ -3,10 +3,10 @@ package routes
 import (
 	"errors"
 	"net/http"
-	"regexp"
 
 	"github.com/araddon/gou"
 	"github.com/artemave/conways-go/dependencies/gouuid"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
 
@@ -110,8 +110,11 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ws.Close()
 
-	re := regexp.MustCompile("[^/]+$")
-	id := re.FindString(r.URL.Path)
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	gou.Debug("/games/%v", id)
+
 	game := gamesRepo.FindOrCreateGameById(id)
 
 	player := NewPlayer()

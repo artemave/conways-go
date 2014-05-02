@@ -1,11 +1,15 @@
 package routes
 
 import (
-	"github.com/artemave/conways-go/dependencies/gouuid"
 	"net/http"
+
+	"github.com/araddon/gou"
+	"github.com/artemave/conways-go/dependencies/gouuid"
 )
 
 func StartNewGameHandler(w http.ResponseWriter, req *http.Request) {
+	gou.Debug("/")
+
 	u, err := uuid.NewV4()
 	if err != nil {
 		panic(err)
@@ -14,5 +18,7 @@ func StartNewGameHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func NewGameHandler(w http.ResponseWriter, req *http.Request) {
-	http.ServeFile(w, req, "../public/index.html")
+	gou.Debug("/games/")
+
+	http.ServeFile(w, req, "./public/index.html")
 }
