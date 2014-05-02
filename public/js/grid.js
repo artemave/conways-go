@@ -43,6 +43,14 @@ function Grid(svg, window, cells_in_row) {
     }
   }
 
+  self.show = function() {
+    self.svg.style('visibility', 'visible')
+  }
+
+  self.hide = function() {
+    self.svg.style('visibility', 'hidden')
+  }
+
   self.hasSelectionToSend = function(callback) {
     if (!self.selection_in_progress && self.selection.length > 0) {
       callback(self.selection)
