@@ -1,17 +1,17 @@
 package main
 
 import (
-	"github.com/araddon/gou"
-	"github.com/artemave/conways-go/routes"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/araddon/gou"
 )
 
 func main() {
 	gou.SetLogger(log.New(os.Stderr, "", log.LstdFlags), "debug")
 
-	routes.RegisterRoutes()
+	RegisterRoutes()
 
 	port := os.Getenv("PORT")
 	if port == "" {

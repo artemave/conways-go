@@ -1,6 +1,7 @@
-package routes_test
+package main_test
 
 import (
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	. "github.com/artemave/conways-go/dependencies/ginkgo"
@@ -21,18 +22,16 @@ var _ = Describe("NewGameHandler", func() {
 		})
 	})
 
-	// commented out because it serves static file and server can only find it if run from project root
-	//
-	// It("returns html/javascript for the browser to kick off websocket session", func() {
-	// 	resp, err := http.Get(server.URL)
-	// 	if err != nil {
-	// 		Fail(err.Error())
-	// 	}
-	// 	body, err := ioutil.ReadAll(resp.Body)
-	// 	if err != nil {
-	// 		Fail(err.Error())
-	// 	}
-	// 	defer resp.Body.Close()
-	// 	Expect(string(body)).To(MatchRegexp("public/bundle.js"))
-	// })
+	It("returns html/javascript for the browser to kick off websocket session", func() {
+		resp, err := http.Get(server.URL)
+		if err != nil {
+			Fail(err.Error())
+		}
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			Fail(err.Error())
+		}
+		defer resp.Body.Close()
+		Expect(string(body)).To(MatchRegexp("public/bundle.js"))
+	})
 })
