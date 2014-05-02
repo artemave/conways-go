@@ -1,0 +1,4 @@
+conways-go
+*.test
+node_modules/
+public/bundle.js
