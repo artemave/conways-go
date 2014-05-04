@@ -1,7 +1,7 @@
 d3   = require 'd3'
 $    = require 'jquery'
 Grid = require './grid'
-_ = require './when'
+require './when'
 
 game id = window.location.pathname.split "/".pop()
 ws = @new Web socket "ws://#(window.location.host)/games/play/#(game id)"
@@ -19,15 +19,15 @@ window.onresize () =
 ws.onmessage (event) = 
   msg = JSON.parse(event.data)
 
-  _.when (msg.handshake) [
-    _.is 'ready'
+  when (msg.handshake) [
+    is 'ready'
       $'#waiting_for_players'.fade out
         grid.show()
 
-    _.is 'wait'
+    is 'wait'
       grid.hide()
       $'#waiting_for_players'.fade in()
 
-    _.otherwise
+    otherwise
       console.log("Bad ws response:", event.data)
   ]
