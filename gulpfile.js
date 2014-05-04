@@ -17,6 +17,8 @@ gulp.task('scripts', function() {
       errorHandler: onError
     }))
     .pipe(browserify({
+      transform: ['pogoify'],
+      extensions: ['.pogo'],
       insertGlobals: true
     }))
     .pipe(concat('bundle.js'))
