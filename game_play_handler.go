@@ -5,53 +5,81 @@ import (
 	"net/http"
 
 	"github.com/araddon/gou"
+	"github.com/artemave/conways-go/conway"
 	"github.com/artemave/conways-go/dependencies/gouuid"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
 
-type Player struct {
-	GameReady chan bool
-	Id        *uuid.UUID
+type GameServerMessage struct {
+	Id   *uuid.UUID
+	Data interface{}
 }
 
-func NewPlayer() *Player {
+func NewGameServerMessage(v interface{}) *GameServerMessage {
+	u4, _ := uuid.NewV4()
+	msg := &GameServerMessage{
+		Id:   u4,
+		Data: v,
+	}
+	return msg
+}
+
+type Player struct {
+	GameServerMessage chan *GameServerMessage
+	GameData          chan *conway.Generation
+	Id                *uuid.UUID
+	Game              *Game
+}
+
+func NewPlayer(game *Game) *Player {
 	u4, _ := uuid.NewV4()
 	player := &Player{
-		GameReady: make(chan bool),
-		Id:        u4,
+		Id:                u4,
+		Game:              game,
+		GameServerMessage: make(chan *GameServerMessage),
 	}
 	return player
 }
 
+func (self *Player) MessageAcknowledged(msgId *uuid.UUID) {
+	self.Game.MessageAcknowledged <- msgId
+}
+
 type Game struct {
-	Id      string
-	Players []*Player
+	Id                  string
+	Players             []*Player
+	MessageAcknowledged chan *uuid.UUID
 }
 
 func NewGame(id string) *Game {
 	game := &Game{
-		Id:      id,
-		Players: []*Player{},
+		Id:                  id,
+		Players:             []*Player{},
+		MessageAcknowledged: make(chan *uuid.UUID),
 	}
+	go func() {
+		<-game.MessageAcknowledged
+	}()
 	return game
 }
 
-func (g *Game) AddPlayer(p *Player) error {
+func (g *Game) AddPlayer() (*Player, error) {
 	if len(g.Players) >= 2 {
-		return errors.New("Game has already reached maximum number players")
+		return &Player{}, errors.New("Game has already reached maximum number players")
 	}
+	p := NewPlayer(g)
 	g.Players = append(g.Players, p)
+
+	msg := NewGameServerMessage(len(g.Players) >= 2)
+
 	go func() {
 		for _, p := range g.Players {
-			if len(g.Players) >= 2 {
-				p.GameReady <- true
-			} else {
-				p.GameReady <- false
-			}
+			p.GameServerMessage <- msg
 		}
 	}()
-	return nil
+
+	return p, nil
 }
 
 func (self *Game) RemovePlayer(p *Player) error {
@@ -59,15 +87,14 @@ func (self *Game) RemovePlayer(p *Player) error {
 		if *player.Id == *p.Id {
 			self.Players = append(self.Players[:i], self.Players[i+1:]...)
 
+			msg := NewGameServerMessage(len(self.Players) >= 2)
+
 			go func() {
 				for _, p := range self.Players {
-					if len(self.Players) >= 2 {
-						p.GameReady <- true
-					} else {
-						p.GameReady <- false
-					}
+					p.GameServerMessage <- msg
 				}
 			}()
+
 			return nil
 		}
 	}
@@ -117,8 +144,7 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 
 	game := gamesRepo.FindOrCreateGameById(id)
 
-	player := NewPlayer()
-	err = game.AddPlayer(player)
+	player, err := game.AddPlayer()
 
 	if err != nil {
 		ws.WriteJSON(map[string]string{"handshake": "game_taken"})
@@ -139,13 +165,30 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		select {
-		case ready := <-player.GameReady:
-			// fired after number of players changes
-			if ready {
-				ws.WriteJSON(map[string]string{"handshake": "ready"})
-			} else {
-				ws.WriteJSON(map[string]string{"handshake": "wait"})
+		case msg := <-player.GameServerMessage:
+
+			switch messageData := msg.Data.(type) {
+			case bool:
+				if messageData {
+					if err := ws.WriteJSON(map[string]string{"handshake": "ready"}); err != nil {
+						gou.Error("Send to user: ", err)
+						return
+					}
+				} else {
+					if err := ws.WriteJSON(map[string]string{"handshake": "wait"}); err != nil {
+						gou.Error("Send to user: ", err)
+						return
+					}
+				}
+			case *conway.Generation:
+				points := conway.GenerationToPoints(messageData)
+				if err := ws.WriteJSON(points); err != nil {
+					gou.Error("Send to user: ", err)
+					return
+				}
 			}
+
+			player.MessageAcknowledged(msg.Id)
 		case <-disconnected:
 			return
 		}

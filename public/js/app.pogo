@@ -20,13 +20,17 @@ ws.onmessage (event) =
   msg = JSON.parse(event.data)
 
   when (msg.handshake) [
+    is 'wait'
+      grid.hide()
+      $'#waiting_for_players'.fade in()
+
     is 'ready'
       $'#waiting_for_players'.fade out
         grid.show()
 
-    is 'wait'
-      grid.hide()
-      $'#waiting_for_players'.fade in()
+        grid.render next (JSON.parse(event.data.game))
+        grid.has selection to send @(selection)
+          ws.send(JSON.stringify(selection))
 
     otherwise
       console.log("Bad ws response:", event.data)
