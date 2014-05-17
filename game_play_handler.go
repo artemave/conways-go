@@ -11,94 +11,145 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type GameServerMessage struct {
-	Id   *uuid.UUID
-	Data interface{}
+type SynchronizedBroadcasterClient interface {
+	Id() *uuid.UUID
+	Inbox(*BroadcastMessage)
+	MessageAcknowledged(*uuid.UUID)
 }
 
-func NewGameServerMessage(v interface{}) *GameServerMessage {
-	u4, _ := uuid.NewV4()
-	msg := &GameServerMessage{
-		Id:   u4,
-		Data: v,
+type SynchronizedBroadcaster struct {
+	Clients []SynchronizedBroadcasterClient
+}
+
+func NewSynchronizedBroadcaster() *SynchronizedBroadcaster {
+	return &SynchronizedBroadcaster{Clients: []SynchronizedBroadcasterClient{}}
+}
+
+func (sb *SynchronizedBroadcaster) AddClient(client SynchronizedBroadcasterClient) {
+	sb.Clients = append(sb.Clients, client)
+}
+
+func (sb *SynchronizedBroadcaster) RemoveClient(client SynchronizedBroadcasterClient) error {
+
+	for i, c := range sb.Clients {
+		if c.Id() == client.Id() {
+			sb.Clients = append(sb.Clients[:i], sb.Clients[i+1:]...)
+			return nil
+		}
 	}
+
+	return errors.New("Trying to remove non existent client")
+}
+
+func (sb *SynchronizedBroadcaster) MessageAcknowledged(msgId *uuid.UUID) error {
+	return nil
+}
+
+func (sb *SynchronizedBroadcaster) NewBroadcastMessage() *BroadcastMessage {
+	u4, _ := uuid.NewV4()
+	msg := &BroadcastMessage{
+		Id:     u4,
+		Server: sb,
+	}
+	// TODO tell server that message is in progress
 	return msg
 }
 
+type BroadcastMessage struct {
+	Id     *uuid.UUID
+	Data   interface{}
+	Server *SynchronizedBroadcaster
+}
+
+func (bm *BroadcastMessage) SetData(data interface{}) {
+	bm.Data = data
+}
+
+func (bm *BroadcastMessage) Send() error {
+	for _, c := range bm.Server.Clients {
+		go c.Inbox(bm)
+	}
+	return nil
+}
+
+func (bm *BroadcastMessage) Discard() {
+	//TODO reset server's "message in progress"
+}
+
 type Player struct {
-	GameServerMessage chan *GameServerMessage
-	GameData          chan *conway.Generation
-	Id                *uuid.UUID
-	Game              *Game
+	GameServerMessages chan *BroadcastMessage
+	id                 *uuid.UUID
+	Game               *Game
 }
 
 func NewPlayer(game *Game) *Player {
 	u4, _ := uuid.NewV4()
 	player := &Player{
-		Id:                u4,
-		Game:              game,
-		GameServerMessage: make(chan *GameServerMessage),
+		id:                 u4,
+		Game:               game,
+		GameServerMessages: make(chan *BroadcastMessage),
 	}
 	return player
 }
 
-func (self *Player) MessageAcknowledged(msgId *uuid.UUID) {
-	self.Game.MessageAcknowledged <- msgId
+func (p *Player) Id() *uuid.UUID {
+	return p.id
+}
+
+func (p *Player) Inbox(msg *BroadcastMessage) {
+	p.GameServerMessages <- msg
+}
+
+func (p *Player) MessageAcknowledged(msgId *uuid.UUID) {
+	p.Game.MessageAcknowledged(msgId)
 }
 
 type Game struct {
-	Id                  string
-	Players             []*Player
-	MessageAcknowledged chan *uuid.UUID
+	Id                      string
+	SynchronizedBroadcaster *SynchronizedBroadcaster
 }
 
 func NewGame(id string) *Game {
 	game := &Game{
-		Id:                  id,
-		Players:             []*Player{},
-		MessageAcknowledged: make(chan *uuid.UUID),
+		Id: id,
+		SynchronizedBroadcaster: NewSynchronizedBroadcaster(),
 	}
-	go func() {
-		<-game.MessageAcknowledged
-	}()
 	return game
 }
 
+func (g *Game) MessageAcknowledged(msgId *uuid.UUID) {
+	g.SynchronizedBroadcaster.MessageAcknowledged(msgId)
+}
+
 func (g *Game) AddPlayer() (*Player, error) {
-	if len(g.Players) >= 2 {
+	if len(g.SynchronizedBroadcaster.Clients) >= 2 {
 		return &Player{}, errors.New("Game has already reached maximum number players")
 	}
 	p := NewPlayer(g)
-	g.Players = append(g.Players, p)
 
-	msg := NewGameServerMessage(len(g.Players) >= 2)
+	msg := g.SynchronizedBroadcaster.NewBroadcastMessage()
 
-	go func() {
-		for _, p := range g.Players {
-			p.GameServerMessage <- msg
-		}
-	}()
+	g.SynchronizedBroadcaster.AddClient(p)
+	enoughPlayersToStart := len(g.SynchronizedBroadcaster.Clients) >= 2
+
+	msg.SetData(enoughPlayersToStart)
+	msg.Send()
 
 	return p, nil
 }
 
-func (self *Game) RemovePlayer(p *Player) error {
-	for i, player := range self.Players {
-		if *player.Id == *p.Id {
-			self.Players = append(self.Players[:i], self.Players[i+1:]...)
+func (g *Game) RemovePlayer(p *Player) error {
+	msg := g.SynchronizedBroadcaster.NewBroadcastMessage()
 
-			msg := NewGameServerMessage(len(self.Players) >= 2)
-
-			go func() {
-				for _, p := range self.Players {
-					p.GameServerMessage <- msg
-				}
-			}()
-
-			return nil
-		}
+	if err := g.SynchronizedBroadcaster.RemoveClient(p); err != nil {
+		msg.Discard()
+		return errors.New("Trying to delete non-existent player")
 	}
-	return errors.New("Trying to delete non-existent player")
+
+	msg.SetData(len(g.SynchronizedBroadcaster.Clients) >= 2)
+	msg.Send()
+
+	return nil
 }
 
 type GamesRepo struct {
@@ -165,7 +216,7 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		select {
-		case msg := <-player.GameServerMessage:
+		case msg := <-player.GameServerMessages:
 
 			switch messageData := msg.Data.(type) {
 			case bool:
