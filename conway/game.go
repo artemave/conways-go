@@ -7,6 +7,14 @@ const (
 	Live
 )
 
+type Player int
+
+const (
+	None Player = iota
+	Player1
+	Player2
+)
+
 type Point struct {
 	Row int
 	Col int
@@ -14,7 +22,8 @@ type Point struct {
 
 type Cell struct {
 	Point
-	State State
+	State  State
+	Player Player
 }
 
 type Generation []Cell
@@ -24,20 +33,20 @@ type Game struct {
 	Cols int
 }
 
-func (this *Generation) AddPoints(points []Point) *Generation {
+func (this *Generation) AddPoints(points []Point, player Player) *Generation {
 	for _, point := range points {
-		*this = append(*this, Cell{Point: point, State: Live})
+		*this = append(*this, Cell{Point: point, State: Live, Player: player})
 	}
 	return this
 }
 
-func PointsToGeneration(points *[]Point) *Generation {
-	generation := Generation{}
-	for _, point := range *points {
-		generation = append(generation, Cell{Point: point, State: Live})
-	}
-	return &generation
-}
+// func PointsToGeneration(points *[]Point) *Generation {
+// 	generation := Generation{}
+// 	for _, point := range *points {
+// 		generation = append(generation, Cell{Point: point, State: Live})
+// 	}
+// 	return &generation
+// }
 
 func GenerationToPoints(generation *Generation) *[]Point {
 	points := []Point{}
@@ -58,7 +67,7 @@ func (this *Game) NextGeneration(g *Generation) (next_generation *Generation) {
 		for _, point := range neighbour_cells_coords(cell.Row, cell.Col) {
 
 			// live neighbour
-			if ThereIsCellAtPoint(point, g) {
+			if CellAtPoint(point, g) != nil {
 				live_cnt += 1
 
 				// dead neighbour
@@ -66,18 +75,27 @@ func (this *Game) NextGeneration(g *Generation) (next_generation *Generation) {
 
 				// try repopulate dead cell
 				// if we haven't done this already
-				if !ThereIsCellAtPoint(point, next_generation) {
-					live_arount_dead_cnt := 0
+				if CellAtPoint(point, next_generation) == nil {
+					live_arount_dead := []*Cell{}
 
 					// count live neighbours of dead cell
 					for _, arount_dead_point := range neighbour_cells_coords(point[0], point[1]) {
 
-						if ThereIsCellAtPoint(arount_dead_point, g) {
-							live_arount_dead_cnt += 1
+						if c := CellAtPoint(arount_dead_point, g); c != nil {
+							live_arount_dead = append(live_arount_dead, c)
 						}
 					}
-					if live_arount_dead_cnt == 3 {
-						*next_generation = append(*next_generation, Cell{Point: Point{Row: point[0], Col: point[1]}, State: Live})
+					if len(live_arount_dead) == 3 {
+						player := None
+						if live_arount_dead[0].Player == Player1 && live_arount_dead[1].Player == Player1 && live_arount_dead[2].Player == Player1 {
+							player = Player1
+						} else if live_arount_dead[0].Player == Player2 && live_arount_dead[1].Player == Player2 && live_arount_dead[2].Player == Player2 {
+							player = Player2
+						} else {
+							player = None
+						}
+
+						*next_generation = append(*next_generation, Cell{Point: Point{Row: point[0], Col: point[1]}, State: Live, Player: player})
 					}
 				}
 			}
@@ -99,14 +117,13 @@ func (this *Game) DiscardOutOfBoundsCells(next_generation *Generation) *Generati
 	return &filtered_generation
 }
 
-func ThereIsCellAtPoint(point [2]int, g *Generation) bool {
-	res := false
+func CellAtPoint(point [2]int, g *Generation) *Cell {
 	for _, cell := range *g {
 		if cell.Row == point[0] && cell.Col == point[1] {
-			res = true
+			return &cell
 		}
 	}
-	return res
+	return nil
 }
 
 func neighbour_cells_coords(row int, col int) (result *[8][2]int) {

@@ -143,3 +143,24 @@ func TestCellsDontSpreadBeyondGameBoundariesNegative(t *testing.T) {
 		t.Errorf("Actual generation: ", *ActualGen, " is not equal to expected generation: ", ExpectedGen)
 	}
 }
+
+func TestNewCellRetainsPlayer(t *testing.T) {
+	stick := Generation{
+		{Point: Point{Row: 1, Col: 1}, State: Live, Player: Player1},
+		{Point: Point{Row: 1, Col: 2}, State: Live, Player: Player1},
+		{Point: Point{Row: 1, Col: 3}, State: Live, Player: Player1},
+	}
+
+	ExpectedGen := Generation{
+		{Point: Point{Row: 0, Col: 2}, State: Live, Player: Player1},
+		{Point: Point{Row: 1, Col: 2}, State: Live, Player: Player1},
+		{Point: Point{Row: 2, Col: 2}, State: Live, Player: Player1},
+	}
+
+	game := &Game{5, 5}
+	ActualGen := game.NextGeneration(&stick)
+
+	if !ActualGen.equal(ExpectedGen) {
+		t.Errorf("Actual generation: ", *ActualGen, " is not equal to expected generation: ", ExpectedGen)
+	}
+}

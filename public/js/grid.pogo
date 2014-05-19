@@ -1,9 +1,9 @@
 d3 = require 'd3'
 
-Grid (svg, window, cells in a row: 150) =
+Grid (svg, window, columns: 150) =
   self = this
   self.svg = svg
-  self.cells in a row = cells in a row
+  self.columns = columns
   self.selection = []
   self.selection is in progress = false
   self.window = window
@@ -28,7 +28,7 @@ Grid (svg, window, cells in a row: 150) =
     0.5 * (a + b) * (a + b + 1) + b
 
   scale xy () =
-    self.x = d3.scale.linear().domain([0, self.cells in a row - 1]).rangeRound([0, self.window.innerWidth])
+    self.x = d3.scale.linear().domain([0, self.columns - 1]).rangeRound([0, self.window.innerWidth])
     self.y = d3.scale.linear().domain([0, self.window.innerHeight / self.x(1)]).rangeRound([0, self.window.innerHeight])
 
   add (cell) to selection =
@@ -66,7 +66,7 @@ Grid (svg, window, cells in a row: 150) =
   scale xy()
 
   for (ey = 0, ey < self.window.innerHeight/self.x(1), ey:=ey+1)
-    for (ex = 0, ex < self.cells in a row, ex:=ex+1)
+    for (ex = 0, ex < self.columns, ex:=ex+1)
       self.grid.push {
           Row = ey
           Col = ex

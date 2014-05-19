@@ -107,12 +107,14 @@ func (p *Player) MessageAcknowledged(msgId *uuid.UUID) {
 type Game struct {
 	Id                      string
 	SynchronizedBroadcaster *SynchronizedBroadcaster
+	Conway                  *conway.Game
 }
 
 func NewGame(id string) *Game {
 	game := &Game{
 		Id: id,
 		SynchronizedBroadcaster: NewSynchronizedBroadcaster(),
+		Conway:                  &conway.Game{Cols: 300, Rows: 200},
 	}
 	return game
 }
@@ -135,7 +137,32 @@ func (g *Game) AddPlayer() (*Player, error) {
 	msg.SetData(enoughPlayersToStart)
 	msg.Send()
 
+	if enoughPlayersToStart {
+		msg = g.SynchronizedBroadcaster.NewBroadcastMessage()
+		msg.SetData(g.NextGeneration())
+		msg.Send()
+	}
+
 	return p, nil
+}
+
+func (g *Game) NextGeneration() *conway.Generation {
+	return g.StartGeneration()
+}
+
+func (g *Game) StartGeneration() *conway.Generation {
+	// 150x100
+	return &conway.Generation{
+		{Point: conway.Point{Row: 3, Col: 3}, State: conway.Live, Player: conway.Player1},
+		{Point: conway.Point{Row: 4, Col: 3}, State: conway.Live, Player: conway.Player1},
+		{Point: conway.Point{Row: 4, Col: 4}, State: conway.Live, Player: conway.Player1},
+		{Point: conway.Point{Row: 3, Col: 4}, State: conway.Live, Player: conway.Player1},
+
+		{Point: conway.Point{Row: 95, Col: 145}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 96, Col: 145}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 96, Col: 146}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 95, Col: 146}, State: conway.Live, Player: conway.Player2},
+	}
 }
 
 func (g *Game) RemovePlayer(p *Player) error {

@@ -46,6 +46,15 @@ var _ = Describe("GamePlayHandler", func() {
 				Expect(output["handshake"]).To(Equal("ready"))
 			})
 
+			It("starts serving game to all clients", func() {
+				ws := wsRequest("/games/play/123")
+				defer ws.Close()
+
+				output := justRead(ws)
+				Expect(output["game"]).ToNot(Equal(""))
+				output = justRead(firstWs)
+				Expect(output["game"]).ToNot(Equal(""))
+			})
 		})
 
 		Context("third client", func() {
