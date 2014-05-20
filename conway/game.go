@@ -62,13 +62,14 @@ func (this *Game) NextGeneration(g *Generation) (next_generation *Generation) {
 
 	for _, cell := range *g {
 
-		live_cnt := 0
+		live_neighbours := []*Cell{}
+
 		// Go around cell neighbours
 		for _, point := range neighbour_cells_coords(cell.Row, cell.Col) {
 
 			// live neighbour
-			if CellAtPoint(point, g) != nil {
-				live_cnt += 1
+			if lc := CellAtPoint(point, g); lc != nil {
+				live_neighbours = append(live_neighbours, lc)
 
 				// dead neighbour
 			} else {
@@ -86,13 +87,18 @@ func (this *Game) NextGeneration(g *Generation) (next_generation *Generation) {
 						}
 					}
 					if len(live_arount_dead) == 3 {
+						playersAround := []Player{}
+
+						for _, lc := range live_arount_dead {
+							if lc.Player != None {
+								playersAround = append(playersAround, lc.Player)
+							}
+						}
+						playersAround = uniq_players(playersAround)
+
 						player := None
-						if live_arount_dead[0].Player == Player1 && live_arount_dead[1].Player == Player1 && live_arount_dead[2].Player == Player1 {
-							player = Player1
-						} else if live_arount_dead[0].Player == Player2 && live_arount_dead[1].Player == Player2 && live_arount_dead[2].Player == Player2 {
-							player = Player2
-						} else {
-							player = None
+						if len(playersAround) == 1 {
+							player = playersAround[0]
 						}
 
 						*next_generation = append(*next_generation, Cell{Point: Point{Row: point[0], Col: point[1]}, State: Live, Player: player})
@@ -100,11 +106,48 @@ func (this *Game) NextGeneration(g *Generation) (next_generation *Generation) {
 				}
 			}
 		}
-		if live_cnt == 2 || live_cnt == 3 {
-			*next_generation = append(*next_generation, cell)
+
+		if len(live_neighbours) == 2 || len(live_neighbours) == 3 {
+			new_cell := cell
+			players := []Player{}
+
+			for _, ln := range live_neighbours {
+				if ln.Player != None {
+					players = append(players, ln.Player)
+				}
+			}
+			players = uniq_players(players)
+
+			if cell.Player == None {
+				// only one player around - he gets to own this cell
+				if len(players) == 1 {
+					new_cell.Player = players[0]
+				}
+			} else {
+				for _, p := range players {
+					// any other players around - cell becomes neutral
+					if p != cell.Player {
+						new_cell.Player = None
+					}
+				}
+			}
+			*next_generation = append(*next_generation, new_cell)
 		}
 	}
 	return this.DiscardOutOfBoundsCells(next_generation)
+}
+
+func uniq_players(players []Player) []Player {
+	m := make(map[Player]bool)
+	for _, p := range players {
+		m[p] = true
+	}
+	res := []Player{}
+
+	for k, _ := range m {
+		res = append(res, k)
+	}
+	return res
 }
 
 func (this *Game) DiscardOutOfBoundsCells(next_generation *Generation) *Generation {

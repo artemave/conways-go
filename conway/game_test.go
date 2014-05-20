@@ -144,7 +144,7 @@ func TestCellsDontSpreadBeyondGameBoundariesNegative(t *testing.T) {
 	}
 }
 
-func TestNewCellRetainsPlayer(t *testing.T) {
+func TestRepopulatedCellRetainsPlayer(t *testing.T) {
 	stick := Generation{
 		{Point: Point{Row: 1, Col: 1}, State: Live, Player: Player1},
 		{Point: Point{Row: 1, Col: 2}, State: Live, Player: Player1},
@@ -159,6 +159,92 @@ func TestNewCellRetainsPlayer(t *testing.T) {
 
 	game := &Game{5, 5}
 	ActualGen := game.NextGeneration(&stick)
+
+	if !ActualGen.equal(ExpectedGen) {
+		t.Errorf("Actual generation: ", *ActualGen, " is not equal to expected generation: ", ExpectedGen)
+	}
+}
+
+func TestCellsBecomeNeutralIfPlayersMixed(t *testing.T) {
+	stick := Generation{
+		{Point: Point{Row: 1, Col: 1}, State: Live, Player: Player1},
+		{Point: Point{Row: 1, Col: 2}, State: Live, Player: Player1},
+		{Point: Point{Row: 1, Col: 3}, State: Live, Player: Player2},
+	}
+
+	ExpectedGen := Generation{
+		{Point: Point{Row: 0, Col: 2}, State: Live, Player: None},
+		{Point: Point{Row: 1, Col: 2}, State: Live, Player: None},
+		{Point: Point{Row: 2, Col: 2}, State: Live, Player: None},
+	}
+
+	game := &Game{5, 5}
+	ActualGen := game.NextGeneration(&stick)
+
+	if !ActualGen.equal(ExpectedGen) {
+		t.Errorf("Actual generation: ", *ActualGen, " is not equal to expected generation: ", ExpectedGen)
+	}
+}
+
+func TestResurrectedCellsAcquirePlayer(t *testing.T) {
+	stick := Generation{
+		{Point: Point{Row: 1, Col: 1}, State: Live, Player: Player1},
+		{Point: Point{Row: 1, Col: 2}, State: Live, Player: Player1},
+		{Point: Point{Row: 1, Col: 3}, State: Live, Player: Player1},
+	}
+
+	ExpectedGen := Generation{
+		{Point: Point{Row: 0, Col: 2}, State: Live, Player: Player1},
+		{Point: Point{Row: 1, Col: 2}, State: Live, Player: Player1},
+		{Point: Point{Row: 2, Col: 2}, State: Live, Player: Player1},
+	}
+
+	game := &Game{5, 5}
+	ActualGen := game.NextGeneration(&stick)
+
+	if !ActualGen.equal(ExpectedGen) {
+		t.Errorf("Actual generation: ", *ActualGen, " is not equal to expected generation: ", ExpectedGen)
+	}
+}
+
+func TestResurrectedCellsStayNeutral(t *testing.T) {
+	stick := Generation{
+		{Point: Point{Row: 1, Col: 1}, State: Live, Player: None},
+		{Point: Point{Row: 1, Col: 2}, State: Live, Player: None},
+		{Point: Point{Row: 1, Col: 3}, State: Live, Player: None},
+	}
+
+	ExpectedGen := Generation{
+		{Point: Point{Row: 0, Col: 2}, State: Live, Player: None},
+		{Point: Point{Row: 1, Col: 2}, State: Live, Player: None},
+		{Point: Point{Row: 2, Col: 2}, State: Live, Player: None},
+	}
+
+	game := &Game{5, 5}
+	ActualGen := game.NextGeneration(&stick)
+
+	if !ActualGen.equal(ExpectedGen) {
+		t.Errorf("Actual generation: ", *ActualGen, " is not equal to expected generation: ", ExpectedGen)
+	}
+}
+
+func TestNeutralLiveCellRegainedByPlayer(t *testing.T) {
+	square := Generation{
+		{Point: Point{Row: 1, Col: 1}, State: Live, Player: Player1},
+		{Point: Point{Row: 1, Col: 2}, State: Live, Player: None},
+		{Point: Point{Row: 2, Col: 2}, State: Live, Player: None},
+		{Point: Point{Row: 2, Col: 1}, State: Live, Player: None},
+	}
+
+	ExpectedGen := Generation{
+		{Point: Point{Row: 1, Col: 1}, State: Live, Player: Player1},
+		{Point: Point{Row: 1, Col: 2}, State: Live, Player: Player1},
+		{Point: Point{Row: 2, Col: 2}, State: Live, Player: Player1},
+		{Point: Point{Row: 2, Col: 1}, State: Live, Player: Player1},
+	}
+
+	game := &Game{5, 5}
+	ActualGen := game.NextGeneration(&square)
 
 	if !ActualGen.equal(ExpectedGen) {
 		t.Errorf("Actual generation: ", *ActualGen, " is not equal to expected generation: ", ExpectedGen)
