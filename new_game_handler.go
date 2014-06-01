@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/araddon/gou"
-	"github.com/artemave/conways-go/dependencies/gouuid"
+	"github.com/nu7hatch/gouuid"
 )
 
 func StartNewGameHandler(w http.ResponseWriter, req *http.Request) {

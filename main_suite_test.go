@@ -2,8 +2,8 @@ package main_test
 
 import (
 	. "github.com/artemave/conways-go"
-	. "github.com/artemave/conways-go/dependencies/ginkgo"
-	. "github.com/artemave/conways-go/dependencies/gomega"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	"testing"
 )

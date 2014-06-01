@@ -4,123 +4,56 @@ import (
 	"errors"
 	"net/http"
 
+	sb "github.com/artemave/conways-go/synchronized_broadcaster"
+
 	"github.com/araddon/gou"
 	"github.com/artemave/conways-go/conway"
-	"github.com/artemave/conways-go/dependencies/gouuid"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
+	"github.com/nu7hatch/gouuid"
 )
 
-type SynchronizedBroadcasterClient interface {
-	Id() *uuid.UUID
-	Inbox(*BroadcastMessage)
-	MessageAcknowledged(*uuid.UUID)
-}
-
-type SynchronizedBroadcaster struct {
-	Clients []SynchronizedBroadcasterClient
-}
-
-func NewSynchronizedBroadcaster() *SynchronizedBroadcaster {
-	return &SynchronizedBroadcaster{Clients: []SynchronizedBroadcasterClient{}}
-}
-
-func (sb *SynchronizedBroadcaster) AddClient(client SynchronizedBroadcasterClient) {
-	sb.Clients = append(sb.Clients, client)
-}
-
-func (sb *SynchronizedBroadcaster) RemoveClient(client SynchronizedBroadcasterClient) error {
-
-	for i, c := range sb.Clients {
-		if c.Id() == client.Id() {
-			sb.Clients = append(sb.Clients[:i], sb.Clients[i+1:]...)
-			return nil
-		}
-	}
-
-	return errors.New("Trying to remove non existent client")
-}
-
-func (sb *SynchronizedBroadcaster) MessageAcknowledged(msgId *uuid.UUID) error {
-	return nil
-}
-
-func (sb *SynchronizedBroadcaster) NewBroadcastMessage() *BroadcastMessage {
-	u4, _ := uuid.NewV4()
-	msg := &BroadcastMessage{
-		Id:     u4,
-		Server: sb,
-	}
-	// TODO tell server that message is in progress
-	return msg
-}
-
-type BroadcastMessage struct {
-	Id     *uuid.UUID
-	Data   interface{}
-	Server *SynchronizedBroadcaster
-}
-
-func (bm *BroadcastMessage) SetData(data interface{}) {
-	bm.Data = data
-}
-
-func (bm *BroadcastMessage) Send() error {
-	for _, c := range bm.Server.Clients {
-		go c.Inbox(bm)
-	}
-	return nil
-}
-
-func (bm *BroadcastMessage) Discard() {
-	//TODO reset server's "message in progress"
-}
-
 type Player struct {
-	GameServerMessages chan *BroadcastMessage
-	id                 *uuid.UUID
-	Game               *Game
+	GameServerMessages      chan sb.BroadcastMessage
+	id                      *uuid.UUID
+	SynchronizedBroadcaster *sb.SynchronizedBroadcaster
 }
 
 func NewPlayer(game *Game) *Player {
 	u4, _ := uuid.NewV4()
 	player := &Player{
-		id:                 u4,
-		Game:               game,
-		GameServerMessages: make(chan *BroadcastMessage),
+		id: u4,
+		SynchronizedBroadcaster: game.SynchronizedBroadcaster,
+		GameServerMessages:      make(chan sb.BroadcastMessage),
 	}
 	return player
 }
 
-func (p *Player) Id() *uuid.UUID {
+func (p Player) ClientId() *uuid.UUID {
 	return p.id
 }
 
-func (p *Player) Inbox(msg *BroadcastMessage) {
-	p.GameServerMessages <- msg
+func (p Player) Inbox() chan sb.BroadcastMessage {
+	return p.GameServerMessages
 }
 
-func (p *Player) MessageAcknowledged(msgId *uuid.UUID) {
-	p.Game.MessageAcknowledged(msgId)
+func (p Player) MessageAcknowledged() {
+	p.SynchronizedBroadcaster.MessageAcknowledged(p)
 }
 
 type Game struct {
 	Id                      string
-	SynchronizedBroadcaster *SynchronizedBroadcaster
+	SynchronizedBroadcaster *sb.SynchronizedBroadcaster
 	Conway                  *conway.Game
 }
 
 func NewGame(id string) *Game {
 	game := &Game{
 		Id: id,
-		SynchronizedBroadcaster: NewSynchronizedBroadcaster(),
+		SynchronizedBroadcaster: sb.NewSynchronizedBroadcaster(),
 		Conway:                  &conway.Game{Cols: 300, Rows: 200},
 	}
 	return game
-}
-
-func (g *Game) MessageAcknowledged(msgId *uuid.UUID) {
-	g.SynchronizedBroadcaster.MessageAcknowledged(msgId)
 }
 
 func (g *Game) AddPlayer() (*Player, error) {
@@ -129,18 +62,9 @@ func (g *Game) AddPlayer() (*Player, error) {
 	}
 	p := NewPlayer(g)
 
-	msg := g.SynchronizedBroadcaster.NewBroadcastMessage()
-
-	g.SynchronizedBroadcaster.AddClient(p)
 	enoughPlayersToStart := len(g.SynchronizedBroadcaster.Clients) >= 2
-
-	msg.SetData(enoughPlayersToStart)
-	msg.Send()
-
 	if enoughPlayersToStart {
-		msg = g.SynchronizedBroadcaster.NewBroadcastMessage()
-		msg.SetData(g.NextGeneration())
-		msg.Send()
+		g.SynchronizedBroadcaster.SendBroadcastMessage(enoughPlayersToStart)
 	}
 
 	return p, nil
@@ -166,15 +90,11 @@ func (g *Game) StartGeneration() *conway.Generation {
 }
 
 func (g *Game) RemovePlayer(p *Player) error {
-	msg := g.SynchronizedBroadcaster.NewBroadcastMessage()
-
 	if err := g.SynchronizedBroadcaster.RemoveClient(p); err != nil {
-		msg.Discard()
-		return errors.New("Trying to delete non-existent player")
+		return err
 	}
 
-	msg.SetData(len(g.SynchronizedBroadcaster.Clients) >= 2)
-	msg.Send()
+	g.SynchronizedBroadcaster.SendBroadcastMessage(len(g.SynchronizedBroadcaster.Clients) >= 2)
 
 	return nil
 }
@@ -266,7 +186,7 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
-			player.MessageAcknowledged(msg.Id)
+			player.MessageAcknowledged()
 		case <-disconnected:
 			return
 		}

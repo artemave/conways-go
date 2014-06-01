@@ -3,9 +3,9 @@ package main_test
 import (
 	"net/http/httptest"
 	. "github.com/artemave/conways-go"
-	. "github.com/artemave/conways-go/dependencies/ginkgo"
-	. "github.com/artemave/conways-go/dependencies/gomega"
 	"github.com/gorilla/websocket"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("GamePlayHandler", func() {

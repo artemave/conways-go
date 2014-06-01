@@ -4,8 +4,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	. "github.com/artemave/conways-go/dependencies/ginkgo"
-	. "github.com/artemave/conways-go/dependencies/gomega"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("NewGameHandler", func() {
