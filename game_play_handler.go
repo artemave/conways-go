@@ -3,24 +3,25 @@ package main
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	sb "github.com/artemave/conways-go/synchronized_broadcaster"
 
+	"code.google.com/p/go-uuid/uuid"
 	"github.com/araddon/gou"
 	"github.com/artemave/conways-go/conway"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
-	"github.com/nu7hatch/gouuid"
 )
 
 type Player struct {
 	GameServerMessages      chan sb.BroadcastMessage
-	id                      *uuid.UUID
+	id                      string
 	SynchronizedBroadcaster *sb.SynchronizedBroadcaster
 }
 
 func NewPlayer(game *Game) *Player {
-	u4, _ := uuid.NewV4()
+	u4 := uuid.New()
 	player := &Player{
 		id: u4,
 		SynchronizedBroadcaster: game.SynchronizedBroadcaster,
@@ -29,7 +30,7 @@ func NewPlayer(game *Game) *Player {
 	return player
 }
 
-func (p Player) ClientId() *uuid.UUID {
+func (p Player) ClientId() string {
 	return p.id
 }
 
@@ -38,13 +39,14 @@ func (p Player) Inbox() chan sb.BroadcastMessage {
 }
 
 func (p Player) MessageAcknowledged() {
-	p.SynchronizedBroadcaster.MessageAcknowledged(p)
+	p.SynchronizedBroadcaster.MessageAcknowledged()
 }
 
 type Game struct {
 	Id                      string
 	SynchronizedBroadcaster *sb.SynchronizedBroadcaster
 	Conway                  *conway.Game
+	stopClock               chan bool
 }
 
 func NewGame(id string) *Game {
@@ -52,6 +54,7 @@ func NewGame(id string) *Game {
 		Id: id,
 		SynchronizedBroadcaster: sb.NewSynchronizedBroadcaster(),
 		Conway:                  &conway.Game{Cols: 300, Rows: 200},
+		stopClock:               make(chan bool, 1),
 	}
 	return game
 }
@@ -62,12 +65,34 @@ func (g *Game) AddPlayer() (*Player, error) {
 	}
 	p := NewPlayer(g)
 
+	g.SynchronizedBroadcaster.AddClient(p)
+
 	enoughPlayersToStart := len(g.SynchronizedBroadcaster.Clients) >= 2
+	g.SynchronizedBroadcaster.SendBroadcastMessage(enoughPlayersToStart)
+
 	if enoughPlayersToStart {
-		g.SynchronizedBroadcaster.SendBroadcastMessage(enoughPlayersToStart)
+		g.StartClock()
 	}
 
 	return p, nil
+}
+
+func (g *Game) StartClock() {
+	go func() {
+		for {
+			select {
+			case <-g.stopClock:
+				break
+			default:
+				g.SynchronizedBroadcaster.SendBroadcastMessage(g.NextGeneration())
+				time.Sleep(1 * time.Second)
+			}
+		}
+	}()
+}
+
+func (g *Game) StopClock() {
+	g.stopClock <- true
 }
 
 func (g *Game) NextGeneration() *conway.Generation {
@@ -90,11 +115,17 @@ func (g *Game) StartGeneration() *conway.Generation {
 }
 
 func (g *Game) RemovePlayer(p *Player) error {
+	close(p.GameServerMessages)
+
 	if err := g.SynchronizedBroadcaster.RemoveClient(p); err != nil {
 		return err
 	}
+	enoughPlayersToStart := len(g.SynchronizedBroadcaster.Clients) >= 2
+	g.SynchronizedBroadcaster.SendBroadcastMessage(enoughPlayersToStart)
 
-	g.SynchronizedBroadcaster.SendBroadcastMessage(len(g.SynchronizedBroadcaster.Clients) >= 2)
+	if !enoughPlayersToStart {
+		g.StopClock()
+	}
 
 	return nil
 }
@@ -155,8 +186,16 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		for {
-			if _, _, err := ws.NextReader(); err != nil {
+			var msg map[string]interface{}
+			if err := ws.ReadJSON(&msg); err != nil {
 				disconnected <- true
+			} else {
+				switch msg["acknowledged"].(string) {
+				case "ready", "wait":
+				default:
+					panic("Unknown client message")
+				}
+				player.MessageAcknowledged()
 			}
 		}
 	}()
@@ -185,8 +224,6 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			}
-
-			player.MessageAcknowledged()
 		case <-disconnected:
 			return
 		}

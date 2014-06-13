@@ -2,7 +2,9 @@ package main_test
 
 import (
 	"net/http/httptest"
+	"time"
 	. "github.com/artemave/conways-go"
+	"github.com/artemave/conways-go/conway"
 	"github.com/gorilla/websocket"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -19,41 +21,67 @@ var _ = Describe("GamePlayHandler", func() {
 			ws := wsRequest("/games/play/122")
 			defer ws.Close()
 
-			output := justRead(ws)
+			output := justReadHandshake(ws)
 			Expect(output["handshake"]).To(Equal("wait"))
 		})
 	})
 
 	Context("Existing game", func() {
 		var firstWs *websocket.Conn
+		var secondWs *websocket.Conn
 
 		BeforeEach(func() {
 			firstWs = wsRequest("/games/play/123")
-			justRead(firstWs)
+			justReadHandshake(firstWs)
+			sendAckMessage(firstWs, "wait")
 		})
 		AfterEach(func() {
 			firstWs.Close()
 		})
 
 		Context("second client", func() {
-			It("tells all web clients to join the game", func() {
-				ws := wsRequest("/games/play/123")
-				defer ws.Close()
+			BeforeEach(func() {
+				secondWs = wsRequest("/games/play/123")
+			})
+			AfterEach(func() {
+				secondWs.Close()
+			})
 
-				output := justRead(ws)
+			It("tells all web clients to join the game", func() {
+				output := justReadHandshake(secondWs)
 				Expect(output["handshake"]).To(Equal("ready"))
-				output = justRead(firstWs)
+				output = justReadHandshake(firstWs)
 				Expect(output["handshake"]).To(Equal("ready"))
 			})
 
-			It("starts serving game to all clients", func() {
-				ws := wsRequest("/games/play/123")
-				defer ws.Close()
+			Context("all clients acknowledged ready", func() {
 
-				output := justRead(ws)
-				Expect(output["game"]).ToNot(Equal(""))
-				output = justRead(firstWs)
-				Expect(output["game"]).ToNot(Equal(""))
+				BeforeEach(func() {
+					justReadHandshake(firstWs)
+					justReadHandshake(secondWs)
+					sendAckMessage(firstWs, "ready")
+					sendAckMessage(secondWs, "ready")
+				})
+
+				It("starts serving game to all clients", func() {
+					assertGenerationOutput(firstWs)
+					assertGenerationOutput(secondWs)
+				})
+
+				Describe("second client disconnects", func() {
+					BeforeEach(func() {
+						// to prevent sending ack to closed channel
+						time.Sleep(time.Millisecond * 20)
+						secondWs.Close()
+					})
+
+					It("tells first client to wait", func() {
+						justReadGameOutput(firstWs)
+
+						output := justReadHandshake(firstWs)
+						Expect(output["handshake"]).To(Equal("wait"))
+					})
+				})
 			})
 		})
 
@@ -71,22 +99,11 @@ var _ = Describe("GamePlayHandler", func() {
 				ws := wsRequest("/games/play/123")
 				defer ws.Close()
 
-				output := justRead(ws)
+				output := justReadHandshake(ws)
 				Expect(output["handshake"]).To(Equal("game_taken"))
 			})
 		})
 
-		Describe("second client disconnects", func() {
-			It("tells first client to wait", func() {
-				ws := wsRequest("/games/play/123")
-				ws.Close()
-
-				// ready message after second client connected
-				output := justRead(firstWs)
-				output = justRead(firstWs)
-				Expect(output["handshake"]).To(Equal("wait"))
-			})
-		})
 	})
 })
 
@@ -100,13 +117,34 @@ func wsRequest(path string) *websocket.Conn {
 	return ws
 }
 
-func justRead(ws *websocket.Conn) map[string]string {
+func justReadHandshake(ws *websocket.Conn) map[string]string {
 	var output map[string]string
 	err := ws.ReadJSON(&output)
 	if err != nil {
 		panic(err)
 	}
 	return output
+}
+
+func justReadGameOutput(ws *websocket.Conn) *[]conway.Point {
+	var output *[]conway.Point
+	if err := ws.ReadJSON(&output); err != nil {
+		panic(err)
+	}
+	return output
+}
+
+func assertGenerationOutput(ws *websocket.Conn) {
+	var output *[]conway.Point
+	if err := ws.ReadJSON(&output); err != nil {
+		Fail("Expected generation output")
+	}
+}
+
+func sendAckMessage(ws *websocket.Conn, msg string) {
+	if err := ws.WriteJSON(map[string]string{"acknowledged": msg}); err != nil {
+		panic(err)
+	}
 }
 
 func httpToWs(u string) string {

@@ -3,42 +3,47 @@ package synchronized_broadcaster
 import (
 	"errors"
 
-	"github.com/nu7hatch/gouuid"
+	"code.google.com/p/go-uuid/uuid"
 )
 
 type SynchronizedBroadcasterClient interface {
-	ClientId() *uuid.UUID
+	ClientId() string
 	Inbox() chan BroadcastMessage
 }
 
 type SynchronizedBroadcaster struct {
 	Clients      []SynchronizedBroadcasterClient
 	messageQueue chan BroadcastMessage
-	messageAck   chan *uuid.UUID
+	messageAck   chan bool
 }
 
 func NewSynchronizedBroadcaster() *SynchronizedBroadcaster {
 	sb := &SynchronizedBroadcaster{
 		Clients:      []SynchronizedBroadcasterClient{},
 		messageQueue: make(chan BroadcastMessage),
-		messageAck:   make(chan *uuid.UUID),
+		messageAck:   make(chan bool, 10),
 	}
 
 	go func() {
-		for msg := range sb.messageQueue {
-			for _, c := range sb.Clients {
-				c := c
-				go func() {
-					c.Inbox() <- msg
-				}()
-			}
+		for {
+			select {
+			case <-sb.messageAck: // remove possible ack from remove client while sb was idle
+			default:
+				for msg := range sb.messageQueue {
+					for _, c := range sb.Clients {
+						c := c
+						go func() { c.Inbox() <- msg }()
+					}
 
-			ackNum := 0
-			for _ = range sb.messageAck {
-				ackNum += 1
-				if ackNum == len(sb.Clients) {
-					break
+					ackNum := 0
+					for _ = range sb.messageAck {
+						ackNum += 1
+						if ackNum >= len(sb.Clients) {
+							break
+						}
+					}
 				}
+				break
 			}
 		}
 	}()
@@ -55,7 +60,7 @@ func (sb *SynchronizedBroadcaster) RemoveClient(client SynchronizedBroadcasterCl
 	for i, c := range sb.Clients {
 		if c.ClientId() == client.ClientId() {
 			sb.Clients = append(sb.Clients[:i], sb.Clients[i+1:]...)
-			close(client.Inbox())
+			sb.messageAck <- true
 			return nil
 		}
 	}
@@ -63,12 +68,12 @@ func (sb *SynchronizedBroadcaster) RemoveClient(client SynchronizedBroadcasterCl
 	return errors.New("Trying to remove non existent client")
 }
 
-func (sb *SynchronizedBroadcaster) MessageAcknowledged(client SynchronizedBroadcasterClient) {
-	sb.messageAck <- client.ClientId()
+func (sb *SynchronizedBroadcaster) MessageAcknowledged() {
+	sb.messageAck <- true
 }
 
 func (sb *SynchronizedBroadcaster) SendBroadcastMessage(data interface{}) {
-	u4, _ := uuid.NewV4()
+	u4 := uuid.New()
 	msg := BroadcastMessage{
 		MessageId: u4,
 		Server:    sb,
@@ -79,7 +84,7 @@ func (sb *SynchronizedBroadcaster) SendBroadcastMessage(data interface{}) {
 }
 
 type BroadcastMessage struct {
-	MessageId *uuid.UUID
+	MessageId string
 	Data      interface{}
 	Server    *SynchronizedBroadcaster
 }
