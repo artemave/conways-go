@@ -46,6 +46,7 @@ type Game struct {
 	Id                      string
 	SynchronizedBroadcaster *sb.SynchronizedBroadcaster
 	Conway                  *conway.Game
+	currentGeneration       *conway.Generation
 	stopClock               chan bool
 }
 
@@ -96,22 +97,25 @@ func (g *Game) StopClock() {
 }
 
 func (g *Game) NextGeneration() *conway.Generation {
-	return g.StartGeneration()
+	if g.currentGeneration == nil {
+		g.currentGeneration = startGeneration
+	} else {
+		g.currentGeneration = g.Conway.NextGeneration(g.currentGeneration)
+	}
+	return g.currentGeneration
 }
 
-func (g *Game) StartGeneration() *conway.Generation {
-	// 150x100
-	return &conway.Generation{
-		{Point: conway.Point{Row: 3, Col: 3}, State: conway.Live, Player: conway.Player1},
-		{Point: conway.Point{Row: 4, Col: 3}, State: conway.Live, Player: conway.Player1},
-		{Point: conway.Point{Row: 4, Col: 4}, State: conway.Live, Player: conway.Player1},
-		{Point: conway.Point{Row: 3, Col: 4}, State: conway.Live, Player: conway.Player1},
+// 150x100
+var startGeneration = &conway.Generation{
+	{Point: conway.Point{Row: 3, Col: 3}, State: conway.Live, Player: conway.Player1},
+	{Point: conway.Point{Row: 4, Col: 3}, State: conway.Live, Player: conway.Player1},
+	{Point: conway.Point{Row: 4, Col: 4}, State: conway.Live, Player: conway.Player1},
+	{Point: conway.Point{Row: 3, Col: 4}, State: conway.Live, Player: conway.Player1},
 
-		{Point: conway.Point{Row: 95, Col: 145}, State: conway.Live, Player: conway.Player2},
-		{Point: conway.Point{Row: 96, Col: 145}, State: conway.Live, Player: conway.Player2},
-		{Point: conway.Point{Row: 96, Col: 146}, State: conway.Live, Player: conway.Player2},
-		{Point: conway.Point{Row: 95, Col: 146}, State: conway.Live, Player: conway.Player2},
-	}
+	{Point: conway.Point{Row: 95, Col: 145}, State: conway.Live, Player: conway.Player2},
+	{Point: conway.Point{Row: 96, Col: 145}, State: conway.Live, Player: conway.Player2},
+	{Point: conway.Point{Row: 96, Col: 146}, State: conway.Live, Player: conway.Player2},
+	{Point: conway.Point{Row: 95, Col: 146}, State: conway.Live, Player: conway.Player2},
 }
 
 func (g *Game) RemovePlayer(p *Player) error {
@@ -191,7 +195,7 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 				disconnected <- true
 			} else {
 				switch msg["acknowledged"].(string) {
-				case "ready", "wait":
+				case "ready", "wait", "game":
 				default:
 					panic("Unknown client message")
 				}
@@ -218,8 +222,7 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			case *conway.Generation:
-				points := conway.GenerationToPoints(messageData)
-				if err := ws.WriteJSON(points); err != nil {
+				if err := ws.WriteJSON(messageData); err != nil {
 					gou.Error("Send to user: ", err)
 					return
 				}

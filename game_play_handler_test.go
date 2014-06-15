@@ -14,6 +14,12 @@ var _ = Describe("GamePlayHandler", func() {
 
 	BeforeEach(func() {
 		TestGameRepo.Empty()
+
+		*TestStartGeneration = conway.Generation{
+			{Point: conway.Point{Row: 3, Col: 2}, State: conway.Live, Player: conway.Player1},
+			{Point: conway.Point{Row: 3, Col: 3}, State: conway.Live, Player: conway.Player1},
+			{Point: conway.Point{Row: 3, Col: 4}, State: conway.Live, Player: conway.Player1},
+		}
 	})
 
 	Context("New game", func() {
@@ -39,7 +45,7 @@ var _ = Describe("GamePlayHandler", func() {
 			firstWs.Close()
 		})
 
-		Context("second client", func() {
+		Context("second client connects", func() {
 			BeforeEach(func() {
 				secondWs = wsRequest("/games/play/123")
 			})
@@ -71,7 +77,7 @@ var _ = Describe("GamePlayHandler", func() {
 				Describe("second client disconnects", func() {
 					BeforeEach(func() {
 						// to prevent sending ack to closed channel
-						time.Sleep(time.Millisecond * 20)
+						time.Sleep(time.Millisecond * 10)
 						secondWs.Close()
 					})
 
@@ -82,6 +88,33 @@ var _ = Describe("GamePlayHandler", func() {
 						Expect(output["handshake"]).To(Equal("wait"))
 					})
 				})
+			})
+		})
+
+		Context("clients acknowledged game message", func() {
+			BeforeEach(func() {
+				secondWs = wsRequest("/games/play/123")
+
+				justReadHandshake(firstWs)
+				justReadHandshake(secondWs)
+
+				sendAckMessage(firstWs, "ready")
+				sendAckMessage(secondWs, "ready")
+
+				justReadGameOutput(firstWs)
+				justReadGameOutput(secondWs)
+
+				sendAckMessage(firstWs, "game")
+				sendAckMessage(secondWs, "game")
+			})
+
+			AfterEach(func() {
+				secondWs.Close()
+			})
+
+			It("sends next generation to all clients", func() {
+				assertGenerationTwo(firstWs)
+				assertGenerationTwo(secondWs)
 			})
 		})
 
@@ -126,8 +159,8 @@ func justReadHandshake(ws *websocket.Conn) map[string]string {
 	return output
 }
 
-func justReadGameOutput(ws *websocket.Conn) *[]conway.Point {
-	var output *[]conway.Point
+func justReadGameOutput(ws *websocket.Conn) *conway.Generation {
+	var output *conway.Generation
 	if err := ws.ReadJSON(&output); err != nil {
 		panic(err)
 	}
@@ -135,10 +168,25 @@ func justReadGameOutput(ws *websocket.Conn) *[]conway.Point {
 }
 
 func assertGenerationOutput(ws *websocket.Conn) {
-	var output *[]conway.Point
+	var output *conway.Generation
 	if err := ws.ReadJSON(&output); err != nil {
 		Fail("Expected generation output")
 	}
+}
+
+func assertGenerationTwo(ws *websocket.Conn) {
+	var output *conway.Generation
+	if err := ws.ReadJSON(&output); err != nil {
+		Fail("Expected generation output")
+	}
+
+	secondGeneration := &conway.Generation{
+		{Point: conway.Point{Row: 2, Col: 3}, State: conway.Live, Player: conway.Player1},
+		{Point: conway.Point{Row: 3, Col: 3}, State: conway.Live, Player: conway.Player1},
+		{Point: conway.Point{Row: 4, Col: 3}, State: conway.Live, Player: conway.Player1},
+	}
+
+	Expect(output).To(Equal(secondGeneration))
 }
 
 func sendAckMessage(ws *websocket.Conn, msg string) {
