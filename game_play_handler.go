@@ -14,6 +14,8 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+var delay = time.Duration(1000)
+
 type Player struct {
 	GameServerMessages      chan sb.BroadcastMessage
 	id                      string
@@ -86,7 +88,7 @@ func (g *Game) StartClock() {
 				break
 			default:
 				g.SynchronizedBroadcaster.SendBroadcastMessage(g.NextGeneration())
-				time.Sleep(1 * time.Second)
+				time.Sleep(delay * time.Millisecond)
 			}
 		}
 	}()

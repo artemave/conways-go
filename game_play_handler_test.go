@@ -12,6 +12,8 @@ import (
 
 var _ = Describe("GamePlayHandler", func() {
 
+	*TestDelay = time.Duration(20)
+
 	BeforeEach(func() {
 		TestGameRepo.Empty()
 
@@ -182,8 +184,8 @@ func assertGenerationTwo(ws *websocket.Conn) {
 
 	secondGeneration := &conway.Generation{
 		{Point: conway.Point{Row: 2, Col: 3}, State: conway.Live, Player: conway.Player1},
-		{Point: conway.Point{Row: 3, Col: 3}, State: conway.Live, Player: conway.Player1},
 		{Point: conway.Point{Row: 4, Col: 3}, State: conway.Live, Player: conway.Player1},
+		{Point: conway.Point{Row: 3, Col: 3}, State: conway.Live, Player: conway.Player1},
 	}
 
 	Expect(output).To(Equal(secondGeneration))

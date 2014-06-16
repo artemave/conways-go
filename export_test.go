@@ -7,3 +7,4 @@ func (self *GamesRepo) Empty() {
 }
 
 var TestStartGeneration = startGeneration
+var TestDelay = &delay
