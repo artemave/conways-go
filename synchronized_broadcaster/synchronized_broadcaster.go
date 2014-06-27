@@ -2,6 +2,7 @@ package synchronized_broadcaster
 
 import (
 	"errors"
+	"fmt"
 
 	"code.google.com/p/go-uuid/uuid"
 )
@@ -28,6 +29,7 @@ func NewSynchronizedBroadcaster() *SynchronizedBroadcaster {
 		for {
 			select {
 			case <-sb.messageAck: // remove possible ack from remove client while sb was idle
+				fmt.Printf("Rm client ack\n")
 			default:
 				for msg := range sb.messageQueue {
 					for _, c := range sb.Clients {
@@ -37,6 +39,7 @@ func NewSynchronizedBroadcaster() *SynchronizedBroadcaster {
 
 					ackNum := 0
 					for _ = range sb.messageAck {
+						fmt.Printf("Ack\n")
 						ackNum += 1
 						if ackNum >= len(sb.Clients) {
 							break
@@ -81,6 +84,7 @@ func (sb *SynchronizedBroadcaster) SendBroadcastMessage(data interface{}) {
 	}
 
 	sb.messageQueue <- msg
+	fmt.Printf("Broadcast: %s\n", msg)
 }
 
 type BroadcastMessage struct {

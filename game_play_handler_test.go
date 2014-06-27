@@ -1,6 +1,7 @@
 package main_test
 
 import (
+	"fmt"
 	"net/http/httptest"
 	"time"
 	. "github.com/artemave/conways-go"
@@ -12,7 +13,8 @@ import (
 
 var _ = Describe("GamePlayHandler", func() {
 
-	*TestDelay = time.Duration(20)
+	var clockStep int = 30
+	*TestDelay = time.Duration(clockStep)
 
 	BeforeEach(func() {
 		TestGameRepo.Empty()
@@ -79,7 +81,7 @@ var _ = Describe("GamePlayHandler", func() {
 				Describe("second client disconnects", func() {
 					BeforeEach(func() {
 						// to prevent sending ack to closed channel
-						time.Sleep(time.Millisecond * 10)
+						time.Sleep(time.Millisecond * time.Duration(clockStep-10))
 						secondWs.Close()
 					})
 
@@ -88,6 +90,36 @@ var _ = Describe("GamePlayHandler", func() {
 
 						output := justReadHandshake(firstWs)
 						Expect(output["handshake"]).To(Equal("wait"))
+					})
+
+					It("stops game broadcast", func() {
+						msgSent := make(chan bool)
+
+						justReadGameOutput(firstWs)
+						justReadHandshake(firstWs)
+
+						go func(c chan bool) {
+							defer func() {
+								if r := recover(); r != nil {
+									fmt.Println("Recovered after reading closed ws: ", r)
+								}
+							}()
+
+							justReadGameOutput(firstWs)
+							c <- true
+						}(msgSent)
+
+						sendAckMessage(firstWs, "wait")
+
+						for {
+							select {
+							case <-msgSent:
+								Fail("Expected to stop broadcasting game")
+							case <-time.After(time.Millisecond * time.Duration(clockStep+10)):
+								close(msgSent)
+								return
+							}
+						}
 					})
 				})
 			})

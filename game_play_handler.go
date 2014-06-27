@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -85,7 +86,7 @@ func (g *Game) StartClock() {
 		for {
 			select {
 			case <-g.stopClock:
-				break
+				return
 			default:
 				g.SynchronizedBroadcaster.SendBroadcastMessage(g.NextGeneration())
 				time.Sleep(delay * time.Millisecond)
@@ -124,6 +125,7 @@ func (g *Game) RemovePlayer(p *Player) error {
 	close(p.GameServerMessages)
 
 	if err := g.SynchronizedBroadcaster.RemoveClient(p); err != nil {
+		fmt.Printf("%s\n", err)
 		return err
 	}
 	enoughPlayersToStart := len(g.SynchronizedBroadcaster.Clients) >= 2
@@ -133,6 +135,7 @@ func (g *Game) RemovePlayer(p *Player) error {
 		g.StopClock()
 	}
 
+	gou.Debug("Removing player ", p.id)
 	return nil
 }
 
@@ -195,13 +198,14 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 			var msg map[string]interface{}
 			if err := ws.ReadJSON(&msg); err != nil {
 				disconnected <- true
+				return
 			} else {
 				switch msg["acknowledged"].(string) {
 				case "ready", "wait", "game":
+					player.MessageAcknowledged()
 				default:
 					panic("Unknown client message")
 				}
-				player.MessageAcknowledged()
 			}
 		}
 	}()
@@ -230,6 +234,8 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		case <-disconnected:
+			fmt.Printf("Client disconnected\n")
+			ws.Close()
 			return
 		}
 	}

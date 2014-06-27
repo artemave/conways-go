@@ -60,8 +60,10 @@ Grid (svg, window, columns: 150) =
 
     self.svg.select 'rect 'all.attr 'width' @{ self.x(1) }.
     attr 'height' @{ self.y(1) }.
-    attr 'x' @{ self.x(d.Col) }.
-    attr 'y' @{ self.y(d.Row) }
+    attr 'x' @(d)
+      self.x(d.Col)
+    .attr 'y' @(d)
+      self.y(d.Row)
 
   scale xy()
 

@@ -30,11 +30,12 @@ ws.onmessage (event) =
         grid.show()
         ws.send(JSON.stringify {"acknowledged" = "ready"})
 
-    is 'data'
       /* grid.render next (JSON.parse(event.data.game)) */
       /* grid.has selection to send @(selection) */
       /*   ws.send(JSON.stringify(selection)) */
-
     otherwise
-      console.log("Bad ws response:", event.data)
+      if (msg :: Array)
+        ws.send(JSON.stringify {"acknowledged" = "game"})
+      else
+        console.log("Bad ws response:", msg)
   ]
