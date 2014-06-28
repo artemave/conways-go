@@ -1,9 +1,10 @@
-var gulp        = require('gulp')
-var browserify  = require('gulp-browserify');
-var concat      = require('gulp-concat');
-var plumber     = require('gulp-plumber')
-var gutil       = require('gulp-util')
-var fs          = require('fs')
+var gulp       = require('gulp')
+var browserify = require('gulp-browserify');
+var sass       = require('gulp-sass')
+var concat     = require('gulp-concat');
+var plumber    = require('gulp-plumber')
+var gutil      = require('gulp-util')
+var fs         = require('fs')
 
 var onError = function (err) {
   gutil.beep();
@@ -11,8 +12,18 @@ var onError = function (err) {
   gutil.log(err)
 };
 
+gulp.task('styles', function (callback) {
+  return gulp.src('./public/css/app.scss')
+    .pipe(plumber({
+      errorHandler: onError
+    }))
+    .pipe(sass())
+    .pipe(concat('bundle.css'))
+    .pipe(gulp.dest('./public'))
+});
+
 gulp.task('scripts', function() {
-  return gulp.src('./public/js/app.js', {read: false})
+  return gulp.src('./public/js/app.pogo', {read: false})
     .pipe(plumber({
       errorHandler: onError
     }))
@@ -26,5 +37,6 @@ gulp.task('scripts', function() {
 });
 
 gulp.watch('./public/js/**', ['scripts']);
+gulp.watch('./public/css/**', ['styles']);
 
-gulp.task('default', ['scripts']);
+gulp.task('default', ['styles', 'scripts']);

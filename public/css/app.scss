@@ -1,0 +1,21 @@
+html {
+  height: 100%;
+}
+body {
+  height: 100%;
+  margin: 0 auto;
+}
+rect.live {
+  fill: slategrey;
+}
+rect.dead {
+  stroke: #70DBD1;
+  stroke-width: 0.1;
+  fill: transparent;
+}
+rect.new {
+  fill: #CB60E6;
+}
+rect.dead:hover {
+  fill: #CCFFFF;
+}

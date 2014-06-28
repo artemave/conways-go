@@ -2,3 +2,4 @@ conways-go
 *.test
 node_modules/
 public/**/*.js
+public/bundle.css
