@@ -16,7 +16,7 @@ grid = @new Grid(svg, window)
 window.onresize () =
   grid.resize()
 
-ws.onmessage (event) = 
+ws.onmessage (event) =
   msg = JSON.parse(event.data)
 
   when (msg.handshake) [
@@ -30,11 +30,11 @@ ws.onmessage (event) =
         grid.show()
         ws.send(JSON.stringify {"acknowledged" = "ready"})
 
-      /* grid.render next (JSON.parse(event.data.game)) */
       /* grid.has selection to send @(selection) */
       /*   ws.send(JSON.stringify(selection)) */
     otherwise
       if (msg :: Array)
+        grid.render next (msg)
         ws.send(JSON.stringify {"acknowledged" = "game"})
       else
         console.log("Bad ws response:", msg)

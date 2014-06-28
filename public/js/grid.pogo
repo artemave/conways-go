@@ -16,7 +16,7 @@ Grid (svg, window, columns: 150) =
     if ((this) is being drawn)
       'new'
     else
-      "player#(d.player id) live"
+      "player#(d.Player) live"
 
   calculate dead class (d) =
     if ((this) is being drawn)
@@ -50,6 +50,9 @@ Grid (svg, window, columns: 150) =
   self.render next (generation) =
     rect = self.svg.select 'rect' all.data (generation) @(d)
       cantors pairing (d.Row, d.Col)
+
+    rect.attr('class', calculate live class)
+    rect.exit().attr('class', calculate dead class)
 
   self.resize () =
     self.svg.

@@ -36,7 +36,7 @@ gulp.task('scripts', function() {
     .pipe(gulp.dest('./public'))
 });
 
-gulp.watch('./public/js/**', ['scripts']);
+gulp.watch('./public/js/**/*.pogo', ['scripts']);
 gulp.watch('./public/css/**', ['styles']);
 
 gulp.task('default', ['styles', 'scripts']);
