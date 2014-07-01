@@ -64,6 +64,13 @@ var _ = Describe("GamePlayHandler", func() {
 				Expect(output["handshake"]).To(Equal("ready"))
 			})
 
+			It("tells all web clients their player number", func() {
+				output := justReadHandshake(firstWs)
+				Expect(output["player"]).To(Equal("1"))
+				output = justReadHandshake(secondWs)
+				Expect(output["player"]).To(Equal("2"))
+			})
+
 			Context("all clients acknowledged ready", func() {
 
 				BeforeEach(func() {

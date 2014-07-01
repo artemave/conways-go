@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	sb "github.com/artemave/conways-go/synchronized_broadcaster"
@@ -51,6 +52,7 @@ type Game struct {
 	Conway                  *conway.Game
 	currentGeneration       *conway.Generation
 	stopClock               chan bool
+	playerNumbers           map[string]int
 }
 
 func NewGame(id string) *Game {
@@ -59,6 +61,7 @@ func NewGame(id string) *Game {
 		SynchronizedBroadcaster: sb.NewSynchronizedBroadcaster(),
 		Conway:                  &conway.Game{Cols: 300, Rows: 200},
 		stopClock:               make(chan bool, 1),
+		playerNumbers:           make(map[string]int),
 	}
 	return game
 }
@@ -74,11 +77,25 @@ func (g *Game) AddPlayer() (*Player, error) {
 	enoughPlayersToStart := len(g.SynchronizedBroadcaster.Clients) >= 2
 	g.SynchronizedBroadcaster.SendBroadcastMessage(enoughPlayersToStart)
 
+	pNum := 1
 	if enoughPlayersToStart {
+		// TODO test player number assignment (when client reconnects)
+
+		// there is only one element in playerNumbers at this point
+		for _, v := range g.playerNumbers {
+			if v == 1 {
+				pNum = 2
+			}
+		}
 		g.StartClock()
 	}
+	g.playerNumbers[p.id] = pNum
 
 	return p, nil
+}
+
+func (g *Game) PlayerNumber(player *Player) int {
+	return g.playerNumbers[player.id]
 }
 
 func (g *Game) StartClock() {
@@ -134,6 +151,8 @@ func (g *Game) RemovePlayer(p *Player) error {
 	if !enoughPlayersToStart {
 		g.StopClock()
 	}
+
+	delete(g.playerNumbers, p.id)
 
 	gou.Debug("Removing player ", p.id)
 	return nil
@@ -217,7 +236,7 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 			switch messageData := msg.Data.(type) {
 			case bool:
 				if messageData {
-					if err := ws.WriteJSON(map[string]string{"handshake": "ready"}); err != nil {
+					if err := ws.WriteJSON(map[string]string{"handshake": "ready", "player": strconv.Itoa(game.PlayerNumber(player))}); err != nil {
 						gou.Error("Send to user: ", err)
 						return
 					}

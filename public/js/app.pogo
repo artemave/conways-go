@@ -3,6 +3,7 @@ $    = require 'jquery'
 Grid = require './grid'
 require './when'
 
+player = nil
 game id = window.location.pathname.split "/".pop()
 ws = @new Web socket "ws://#(window.location.host)/games/play/#(game id)"
 
@@ -26,16 +27,20 @@ ws.onmessage (event) =
         ws.send(JSON.stringify {"acknowledged" = "wait"})
 
     is 'ready'
+      player := msg.player
       $'#waiting_for_players'.fade out
         grid.show()
         ws.send(JSON.stringify {"acknowledged" = "ready"})
 
-      /* grid.has selection to send @(selection) */
-      /*   ws.send(JSON.stringify(selection)) */
     otherwise
       if (msg :: Array)
         grid.render next (msg)
-        ws.send(JSON.stringify {"acknowledged" = "game"})
+
+        ack = {"acknowledged" = "game"}
+        /* grid.has selection to send @(selection) */
+        /*   ack.selection = selection */
+
+        ws.send(JSON.stringify(ack))
       else
         console.log("Bad ws response:", msg)
   ]
