@@ -105,7 +105,7 @@ func Listen(ws *websocket.Conn, player *Player, disconnected chan bool) {
 			case "ready", "wait", "game":
 				player.MessageAcknowledged()
 			default:
-				panic("Unknown client message")
+				fmt.Printf("Unknown client message\n")
 			}
 		}
 	}
