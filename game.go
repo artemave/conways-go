@@ -23,7 +23,7 @@ func NewGame(id string) *Game {
 	game := &Game{
 		Id: id,
 		SynchronizedBroadcaster: sb.NewSynchronizedBroadcaster(),
-		Conway:                  &conway.Game{Cols: 300, Rows: 200},
+		Conway:                  &conway.Game{Cols: 150, Rows: 100},
 		stopClock:               make(chan bool, 1),
 		playerNumbers:           make(map[string]int),
 	}
@@ -87,6 +87,10 @@ func (g *Game) NextGeneration() *conway.Generation {
 		g.currentGeneration = g.Conway.NextGeneration(g.currentGeneration)
 	}
 	return g.currentGeneration
+}
+
+func (g *Game) AddPoints(points []conway.Point, playerNumber int) {
+	g.currentGeneration.AddPoints(points, conway.Player(playerNumber))
 }
 
 func (g *Game) RemovePlayer(p *Player) error {

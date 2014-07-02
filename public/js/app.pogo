@@ -37,8 +37,10 @@ ws.onmessage (event) =
         grid.render next (msg)
 
         ack = {"acknowledged" = "game"}
-        /* grid.has selection to send @(selection) */
-        /*   ack.selection = selection */
+
+        grid.has selection to send @(selection)
+          ack.selection = selection
+          ack.player = player
 
         ws.send(JSON.stringify(ack))
       else

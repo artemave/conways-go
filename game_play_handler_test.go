@@ -32,7 +32,7 @@ var _ = Describe("GamePlayHandler", func() {
 			defer ws.Close()
 
 			output := justReadHandshake(ws)
-			Expect(output["handshake"]).To(Equal("wait"))
+			Expect(output.Handshake).To(Equal("wait"))
 		})
 	})
 
@@ -59,16 +59,16 @@ var _ = Describe("GamePlayHandler", func() {
 
 			It("tells all web clients to join the game", func() {
 				output := justReadHandshake(secondWs)
-				Expect(output["handshake"]).To(Equal("ready"))
+				Expect(output.Handshake).To(Equal("ready"))
 				output = justReadHandshake(firstWs)
-				Expect(output["handshake"]).To(Equal("ready"))
+				Expect(output.Handshake).To(Equal("ready"))
 			})
 
 			It("tells all web clients their player number", func() {
 				output := justReadHandshake(firstWs)
-				Expect(output["player"]).To(Equal("1"))
+				Expect(output.Player).To(Equal(1))
 				output = justReadHandshake(secondWs)
-				Expect(output["player"]).To(Equal("2"))
+				Expect(output.Player).To(Equal(2))
 			})
 
 			Context("all clients acknowledged ready", func() {
@@ -96,7 +96,7 @@ var _ = Describe("GamePlayHandler", func() {
 						justReadGameOutput(firstWs)
 
 						output := justReadHandshake(firstWs)
-						Expect(output["handshake"]).To(Equal("wait"))
+						Expect(output.Handshake).To(Equal("wait"))
 					})
 
 					It("stops game broadcast", func() {
@@ -174,7 +174,7 @@ var _ = Describe("GamePlayHandler", func() {
 				defer ws.Close()
 
 				output := justReadHandshake(ws)
-				Expect(output["handshake"]).To(Equal("game_taken"))
+				Expect(output.Handshake).To(Equal("game_taken"))
 			})
 		})
 
@@ -191,8 +191,8 @@ func wsRequest(path string) *websocket.Conn {
 	return ws
 }
 
-func justReadHandshake(ws *websocket.Conn) map[string]string {
-	var output map[string]string
+func justReadHandshake(ws *websocket.Conn) WsServerMessage {
+	var output WsServerMessage
 	err := ws.ReadJSON(&output)
 	if err != nil {
 		panic(err)

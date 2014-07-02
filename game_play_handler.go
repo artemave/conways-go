@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/araddon/gou"
@@ -58,8 +57,13 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 
 	disconnected := make(chan bool)
 
-	go Listen(ws, player, disconnected)
+	go Listen(ws, game, player, disconnected)
 	Respond(ws, game, player, disconnected)
+}
+
+type WsServerMessage struct {
+	Handshake string `json:handshake`
+	Player    int    `json:player`
 }
 
 func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan bool) {
@@ -70,12 +74,12 @@ func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan b
 			switch messageData := msg.Data.(type) {
 			case bool:
 				if messageData {
-					if err := ws.WriteJSON(map[string]string{"handshake": "ready", "player": strconv.Itoa(game.PlayerNumber(player))}); err != nil {
+					if err := ws.WriteJSON(WsServerMessage{Handshake: "ready", Player: game.PlayerNumber(player)}); err != nil {
 						gou.Error("Send to user: ", err)
 						return
 					}
 				} else {
-					if err := ws.WriteJSON(map[string]string{"handshake": "wait"}); err != nil {
+					if err := ws.WriteJSON(WsServerMessage{Handshake: "wait"}); err != nil {
 						gou.Error("Send to user: ", err)
 						return
 					}
@@ -94,15 +98,25 @@ func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan b
 	}
 }
 
-func Listen(ws *websocket.Conn, player *Player, disconnected chan bool) {
+type WsClientMessage struct {
+	Acknowledged string         `json:acknowledged`
+	PlayerNumber int            `json:player`
+	Points       []conway.Point `json:points`
+}
+
+func Listen(ws *websocket.Conn, game *Game, player *Player, disconnected chan bool) {
 	for {
-		var msg map[string]interface{}
+		var msg WsClientMessage
 		if err := ws.ReadJSON(&msg); err != nil {
 			disconnected <- true
 			return
 		} else {
-			switch msg["acknowledged"].(string) {
+			switch msg.Acknowledged {
 			case "ready", "wait", "game":
+				if msg.Points != nil {
+					// TODO test
+					game.AddPoints(msg.Points, msg.PlayerNumber)
+				}
 				player.MessageAcknowledged()
 			default:
 				fmt.Printf("Unknown client message\n")
