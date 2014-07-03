@@ -61,10 +61,8 @@ Grid (svg, window, columns: 150) =
 
     self.svg.select 'rect 'all.attr 'width' @{ self.x(1) }.
     attr 'height' @{ self.y(1) }.
-    attr 'x' @(d)
-      self.x(d.Col)
-    .attr 'y' @(d)
-      self.y(d.Row)
+    attr 'x' @(d) @{ self.x(d.Col) }.
+    attr 'y' @(d) @{ self.y(d.Row) }
 
   scale xy()
 
@@ -76,9 +74,9 @@ Grid (svg, window, columns: 150) =
         }
 
   self.svg.select 'rect' all.data(self.grid).enter().append 'rect'.
-  on 'mousedown' @{ self.selection_in_progress = true }.
+  on 'mousedown' @{ self.selection is in progress = true }.
   on 'mousemove' (add to selection).
-  on 'mouseup' @{ self.selection_in_progress = false }.
+  on 'mouseup' @{ self.selection is in progress = false }.
   attr 'width' @{ self.x(1) }.
   attr 'height' @{ self.y(1) }.
   attr 'class' 'dead'.

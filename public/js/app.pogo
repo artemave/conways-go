@@ -18,14 +18,14 @@ window.onresize () =
 ws.onmessage (event) =
   msg = JSON.parse(event.data)
 
-  when (msg.handshake) [
+  when (msg.Handshake) [
     is 'wait'
       grid.hide()
       $'#waiting_for_players'.fade in()
         ws.send(JSON.stringify {"acknowledged" = "wait"})
 
     is 'ready'
-      player := msg.player
+      player := msg.Player
       $'#waiting_for_players'.fade out
         grid.show()
         ws.send(JSON.stringify {"acknowledged" = "ready"})
@@ -37,7 +37,7 @@ ws.onmessage (event) =
         ack = {"acknowledged" = "game"}
 
         grid.has selection to send @(selection)
-          ack.selection = selection
+          ack.points = selection
           ack.player = player
 
         ws.send(JSON.stringify(ack))
