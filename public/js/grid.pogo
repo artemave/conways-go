@@ -1,5 +1,3 @@
-d3 = require 'd3'
-
 Grid (svg, window, columns: 150) =
   self = this
   self.svg = svg

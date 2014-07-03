@@ -1,5 +1,3 @@
-d3   = require 'd3'
-$    = require 'jquery'
 Grid = require './grid'
 require './when'
 
