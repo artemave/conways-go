@@ -33,9 +33,9 @@ type Game struct {
 	Cols int
 }
 
-func (this *Generation) AddPoints(points []Point, player Player) *Generation {
-	for _, point := range points {
-		*this = append(*this, Cell{Point: point, State: Live, Player: player})
+func (this *Generation) AddCells(cells []Cell) *Generation {
+	for _, cell := range cells {
+		*this = append(*this, cell)
 	}
 	return this
 }

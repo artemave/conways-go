@@ -37,8 +37,11 @@ ws.onmessage (event) =
         ack = {"acknowledged" = "game"}
 
         grid.has selection to send @(selection)
-          ack.points = selection
-          ack.player = player
+          selection.for each @(cell)
+            cell.State = 1
+            cell.Player = player
+
+          ack.cells = selection
 
         ws.send(JSON.stringify(ack))
       else

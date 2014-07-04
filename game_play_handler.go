@@ -99,9 +99,8 @@ func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan b
 }
 
 type WsClientMessage struct {
-	Acknowledged string         `json:acknowledged`
-	PlayerNumber int            `json:player,omitempty`
-	Points       []conway.Point `json:points,omitempty`
+	Acknowledged string        `json:acknowledged`
+	Cells        []conway.Cell `json:cells,omitempty`
 }
 
 func Listen(ws *websocket.Conn, game *Game, player *Player, disconnected chan bool) {
@@ -113,9 +112,9 @@ func Listen(ws *websocket.Conn, game *Game, player *Player, disconnected chan bo
 		} else {
 			switch msg.Acknowledged {
 			case "ready", "wait", "game":
-				if msg.Points != nil {
+				if msg.Cells != nil {
 					// TODO test
-					game.AddPoints(msg.Points, msg.PlayerNumber)
+					game.AddCells(msg.Cells)
 				}
 				player.MessageAcknowledged()
 			default:
