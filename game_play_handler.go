@@ -100,8 +100,8 @@ func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan b
 
 type WsClientMessage struct {
 	Acknowledged string         `json:acknowledged`
-	PlayerNumber int            `json:player`
-	Points       []conway.Point `json:points`
+	PlayerNumber int            `json:player,omitempty`
+	Points       []conway.Point `json:points,omitempty`
 }
 
 func Listen(ws *websocket.Conn, game *Game, player *Player, disconnected chan bool) {

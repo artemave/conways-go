@@ -10,6 +10,11 @@ import (
 	sb "github.com/artemave/conways-go/synchronized_broadcaster"
 )
 
+type ClientPointsMsg struct {
+	Points       []conway.Point
+	PlayerNumber int
+}
+
 type Game struct {
 	Id                      string
 	SynchronizedBroadcaster *sb.SynchronizedBroadcaster
@@ -17,6 +22,7 @@ type Game struct {
 	currentGeneration       *conway.Generation
 	stopClock               chan bool
 	playerNumbers           map[string]int
+	clientPoints            chan ClientPointsMsg
 }
 
 func NewGame(id string) *Game {
@@ -25,6 +31,7 @@ func NewGame(id string) *Game {
 		SynchronizedBroadcaster: sb.NewSynchronizedBroadcaster(),
 		Conway:                  &conway.Game{Cols: 150, Rows: 100},
 		stopClock:               make(chan bool, 1),
+		clientPoints:            make(chan ClientPointsMsg),
 		playerNumbers:           make(map[string]int),
 	}
 	return game
@@ -68,6 +75,8 @@ func (g *Game) StartClock() {
 			select {
 			case <-g.stopClock:
 				return
+			case m := <-g.clientPoints:
+				g.currentGeneration.AddPoints(m.Points, conway.Player(m.PlayerNumber))
 			default:
 				g.SynchronizedBroadcaster.SendBroadcastMessage(g.NextGeneration())
 				time.Sleep(delay * time.Millisecond)
@@ -90,7 +99,9 @@ func (g *Game) NextGeneration() *conway.Generation {
 }
 
 func (g *Game) AddPoints(points []conway.Point, playerNumber int) {
-	g.currentGeneration.AddPoints(points, conway.Player(playerNumber))
+	go func() {
+		g.clientPoints <- ClientPointsMsg{Points: points, PlayerNumber: playerNumber}
+	}()
 }
 
 func (g *Game) RemovePlayer(p *Player) error {
