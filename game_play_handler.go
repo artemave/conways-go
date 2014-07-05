@@ -17,15 +17,15 @@ var gamesRepo = NewGamesRepo()
 
 // 150x100
 var startGeneration = &conway.Generation{
-	{Point: conway.Point{Row: 3, Col: 3}, State: conway.Live, Player: conway.Player1},
-	{Point: conway.Point{Row: 4, Col: 3}, State: conway.Live, Player: conway.Player1},
-	{Point: conway.Point{Row: 4, Col: 4}, State: conway.Live, Player: conway.Player1},
-	{Point: conway.Point{Row: 3, Col: 4}, State: conway.Live, Player: conway.Player1},
+	{Point: conway.Point{Row: 5, Col: 5}, State: conway.Live, Player: conway.Player1},
+	{Point: conway.Point{Row: 6, Col: 5}, State: conway.Live, Player: conway.Player1},
+	{Point: conway.Point{Row: 6, Col: 6}, State: conway.Live, Player: conway.Player1},
+	{Point: conway.Point{Row: 5, Col: 6}, State: conway.Live, Player: conway.Player1},
 
-	{Point: conway.Point{Row: 95, Col: 145}, State: conway.Live, Player: conway.Player2},
-	{Point: conway.Point{Row: 96, Col: 145}, State: conway.Live, Player: conway.Player2},
-	{Point: conway.Point{Row: 96, Col: 146}, State: conway.Live, Player: conway.Player2},
-	{Point: conway.Point{Row: 95, Col: 146}, State: conway.Live, Player: conway.Player2},
+	{Point: conway.Point{Row: 70, Col: 143}, State: conway.Live, Player: conway.Player2},
+	{Point: conway.Point{Row: 71, Col: 143}, State: conway.Live, Player: conway.Player2},
+	{Point: conway.Point{Row: 71, Col: 144}, State: conway.Live, Player: conway.Player2},
+	{Point: conway.Point{Row: 70, Col: 144}, State: conway.Live, Player: conway.Player2},
 }
 
 func GamePlayHandler(w http.ResponseWriter, r *http.Request) {

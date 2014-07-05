@@ -6,21 +6,10 @@ Grid (svg, window, columns: 150) =
   self.selection is in progress = false
   self.window = window
   self.grid = []
+  self.player = nil
 
   (cell) is being drawn =
     self.selection is in progress && cell.get 'class' attribute == 'new'
-
-  calculate live class (d) =
-    if ((this) is being drawn)
-      'new'
-    else
-      "player#(d.Player) live"
-
-  calculate dead class (d) =
-    if ((this) is being drawn)
-      'new'
-    else
-      'dead'
 
   cantors pairing (a, b) =
     0.5 * (a + b) * (a + b + 1) + b
@@ -30,7 +19,7 @@ Grid (svg, window, columns: 150) =
     self.y = d3.scale.linear().domain([0, self.window.innerHeight / self.x(1)]).rangeRound([0, self.window.innerHeight])
 
   add (cell) to selection =
-    if (self.selection is in progress)
+    if (self.selection is in progress && !_(this.class list).contains 'fog')
       this.set 'class' attribute 'new'
       self.selection.push(cell)
 
@@ -46,6 +35,22 @@ Grid (svg, window, columns: 150) =
       self.selection = []
 
   self.render next (generation) =
+    calculate live class (d) =
+      if ((this) is being drawn)
+        'new'
+      else
+        "player#(d.Player) live"
+
+    calculate dead class (d) =
+      my closest live cell is at least (number of) cells away =
+        !_(generation).find @(gc)
+          Math.abs(gc.Row - d.Row) < number of && Math.abs(gc.Col - d.Col) < number of && gc.Player == self.player
+
+      if ((this) is being drawn)
+        'new'
+      else
+        'dead' + if (my closest live cell is at least 5 cells away) @{' fog'} else @{''}
+
     rect = self.svg.select 'rect' all.data (generation) @(d)
       cantors pairing (d.Row, d.Col)
 

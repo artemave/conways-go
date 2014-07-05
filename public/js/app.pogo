@@ -1,7 +1,6 @@
 Grid = require './grid'
 require './when'
 
-player = nil
 game id = window.location.pathname.split "/".pop()
 ws = @new Web socket "ws://#(window.location.host)/games/play/#(game id)"
 
@@ -25,7 +24,7 @@ ws.onmessage (event) =
         ws.send(JSON.stringify {"acknowledged" = "wait"})
 
     is 'ready'
-      player := msg.Player
+      grid.player := msg.Player
       $'#waiting_for_players'.fade out
         grid.show()
         ws.send(JSON.stringify {"acknowledged" = "ready"})
@@ -39,7 +38,7 @@ ws.onmessage (event) =
         grid.has selection to send @(selection)
           selection.for each @(cell)
             cell.State = 1
-            cell.Player = player
+            cell.Player = grid.player
 
           ack.cells = selection
 

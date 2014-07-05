@@ -20,11 +20,16 @@ rect {
     stroke: #70DBD1;
     stroke-width: 0.1;
     fill: transparent;
+
+    &:hover {
+      fill: #CCFFFF;
+    }
+
+    &.fog, &.fog:hover {
+      fill: lightgrey;
+    }
   }
   &.new {
     fill: #CB60E6;
-  }
-  &.dead:hover {
-    fill: #CCFFFF;
   }
 }

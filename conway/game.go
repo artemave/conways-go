@@ -22,8 +22,8 @@ type Point struct {
 
 type Cell struct {
 	Point
-	State  State
-	Player Player
+	State
+	Player
 }
 
 type Generation []Cell
