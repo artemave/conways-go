@@ -4,9 +4,8 @@ require './when'
 game id = window.location.pathname.split "/".pop()
 ws = @new Web socket "ws://#(window.location.host)/games/play/#(game id)"
 
-svg = d3.select "body".append "svg".
+svg = d3.select "#viewport".append "svg".
 attr "width" (window.inner width).
-attr "height" (window.inner height).
 style "visibility" "hidden"
 
 grid = @new Grid(svg, window)

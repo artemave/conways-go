@@ -1,7 +1,8 @@
-Grid (svg, window, columns: 150) =
+Grid (svg, window, columns: 150, rows: 100) =
   self = this
   self.svg = svg
   self.columns = columns
+  self.rows = rows
   self.selection = []
   self.selection is in progress = false
   self.window = window
@@ -58,9 +59,7 @@ Grid (svg, window, columns: 150) =
     rect.exit().attr('class', calculate dead class)
 
   self.resize () =
-    self.svg.
-    attr("width", self.window.innerWidth).
-    attr("height", self.window.innerHeight)
+    self.svg.attr("width", self.window.innerWidth)
 
     scale xy()
 
@@ -69,9 +68,11 @@ Grid (svg, window, columns: 150) =
     attr 'x' @(d) @{ self.x(d.Col) }.
     attr 'y' @(d) @{ self.y(d.Row) }
 
+    d3.select '#viewport'.style({'height' = "#(self.y(self.rows))px"})
+
   scale xy()
 
-  for (ey = 0, ey < self.window.innerHeight/self.x(1), ey:=ey+1)
+  for (ey = 0, ey < self.rows, ey:=ey+1)
     for (ex = 0, ex < self.columns, ex:=ex+1)
       self.grid.push {
           Row = ey
@@ -85,8 +86,12 @@ Grid (svg, window, columns: 150) =
   attr 'width' @{ self.x(1) }.
   attr 'height' @{ self.y(1) }.
   attr 'class' 'dead'.
+  attr 'rx' @(d) @{ self.x(0.1)}.
+  attr 'ry' @(d) @{ self.y(0.1)}.
   attr 'x' @(d) @{ self.x(d.Col) }.
   attr 'y' @(d) @{ self.y(d.Row) }
+
+  d3.select '#viewport'.style({'height' = "#(self.y(self.rows))px"})
 
   self
 
