@@ -44,7 +44,9 @@ gulp.task("bower-files", function() {
     .pipe(gulp.dest("./public"))
 });
 
-gulp.watch('./public/js/**/*.pogo', ['scripts']);
-gulp.watch('./public/css/**', ['styles']);
+gulp.task("watch", function() {
+  gulp.watch('./public/js/**/*.pogo', ['scripts']);
+  gulp.watch('./public/css/**', ['styles']);
+})
 
 gulp.task('default', ['styles', 'bower-files', 'scripts']);

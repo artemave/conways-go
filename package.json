@@ -13,5 +13,8 @@
     "pogo": "^0.8.2",
     "gulp-sass": "^0.7.2",
     "gulp-bower-files": "^0.2.5"
+  },
+  "scripts": {
+    "postinstall": "./node_modules/bower/bin/bower install && ./node_modules/gulp/bin/gulp"
   }
 }
