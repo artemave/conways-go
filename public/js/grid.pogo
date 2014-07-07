@@ -1,4 +1,4 @@
-Grid (svg, window, columns: 150, rows: 100) =
+Grid (svg, window, columns: 80, rows: 50) =
   self = this
   self.svg = svg
   self.columns = columns
@@ -9,14 +9,21 @@ Grid (svg, window, columns: 150, rows: 100) =
   self.grid = []
   self.player = nil
 
+  viewport = window.document.get element by id 'viewport'
+  viewport width () =
+    window.getComputedStyle(viewport).get property value "width".replace "px" ''
+
   (cell) is being drawn =
     self.selection is in progress && cell.get 'class' attribute == 'new'
 
   cantors pairing (a, b) =
     0.5 * (a + b) * (a + b + 1) + b
 
+  set viewport height() =
+    viewport.set attribute 'style' "height:#(self.y(self.rows))px"
+
   scale xy () =
-    self.x = d3.scale.linear().domain([0, self.columns - 1]).rangeRound([0, self.window.innerWidth])
+    self.x = d3.scale.linear().domain([0, self.columns - 1]).rangeRound([0, viewport width()])
     self.y = d3.scale.linear().domain([0, self.window.innerHeight / self.x(1)]).rangeRound([0, self.window.innerHeight])
 
   add (cell) to selection =
@@ -59,16 +66,16 @@ Grid (svg, window, columns: 150, rows: 100) =
     rect.exit().attr('class', calculate dead class)
 
   self.resize () =
-    self.svg.attr("width", self.window.innerWidth)
+    self.svg.attr("width", viewport width())
 
     scale xy()
 
-    self.svg.select 'rect 'all.attr 'width' @{ self.x(1) }.
-    attr 'height' @{ self.y(1) }.
-    attr 'x' @(d) @{ self.x(d.Col) }.
-    attr 'y' @(d) @{ self.y(d.Row) }
+    self.svg.select 'rect 'all.attr 'width' @{ self.x(0.8) }.
+    attr 'height' @{ self.y(0.8) }.
+    attr 'x' @(d) @{ self.x(d.Col) + self.x(0.1) }.
+    attr 'y' @(d) @{ self.y(d.Row) + self.y(0.1) }
 
-    d3.select '#viewport'.style({'height' = "#(self.y(self.rows))px"})
+    set viewport height()
 
   scale xy()
 
@@ -83,15 +90,15 @@ Grid (svg, window, columns: 150, rows: 100) =
   on 'mousedown' @{ self.selection is in progress = true }.
   on 'mousemove' (add to selection).
   on 'mouseup' @{ self.selection is in progress = false }.
-  attr 'width' @{ self.x(1) }.
-  attr 'height' @{ self.y(1) }.
+  attr 'width' @{ self.x(0.8) }.
+  attr 'height' @{ self.y(0.8) }.
   attr 'class' 'dead'.
-  attr 'rx' @(d) @{ self.x(0.1)}.
-  attr 'ry' @(d) @{ self.y(0.1)}.
-  attr 'x' @(d) @{ self.x(d.Col) }.
-  attr 'y' @(d) @{ self.y(d.Row) }
+  attr 'rx' @(d) @{ self.x(0.2)}.
+  attr 'ry' @(d) @{ self.y(0.2)}.
+  attr 'x' @(d) @{ self.x(d.Col) + self.x(0.1) }.
+  attr 'y' @(d) @{ self.y(d.Row) + self.y(0.1) }
 
-  d3.select '#viewport'.style({'height' = "#(self.y(self.rows))px"})
+  set viewport height()
 
   self
 

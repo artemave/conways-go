@@ -24,7 +24,7 @@ func NewGame(id string) *Game {
 	game := &Game{
 		Id: id,
 		SynchronizedBroadcaster: sb.NewSynchronizedBroadcaster(),
-		Conway:                  &conway.Game{Cols: 150, Rows: 100},
+		Conway:                  &conway.Game{Cols: 80, Rows: 50},
 		stopClock:               make(chan bool, 1),
 		clientCells:             make(chan []conway.Cell),
 		playerNumbers:           make(map[string]conway.Player),

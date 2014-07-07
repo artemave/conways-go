@@ -22,10 +22,10 @@ var startGeneration = &conway.Generation{
 	{Point: conway.Point{Row: 5, Col: 5}, State: conway.Live, Player: conway.Player1},
 	{Point: conway.Point{Row: 4, Col: 5}, State: conway.Live, Player: conway.Player1},
 
-	{Point: conway.Point{Row: 94, Col: 143}, State: conway.Live, Player: conway.Player2},
-	{Point: conway.Point{Row: 95, Col: 143}, State: conway.Live, Player: conway.Player2},
-	{Point: conway.Point{Row: 95, Col: 144}, State: conway.Live, Player: conway.Player2},
-	{Point: conway.Point{Row: 94, Col: 144}, State: conway.Live, Player: conway.Player2},
+	{Point: conway.Point{Row: 44, Col: 73}, State: conway.Live, Player: conway.Player2},
+	{Point: conway.Point{Row: 45, Col: 73}, State: conway.Live, Player: conway.Player2},
+	{Point: conway.Point{Row: 45, Col: 74}, State: conway.Live, Player: conway.Player2},
+	{Point: conway.Point{Row: 44, Col: 74}, State: conway.Live, Player: conway.Player2},
 }
 
 func GamePlayHandler(w http.ResponseWriter, r *http.Request) {

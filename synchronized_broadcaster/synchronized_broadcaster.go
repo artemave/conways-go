@@ -84,7 +84,7 @@ func (sb *SynchronizedBroadcaster) SendBroadcastMessage(data interface{}) {
 	}
 
 	sb.messageQueue <- msg
-	fmt.Printf("Broadcast: %s\n", msg)
+	// fmt.Printf("Broadcast: %s\n", msg)
 }
 
 type BroadcastMessage struct {
