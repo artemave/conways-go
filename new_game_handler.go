@@ -3,18 +3,15 @@ package main
 import (
 	"net/http"
 
+	"code.google.com/p/go-uuid/uuid"
 	"github.com/araddon/gou"
-	"github.com/nu7hatch/gouuid"
 )
 
 func StartNewGameHandler(w http.ResponseWriter, req *http.Request) {
 	gou.Debug("/")
 
-	u, err := uuid.NewV4()
-	if err != nil {
-		panic(err)
-	}
-	http.Redirect(w, req, "/games/"+u.String(), 302)
+	u4 := uuid.New()
+	http.Redirect(w, req, "/games/"+u4, 302)
 }
 
 func NewGameHandler(w http.ResponseWriter, req *http.Request) {
