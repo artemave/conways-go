@@ -19,12 +19,12 @@ ws.onmessage (event) =
   when (msg.Handshake) [
     is 'wait'
       grid.hide()
-      $'#waiting_for_players'.fade in()
+      d3.select '#waiting_for_players'.transition().style 'opacity' 1.each 'end'
         ws.send(JSON.stringify {"acknowledged" = "wait"})
 
     is 'ready'
       grid.player := msg.Player
-      $'#waiting_for_players'.fade out
+      d3.select '#waiting_for_players'.transition().style 'opacity' 0.each 'end'
         grid.show()
         ws.send(JSON.stringify {"acknowledged" = "ready"})
 
