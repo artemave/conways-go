@@ -1,5 +1,7 @@
 package main
 
+import "errors"
+
 type GamesRepo struct {
 	Games []*Game
 }
@@ -11,14 +13,22 @@ func NewGamesRepo() *GamesRepo {
 	return gr
 }
 
-// FIXME this is not thread-safe
-func (gr *GamesRepo) FindOrCreateGameById(id string) *Game {
+func (gr *GamesRepo) FindGameById(id string) *Game {
 	for _, game := range gr.Games {
 		if game.Id == id {
 			return game
 		}
 	}
-	newGame := NewGame(id)
+	return nil
+}
+
+func (gr *GamesRepo) CreateGameById(id string, gameSize string) (*Game, error) {
+	for _, game := range gr.Games {
+		if game.Id == id {
+			return nil, errors.New("Game with id '" + id + "' is already created.")
+		}
+	}
+	newGame := NewGame(id, gameSize)
 	gr.Games = append(gr.Games, newGame)
-	return newGame
+	return newGame, nil
 }

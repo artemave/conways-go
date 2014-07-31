@@ -11,6 +11,16 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+var server = httptest.NewServer(nil)
+
+func wsRequest(path string) *websocket.Conn {
+	ws, _, err := websocket.DefaultDialer.Dial(httpToWs(server.URL+path), nil)
+	if err != nil {
+		panic("Dial() returned error " + err.Error())
+	}
+	return ws
+}
+
 var _ = Describe("GamePlayHandler", func() {
 
 	var clockStep int = 30
@@ -19,10 +29,12 @@ var _ = Describe("GamePlayHandler", func() {
 	BeforeEach(func() {
 		TestGameRepo.Empty()
 
-		*TestStartGeneration = conway.Generation{
-			{Point: conway.Point{Row: 3, Col: 2}, State: conway.Live, Player: conway.Player1},
-			{Point: conway.Point{Row: 3, Col: 3}, State: conway.Live, Player: conway.Player1},
-			{Point: conway.Point{Row: 3, Col: 4}, State: conway.Live, Player: conway.Player1},
+		*TestStartGeneration = map[string]*conway.Generation{
+			"small": &conway.Generation{
+				{Point: conway.Point{Row: 3, Col: 2}, State: conway.Live, Player: conway.Player1},
+				{Point: conway.Point{Row: 3, Col: 3}, State: conway.Live, Player: conway.Player1},
+				{Point: conway.Point{Row: 3, Col: 4}, State: conway.Live, Player: conway.Player1},
+			},
 		}
 	})
 
@@ -69,6 +81,9 @@ var _ = Describe("GamePlayHandler", func() {
 				Expect(output.Player).To(Equal(1))
 				output = justReadHandshake(secondWs)
 				Expect(output.Player).To(Equal(2))
+			})
+
+			It("tells all web clients the field size", func() {
 			})
 
 			Context("all clients acknowledged ready", func() {
@@ -180,16 +195,6 @@ var _ = Describe("GamePlayHandler", func() {
 
 	})
 })
-
-var server = httptest.NewServer(nil)
-
-func wsRequest(path string) *websocket.Conn {
-	ws, _, err := websocket.DefaultDialer.Dial(httpToWs(server.URL+path), nil)
-	if err != nil {
-		panic("Dial() returned error " + err.Error())
-	}
-	return ws
-}
 
 func justReadHandshake(ws *websocket.Conn) WsServerMessage {
 	var output WsServerMessage

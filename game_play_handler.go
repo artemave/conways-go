@@ -15,19 +15,6 @@ var delay = time.Duration(1000)
 
 var gamesRepo = NewGamesRepo()
 
-// 150x100
-var startGeneration = &conway.Generation{
-	{Point: conway.Point{Row: 4, Col: 4}, State: conway.Live, Player: conway.Player1},
-	{Point: conway.Point{Row: 5, Col: 4}, State: conway.Live, Player: conway.Player1},
-	{Point: conway.Point{Row: 5, Col: 5}, State: conway.Live, Player: conway.Player1},
-	{Point: conway.Point{Row: 4, Col: 5}, State: conway.Live, Player: conway.Player1},
-
-	{Point: conway.Point{Row: 44, Col: 73}, State: conway.Live, Player: conway.Player2},
-	{Point: conway.Point{Row: 45, Col: 73}, State: conway.Live, Player: conway.Player2},
-	{Point: conway.Point{Row: 45, Col: 74}, State: conway.Live, Player: conway.Player2},
-	{Point: conway.Point{Row: 44, Col: 74}, State: conway.Live, Player: conway.Player2},
-}
-
 func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 	ws, err := websocket.Upgrade(w, r, nil, 1024, 1024)
 	if _, ok := err.(websocket.HandshakeError); ok {
@@ -42,9 +29,24 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	gou.Debug("/games/%v", id)
+	gou.Debug("WS: /games/play/" + id)
 
-	game := gamesRepo.FindOrCreateGameById(id)
+	game := gamesRepo.FindGameById(id)
+
+	if game == nil {
+		session, _ := store.Get(r, "session")
+		gameSize, ok := session.Values["gameSize"].(string)
+		if !ok {
+			http.Error(w, "Expected game size to be in the session", 500)
+			return
+		}
+		game, err = gamesRepo.CreateGameById(id, gameSize)
+
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+			return
+		}
+	}
 
 	player, err := game.AddPlayer()
 
@@ -62,8 +64,10 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type WsServerMessage struct {
-	Handshake string `json:handshake`
-	Player    int    `json:player`
+	Handshake string
+	Player    int
+	Cols      int
+	Rows      int
 }
 
 func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan bool) {
@@ -74,7 +78,13 @@ func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan b
 			switch messageData := msg.Data.(type) {
 			case bool:
 				if messageData {
-					if err := ws.WriteJSON(WsServerMessage{Handshake: "ready", Player: game.PlayerNumber(player)}); err != nil {
+					serverMessage := WsServerMessage{
+						Handshake: "ready",
+						Player:    game.PlayerNumber(player),
+						Cols:      game.Cols(),
+						Rows:      game.Rows(),
+					}
+					if err := ws.WriteJSON(serverMessage); err != nil {
 						gou.Error("Send to user: ", err)
 						return
 					}

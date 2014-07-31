@@ -1,17 +1,22 @@
-Grid (svg, window, columns: 80, rows: 50) =
+Grid (player, columns, rows) =
   self = this
-  self.svg = svg
   self.columns = columns
   self.rows = rows
   self.selection = []
   self.selection is in progress = false
-  self.window = window
   self.grid = []
-  self.player = nil
+  self.player = player
 
   viewport = window.document.get element by id 'viewport'
+
+  svg = d3.select "#viewport".append "svg".
+  style "visibility" "hidden"
+
   viewport width () =
     window.getComputedStyle(viewport).get property value "width".replace "px" ''
+
+  viewport height () =
+    window.getComputedStyle(viewport).get property value "height".replace "px" ''
 
   (cell) is being drawn =
     self.selection is in progress && cell.get 'class' attribute == 'new'
@@ -24,7 +29,7 @@ Grid (svg, window, columns: 80, rows: 50) =
 
   scale xy () =
     self.x = d3.scale.linear().domain([0, self.columns - 1]).rangeRound([0, viewport width()])
-    self.y = d3.scale.linear().domain([0, self.window.innerHeight / self.x(1)]).rangeRound([0, self.window.innerHeight])
+    self.y = d3.scale.linear().domain([0, window.innerHeight / self.x(1)]).rangeRound([0, window.innerHeight])
 
   add (cell) to selection =
     if (self.selection is in progress && !_(this.class list).contains 'fog')
@@ -32,10 +37,10 @@ Grid (svg, window, columns: 80, rows: 50) =
       self.selection.push(cell)
 
   self.show () =
-    self.svg.style 'visibility' 'visible'
+    svg.style 'visibility' 'visible'
 
   self.hide () =
-    self.svg.style 'visibility' 'hidden'
+    svg.style 'visibility' 'hidden'
 
   self.has selection to send (callback) =
     if (!self.selection is in progress && self.selection.length > 0)
@@ -59,23 +64,23 @@ Grid (svg, window, columns: 80, rows: 50) =
       else
         'dead' + if (my closest live cell is at least 5 cells away) @{' fog'} else @{''}
 
-    rect = self.svg.select 'rect' all.data (generation) @(d)
+    rect = svg.select 'rect' all.data (generation) @(d)
       cantors pairing (d.Row, d.Col)
 
     rect.attr('class', calculate live class)
     rect.exit().attr('class', calculate dead class)
 
   self.resize () =
-    self.svg.attr("width", viewport width())
-
     scale xy()
 
-    self.svg.select 'rect 'all.attr 'width' @{ self.x(0.8) }.
+    svg.select 'rect 'all.attr 'width' @{ self.x(0.8) }.
     attr 'height' @{ self.y(0.8) }.
     attr 'x' @(d) @{ self.x(d.Col) + self.x(0.1) }.
     attr 'y' @(d) @{ self.y(d.Row) + self.y(0.1) }
 
     set viewport height()
+    svg.attr("width", viewport width())
+    svg.attr("height", viewport height())
 
   scale xy()
 
@@ -86,7 +91,7 @@ Grid (svg, window, columns: 80, rows: 50) =
           Col = ex
         }
 
-  self.svg.select 'rect' all.data(self.grid).enter().append 'rect'.
+  svg.select 'rect' all.data(self.grid).enter().append 'rect'.
   on 'mousedown' @{ self.selection is in progress = true }.
   on 'mousemove' (add to selection).
   on 'mouseup' @{ self.selection is in progress = false }.
@@ -99,6 +104,8 @@ Grid (svg, window, columns: 80, rows: 50) =
   attr 'y' @(d) @{ self.y(d.Row) + self.y(0.1) }
 
   set viewport height()
+  svg.attr("width", viewport width())
+  svg.attr("height", viewport height())
 
   self
 

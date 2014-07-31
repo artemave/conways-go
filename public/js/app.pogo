@@ -1,47 +1,56 @@
 Grid = require './grid'
 require './when'
 
-game id = window.location.pathname.split "/".pop()
-ws = @new Web socket "ws://#(window.location.host)/games/play/#(game id)"
+start up ()=
+  game id = window.location.pathname.split "/".pop()
 
-svg = d3.select "#viewport".append "svg".
-attr "width" (window.inner width).
-style "visibility" "hidden"
+  if (! game id)
+    return
 
-grid = @new Grid(svg, window)
+  d3.select '#new_game'.remove()
 
-window.onresize () =
-  grid.resize()
+  ws = @new Web socket "ws://#(window.location.host)/games/play/#(game id)"
 
-ws.onmessage (event) =
-  msg = JSON.parse(event.data)
+  grid = nil
 
-  when (msg.Handshake) [
-    is 'wait'
-      grid.hide()
-      d3.select '#waiting_for_players'.transition().style 'opacity' 1.each 'end'
-        ws.send(JSON.stringify {"acknowledged" = "wait"})
+  window.onresize () =
+    grid.resize()
 
-    is 'ready'
-      grid.player := msg.Player
-      d3.select '#waiting_for_players'.transition().style 'opacity' 0.each 'end'
-        grid.show()
-        ws.send(JSON.stringify {"acknowledged" = "ready"})
+  ws.onmessage (event) =
+    msg = JSON.parse(event.data)
 
-    otherwise
-      if (msg :: Array)
-        grid.render next (msg)
+    when (msg.Handshake) [
+      is 'wait'
+        if (grid)
+          grid.hide()
 
-        ack = {"acknowledged" = "game"}
+        d3.select '#waiting_for_players'.transition().style 'opacity' 1.each 'end'
+          ws.send(JSON.stringify {"acknowledged" = "wait"})
 
-        grid.has selection to send @(selection)
-          selection.for each @(cell)
-            cell.State = 1
-            cell.Player = grid.player
+      is 'ready'
+        if (!grid)
+          grid := @new Grid(msg.Player, msg.Cols, msg.Rows)
 
-          ack.cells = selection
+        d3.select '#waiting_for_players'.transition().style 'opacity' 0.each 'end'
+          grid.show()
+          ws.send(JSON.stringify {"acknowledged" = "ready"})
 
-        ws.send(JSON.stringify(ack))
-      else
-        console.log("Bad ws response:", msg)
-  ]
+      otherwise
+        if (msg :: Array)
+          grid.render next (msg)
+
+          ack = {"acknowledged" = "game"}
+
+          grid.has selection to send @(selection)
+            selection.for each @(cell)
+              cell.State = 1
+              cell.Player = grid.player
+
+            ack.cells = selection
+
+          ws.send(JSON.stringify(ack))
+        else
+          console.log("Bad ws response:", msg)
+    ]
+
+start up()
