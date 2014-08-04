@@ -6,5 +6,4 @@ func (self *GamesRepo) Empty() {
 	self.Games = []*Game{}
 }
 
-var TestStartGeneration = &startGeneration
 var TestDelay = &delay

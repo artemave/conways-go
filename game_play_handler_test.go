@@ -25,18 +25,15 @@ var _ = Describe("GamePlayHandler", func() {
 
 	var clockStep int = 40
 	*TestDelay = time.Duration(clockStep)
+	var startGeneration = &conway.Generation{
+		{Point: conway.Point{Row: 3, Col: 2}, State: conway.Live, Player: conway.Player1},
+		{Point: conway.Point{Row: 3, Col: 3}, State: conway.Live, Player: conway.Player1},
+		{Point: conway.Point{Row: 3, Col: 4}, State: conway.Live, Player: conway.Player1},
+	}
 
 	BeforeEach(func() {
 		TestGameRepo.Empty()
-		TestGameRepo.CreateGameById("123", "small")
-
-		*TestStartGeneration = map[string]*conway.Generation{
-			"small": &conway.Generation{
-				{Point: conway.Point{Row: 3, Col: 2}, State: conway.Live, Player: conway.Player1},
-				{Point: conway.Point{Row: 3, Col: 3}, State: conway.Live, Player: conway.Player1},
-				{Point: conway.Point{Row: 3, Col: 4}, State: conway.Live, Player: conway.Player1},
-			},
-		}
+		TestGameRepo.CreateGameById("123", "small", startGeneration)
 	})
 
 	Context("New game", func() {
@@ -85,6 +82,12 @@ var _ = Describe("GamePlayHandler", func() {
 			})
 
 			It("tells all web clients the field size", func() {
+				output := justReadHandshake(firstWs)
+				Expect(output.Cols).To(Equal(40))
+				Expect(output.Rows).To(Equal(26))
+				output = justReadHandshake(secondWs)
+				Expect(output.Cols).To(Equal(40))
+				Expect(output.Rows).To(Equal(26))
 			})
 
 			Context("all clients acknowledged ready", func() {

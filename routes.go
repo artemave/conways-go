@@ -6,6 +6,7 @@ import (
 	"code.google.com/p/go-uuid/uuid"
 
 	"github.com/araddon/gou"
+	"github.com/artemave/conways-go/conway"
 	"github.com/gorilla/mux"
 )
 
@@ -26,12 +27,48 @@ func RootHandler(w http.ResponseWriter, req *http.Request) {
 	http.ServeFile(w, req, "./public/index.html")
 }
 
+var startGeneration = map[string]*conway.Generation{
+	"large": &conway.Generation{
+		{Point: conway.Point{Row: 4, Col: 4}, State: conway.Live, Player: conway.Player1},
+		{Point: conway.Point{Row: 5, Col: 4}, State: conway.Live, Player: conway.Player1},
+		{Point: conway.Point{Row: 5, Col: 5}, State: conway.Live, Player: conway.Player1},
+		{Point: conway.Point{Row: 4, Col: 5}, State: conway.Live, Player: conway.Player1},
+
+		{Point: conway.Point{Row: 64, Col: 93}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 65, Col: 93}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 65, Col: 94}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 64, Col: 94}, State: conway.Live, Player: conway.Player2},
+	},
+	"medium": &conway.Generation{
+		{Point: conway.Point{Row: 4, Col: 4}, State: conway.Live, Player: conway.Player1},
+		{Point: conway.Point{Row: 5, Col: 4}, State: conway.Live, Player: conway.Player1},
+		{Point: conway.Point{Row: 5, Col: 5}, State: conway.Live, Player: conway.Player1},
+		{Point: conway.Point{Row: 4, Col: 5}, State: conway.Live, Player: conway.Player1},
+
+		{Point: conway.Point{Row: 44, Col: 73}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 45, Col: 73}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 45, Col: 74}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 44, Col: 74}, State: conway.Live, Player: conway.Player2},
+	},
+	"small": &conway.Generation{
+		{Point: conway.Point{Row: 4, Col: 4}, State: conway.Live, Player: conway.Player1},
+		{Point: conway.Point{Row: 5, Col: 4}, State: conway.Live, Player: conway.Player1},
+		{Point: conway.Point{Row: 5, Col: 5}, State: conway.Live, Player: conway.Player1},
+		{Point: conway.Point{Row: 4, Col: 5}, State: conway.Live, Player: conway.Player1},
+
+		{Point: conway.Point{Row: 20, Col: 33}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 21, Col: 33}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 21, Col: 34}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 20, Col: 34}, State: conway.Live, Player: conway.Player2},
+	},
+}
+
 func CreateGameHandler(w http.ResponseWriter, r *http.Request) {
 	gou.Debug("POST: /games/")
 	gameSize := r.PostFormValue("size")
 
 	u4 := uuid.New()
-	_, err := gamesRepo.CreateGameById(u4, gameSize)
+	_, err := gamesRepo.CreateGameById(u4, gameSize, startGeneration[gameSize])
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 		return

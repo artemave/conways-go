@@ -1,6 +1,10 @@
 package main
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/artemave/conways-go/conway"
+)
 
 type GamesRepo struct {
 	Games []*Game
@@ -22,13 +26,13 @@ func (gr *GamesRepo) FindGameById(id string) *Game {
 	return nil
 }
 
-func (gr *GamesRepo) CreateGameById(id string, gameSize string) (*Game, error) {
+func (gr *GamesRepo) CreateGameById(id string, gameSize string, startGeneration *conway.Generation) (*Game, error) {
 	for _, game := range gr.Games {
 		if game.Id == id {
 			return nil, errors.New("Game with id '" + id + "' is already created.")
 		}
 	}
-	newGame := NewGame(id, gameSize)
+	newGame := NewGame(id, gameSize, startGeneration)
 	gr.Games = append(gr.Games, newGame)
 	return newGame, nil
 }
