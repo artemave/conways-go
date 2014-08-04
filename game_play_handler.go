@@ -32,24 +32,12 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 	gou.Debug("WS: /games/play/" + id)
 
 	game := gamesRepo.FindGameById(id)
-
 	if game == nil {
-		session, _ := store.Get(r, "session")
-		gameSize, ok := session.Values["gameSize"].(string)
-		if !ok {
-			http.Error(w, "Expected game size to be in the session", 500)
-			return
-		}
-		game, err = gamesRepo.CreateGameById(id, gameSize)
-
-		if err != nil {
-			http.Error(w, err.Error(), 400)
-			return
-		}
+		ws.WriteJSON(map[string]string{"handshake": "game not found"})
+		return
 	}
 
 	player, err := game.AddPlayer()
-
 	if err != nil {
 		ws.WriteJSON(map[string]string{"handshake": "game_taken"})
 		return

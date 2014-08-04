@@ -23,11 +23,12 @@ func wsRequest(path string) *websocket.Conn {
 
 var _ = Describe("GamePlayHandler", func() {
 
-	var clockStep int = 30
+	var clockStep int = 40
 	*TestDelay = time.Duration(clockStep)
 
 	BeforeEach(func() {
 		TestGameRepo.Empty()
+		TestGameRepo.CreateGameById("123", "small")
 
 		*TestStartGeneration = map[string]*conway.Generation{
 			"small": &conway.Generation{
@@ -40,7 +41,7 @@ var _ = Describe("GamePlayHandler", func() {
 
 	Context("New game", func() {
 		It("tells web client to wait", func() {
-			ws := wsRequest("/games/play/122")
+			ws := wsRequest("/games/play/123")
 			defer ws.Close()
 
 			output := justReadHandshake(ws)
@@ -103,7 +104,7 @@ var _ = Describe("GamePlayHandler", func() {
 				Describe("second client disconnects", func() {
 					BeforeEach(func() {
 						// to prevent sending ack to closed channel
-						time.Sleep(time.Millisecond * time.Duration(clockStep-10))
+						time.Sleep(time.Millisecond * time.Duration(clockStep-20))
 						secondWs.Close()
 					})
 

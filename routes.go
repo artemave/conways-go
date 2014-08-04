@@ -7,10 +7,7 @@ import (
 
 	"github.com/araddon/gou"
 	"github.com/gorilla/mux"
-	"github.com/gorilla/sessions"
 )
-
-var store = sessions.NewCookieStore([]byte("no-secrets-here--just-storing-state-between-requests"))
 
 func RegisterRoutes() {
 	r := mux.NewRouter()
@@ -33,11 +30,12 @@ func CreateGameHandler(w http.ResponseWriter, r *http.Request) {
 	gou.Debug("POST: /games/")
 	gameSize := r.PostFormValue("size")
 
-	session, _ := store.Get(r, "session")
-	session.Values["gameSize"] = gameSize
-	session.Save(r, w)
-
 	u4 := uuid.New()
+	_, err := gamesRepo.CreateGameById(u4, gameSize)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
 	http.Redirect(w, r, "/games/"+u4, 302)
 }
 
