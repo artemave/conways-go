@@ -56,6 +56,8 @@ type WsServerMessage struct {
 	Player    int
 	Cols      int
 	Rows      int
+	WinSpot   Point
+	LoseSpot  Point
 }
 
 func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan bool) {
@@ -71,6 +73,8 @@ func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan b
 						Player:    game.PlayerNumber(player),
 						Cols:      game.Cols(),
 						Rows:      game.Rows(),
+						WinSpot:   game.WinSpot(player),
+						LoseSpot:  game.LoseSpot(player),
 					}
 					if err := ws.WriteJSON(serverMessage); err != nil {
 						gou.Error("Send to user: ", err)

@@ -21,6 +21,11 @@ type Game struct {
 	clientCells             chan []conway.Cell
 }
 
+type Point struct {
+	Col int
+	Row int
+}
+
 func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 	var cols int
 	var rows int
@@ -83,6 +88,22 @@ func (g *Game) AddPlayer() (*Player, error) {
 	g.playerNumbers[p.id] = pNum
 
 	return p, nil
+}
+
+func (g *Game) WinSpot(p *Player) Point {
+	if g.playerNumbers[p.id] == conway.Player1 {
+		return Point{Col: g.Conway.Cols - 3, Row: g.Conway.Rows - 3}
+	} else {
+		return Point{Col: 3, Row: 3}
+	}
+}
+
+func (g *Game) LoseSpot(p *Player) Point {
+	if g.playerNumbers[p.id] == conway.Player1 {
+		return Point{Col: 3, Row: 3}
+	} else {
+		return Point{Col: g.Conway.Cols - 3, Row: g.Conway.Rows - 3}
+	}
 }
 
 func (g *Game) PlayerNumber(player *Player) int {
