@@ -33,7 +33,7 @@ func (tc TestClient) Inbox() chan BroadcastMessage {
 }
 
 var _ = Describe("SynchronizedBroadcaster", func() {
-	var sb *SynchronizedBroadcaster
+	var sb SynchronizedBroadcaster
 	var client1 *TestClient
 	var client2 *TestClient
 

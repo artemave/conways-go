@@ -10,15 +10,23 @@ import (
 	sb "github.com/artemave/conways-go/synchronized_broadcaster"
 )
 
+type Broadcaster interface {
+	Clients() []sb.SynchronizedBroadcasterClient
+	AddClient(sb.SynchronizedBroadcasterClient)
+	RemoveClient(sb.SynchronizedBroadcasterClient) error
+	SendBroadcastMessage(interface{})
+	MessageAcknowledged()
+}
+
 type Game struct {
-	Id                      string
-	SynchronizedBroadcaster *sb.SynchronizedBroadcaster
-	Conway                  *conway.Game
-	currentGeneration       *conway.Generation
-	startGeneration         *conway.Generation
-	stopClock               chan bool
-	players                 []*Player
-	clientCells             chan []conway.Cell
+	Id     string
+	Conway *conway.Game
+	Broadcaster
+	currentGeneration *conway.Generation
+	startGeneration   *conway.Generation
+	stopClock         chan bool
+	players           []*Player
+	clientCells       chan []conway.Cell
 }
 
 func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
@@ -38,13 +46,13 @@ func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 	}
 
 	game := &Game{
-		Id: id,
-		SynchronizedBroadcaster: sb.NewSynchronizedBroadcaster(),
-		Conway:                  &conway.Game{Cols: cols, Rows: rows},
-		stopClock:               make(chan bool, 1),
-		clientCells:             make(chan []conway.Cell),
-		players:                 []*Player{},
-		startGeneration:         startGeneration,
+		Id:              id,
+		Broadcaster:     sb.NewSynchronizedBroadcaster(),
+		Conway:          &conway.Game{Cols: cols, Rows: rows},
+		stopClock:       make(chan bool, 1),
+		clientCells:     make(chan []conway.Cell),
+		players:         []*Player{},
+		startGeneration: startGeneration,
 	}
 	return game
 }
@@ -58,15 +66,15 @@ func (g *Game) Rows() int {
 }
 
 func (g *Game) AddPlayer() (*Player, error) {
-	if len(g.SynchronizedBroadcaster.Clients) >= 2 {
+	if len(g.Broadcaster.Clients()) >= 2 {
 		return &Player{}, errors.New("Game has already reached maximum number players")
 	}
 	p := NewPlayer(g)
 
-	g.SynchronizedBroadcaster.AddClient(p)
+	g.Broadcaster.AddClient(p)
 
-	enoughPlayersToStart := len(g.SynchronizedBroadcaster.Clients) >= 2
-	g.SynchronizedBroadcaster.SendBroadcastMessage(enoughPlayersToStart)
+	enoughPlayersToStart := len(g.Broadcaster.Clients()) >= 2
+	g.Broadcaster.SendBroadcastMessage(enoughPlayersToStart)
 
 	pNum := conway.Player1
 	if enoughPlayersToStart {
@@ -101,11 +109,39 @@ func (g *Game) StartClock() {
 			case cells := <-g.clientCells:
 				g.currentGeneration.AddCells(cells)
 			default:
-				g.SynchronizedBroadcaster.SendBroadcastMessage(g.NextGeneration())
+				if gameResult := g.CalculateGameResult(); gameResult != nil {
+					g.Broadcaster.SendBroadcastMessage(gameResult)
+					return
+				} else {
+					g.Broadcaster.SendBroadcastMessage(g.NextGeneration())
+				}
 				time.Sleep(delay * time.Millisecond)
 			}
 		}
 	}()
+}
+
+type GameResult struct {
+	Winner Player
+}
+
+func (g *Game) CalculateGameResult() *GameResult {
+	if g.currentGeneration == nil {
+		return nil
+	}
+	for _, cell := range *g.currentGeneration {
+		// player1 wins
+		if cell.Player == conway.Player1 && cell.Point == g.WinSpot(conway.Player1) {
+
+		}
+		// player2 wins
+		if cell.Player == conway.Player2 && cell.Point == g.WinSpot(conway.Player2) {
+
+		}
+		// handle draw maybe
+	}
+	// TODO no live cells for player1 or 2
+	return nil
 }
 
 func (g *Game) StopClock() {
@@ -130,12 +166,12 @@ func (g *Game) AddCells(cells []conway.Cell) {
 func (g *Game) RemovePlayer(p *Player) error {
 	close(p.GameServerMessages)
 
-	if err := g.SynchronizedBroadcaster.RemoveClient(p); err != nil {
+	if err := g.Broadcaster.RemoveClient(p); err != nil {
 		fmt.Printf("%s\n", err)
 		return err
 	}
-	enoughPlayersToStart := len(g.SynchronizedBroadcaster.Clients) >= 2
-	g.SynchronizedBroadcaster.SendBroadcastMessage(enoughPlayersToStart)
+	enoughPlayersToStart := len(g.Broadcaster.Clients()) >= 2
+	g.Broadcaster.SendBroadcastMessage(enoughPlayersToStart)
 
 	if !enoughPlayersToStart {
 		g.StopClock()

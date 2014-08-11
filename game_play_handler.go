@@ -89,6 +89,20 @@ func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan b
 					gou.Error("Send to user: ", err)
 					return
 				}
+			case GameResult:
+				var result string
+				switch messageData.Winner {
+				case *player:
+					result = "won"
+				case Player{}:
+					result = "draw"
+				default:
+					result = "lost"
+				}
+				if err := ws.WriteJSON(map[string]string{"Result": result, "Handshake": "finish"}); err != nil {
+					gou.Error("Send to user: ", err)
+					return
+				}
 			}
 		case <-disconnected:
 			fmt.Printf("Client disconnected\n")

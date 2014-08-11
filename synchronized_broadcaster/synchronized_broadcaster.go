@@ -13,14 +13,14 @@ type SynchronizedBroadcasterClient interface {
 }
 
 type SynchronizedBroadcaster struct {
-	Clients      []SynchronizedBroadcasterClient
+	clients      []SynchronizedBroadcasterClient
 	messageQueue chan BroadcastMessage
 	messageAck   chan bool
 }
 
-func NewSynchronizedBroadcaster() *SynchronizedBroadcaster {
-	sb := &SynchronizedBroadcaster{
-		Clients:      []SynchronizedBroadcasterClient{},
+func NewSynchronizedBroadcaster() SynchronizedBroadcaster {
+	sb := SynchronizedBroadcaster{
+		clients:      []SynchronizedBroadcasterClient{},
 		messageQueue: make(chan BroadcastMessage),
 		messageAck:   make(chan bool, 10),
 	}
@@ -32,7 +32,7 @@ func NewSynchronizedBroadcaster() *SynchronizedBroadcaster {
 				fmt.Printf("Rm client ack\n")
 			default:
 				for msg := range sb.messageQueue {
-					for _, c := range sb.Clients {
+					for _, c := range sb.clients {
 						c := c
 						go func() { c.Inbox() <- msg }()
 					}
@@ -41,7 +41,7 @@ func NewSynchronizedBroadcaster() *SynchronizedBroadcaster {
 					for _ = range sb.messageAck {
 						fmt.Printf("Ack\n")
 						ackNum += 1
-						if ackNum >= len(sb.Clients) {
+						if ackNum >= len(sb.clients) {
 							break
 						}
 					}
@@ -54,15 +54,19 @@ func NewSynchronizedBroadcaster() *SynchronizedBroadcaster {
 	return sb
 }
 
-func (sb *SynchronizedBroadcaster) AddClient(client SynchronizedBroadcasterClient) {
-	sb.Clients = append(sb.Clients, client)
+func (sb SynchronizedBroadcaster) AddClient(client SynchronizedBroadcasterClient) {
+	sb.clients = append(sb.clients, client)
 }
 
-func (sb *SynchronizedBroadcaster) RemoveClient(client SynchronizedBroadcasterClient) error {
+func (sb SynchronizedBroadcaster) Clients() []SynchronizedBroadcasterClient {
+	return sb.clients
+}
 
-	for i, c := range sb.Clients {
+func (sb SynchronizedBroadcaster) RemoveClient(client SynchronizedBroadcasterClient) error {
+
+	for i, c := range sb.clients {
 		if c.ClientId() == client.ClientId() {
-			sb.Clients = append(sb.Clients[:i], sb.Clients[i+1:]...)
+			sb.clients = append(sb.clients[:i], sb.clients[i+1:]...)
 			sb.messageAck <- true
 			return nil
 		}
@@ -71,15 +75,15 @@ func (sb *SynchronizedBroadcaster) RemoveClient(client SynchronizedBroadcasterCl
 	return errors.New("Trying to remove non existent client")
 }
 
-func (sb *SynchronizedBroadcaster) MessageAcknowledged() {
+func (sb SynchronizedBroadcaster) MessageAcknowledged() {
 	sb.messageAck <- true
 }
 
-func (sb *SynchronizedBroadcaster) SendBroadcastMessage(data interface{}) {
+func (sb SynchronizedBroadcaster) SendBroadcastMessage(data interface{}) {
 	u4 := uuid.New()
 	msg := BroadcastMessage{
 		MessageId: u4,
-		Server:    sb,
+		Server:    &sb,
 		Data:      data,
 	}
 

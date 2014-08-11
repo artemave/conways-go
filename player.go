@@ -7,18 +7,18 @@ import (
 )
 
 type Player struct {
-	GameServerMessages      chan sb.BroadcastMessage
-	id                      string
-	SynchronizedBroadcaster *sb.SynchronizedBroadcaster
-	PlayerIndex             conway.Player
+	GameServerMessages chan sb.BroadcastMessage
+	id                 string
+	Broadcaster
+	PlayerIndex conway.Player
 }
 
 func NewPlayer(game *Game) *Player {
 	u4 := uuid.New()
 	player := &Player{
-		id: u4,
-		SynchronizedBroadcaster: game.SynchronizedBroadcaster,
-		GameServerMessages:      make(chan sb.BroadcastMessage),
+		id:                 u4,
+		Broadcaster:        game.Broadcaster,
+		GameServerMessages: make(chan sb.BroadcastMessage),
 	}
 	return player
 }
@@ -32,5 +32,5 @@ func (p Player) Inbox() chan sb.BroadcastMessage {
 }
 
 func (p Player) MessageAcknowledged() {
-	p.SynchronizedBroadcaster.MessageAcknowledged()
+	p.Broadcaster.MessageAcknowledged()
 }

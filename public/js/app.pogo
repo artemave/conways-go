@@ -35,6 +35,16 @@ start up ()=
           grid.show()
           ws.send(JSON.stringify {"acknowledged" = "ready"})
 
+      is 'finish'
+        when (msg.Result) [
+          is 'won'
+            // Yay!
+          is 'lost'
+            // :(
+          is 'draw'
+            // meh
+        ]
+        
       otherwise
         if (msg :: Array)
           grid.render next (msg)
