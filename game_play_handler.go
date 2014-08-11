@@ -56,8 +56,7 @@ type WsServerMessage struct {
 	Player    int
 	Cols      int
 	Rows      int
-	WinSpot   Point
-	LoseSpot  Point
+	WinSpot   conway.Point
 }
 
 func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan bool) {
@@ -70,11 +69,10 @@ func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan b
 				if messageData {
 					serverMessage := WsServerMessage{
 						Handshake: "ready",
-						Player:    game.PlayerNumber(player),
+						Player:    int(player.PlayerIndex),
 						Cols:      game.Cols(),
 						Rows:      game.Rows(),
-						WinSpot:   game.WinSpot(player),
-						LoseSpot:  game.LoseSpot(player),
+						WinSpot:   game.WinSpot(player.PlayerIndex),
 					}
 					if err := ws.WriteJSON(serverMessage); err != nil {
 						gou.Error("Send to user: ", err)

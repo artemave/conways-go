@@ -17,13 +17,8 @@ type Game struct {
 	currentGeneration       *conway.Generation
 	startGeneration         *conway.Generation
 	stopClock               chan bool
-	playerNumbers           map[string]conway.Player
+	players                 []*Player
 	clientCells             chan []conway.Cell
-}
-
-type Point struct {
-	Col int
-	Row int
 }
 
 func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
@@ -48,7 +43,7 @@ func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 		Conway:                  &conway.Game{Cols: cols, Rows: rows},
 		stopClock:               make(chan bool, 1),
 		clientCells:             make(chan []conway.Cell),
-		playerNumbers:           make(map[string]conway.Player),
+		players:                 []*Player{},
 		startGeneration:         startGeneration,
 	}
 	return game
@@ -77,37 +72,24 @@ func (g *Game) AddPlayer() (*Player, error) {
 	if enoughPlayersToStart {
 		// TODO test player number assignment (when client reconnects)
 
-		// there is only one element in playerNumbers at this point
-		for _, v := range g.playerNumbers {
-			if v == conway.Player1 {
+		for _, p := range g.players {
+			if p.PlayerIndex == conway.Player1 {
 				pNum = conway.Player2
 			}
 		}
 		g.StartClock()
 	}
-	g.playerNumbers[p.id] = pNum
+	p.PlayerIndex = pNum
 
 	return p, nil
 }
 
-func (g *Game) WinSpot(p *Player) Point {
-	if g.playerNumbers[p.id] == conway.Player1 {
-		return Point{Col: g.Conway.Cols - 3, Row: g.Conway.Rows - 3}
+func (g *Game) WinSpot(playerIndex conway.Player) conway.Point {
+	if playerIndex == conway.Player1 {
+		return conway.Point{Col: g.Conway.Cols - 3, Row: g.Conway.Rows - 3}
 	} else {
-		return Point{Col: 3, Row: 3}
+		return conway.Point{Col: 3, Row: 3}
 	}
-}
-
-func (g *Game) LoseSpot(p *Player) Point {
-	if g.playerNumbers[p.id] == conway.Player1 {
-		return Point{Col: 3, Row: 3}
-	} else {
-		return Point{Col: g.Conway.Cols - 3, Row: g.Conway.Rows - 3}
-	}
-}
-
-func (g *Game) PlayerNumber(player *Player) int {
-	return int(g.playerNumbers[player.id])
 }
 
 func (g *Game) StartClock() {
@@ -159,7 +141,13 @@ func (g *Game) RemovePlayer(p *Player) error {
 		g.StopClock()
 	}
 
-	delete(g.playerNumbers, p.id)
+	newPlayers := []*Player{}
+	for _, pl := range g.players {
+		if pl.id != p.id {
+			newPlayers = append(newPlayers, pl)
+		}
+	}
+	g.players = newPlayers
 
 	gou.Debug("Removing player ", p.id)
 	return nil

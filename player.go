@@ -2,6 +2,7 @@ package main
 
 import (
 	"code.google.com/p/go-uuid/uuid"
+	"github.com/artemave/conways-go/conway"
 	sb "github.com/artemave/conways-go/synchronized_broadcaster"
 )
 
@@ -9,6 +10,7 @@ type Player struct {
 	GameServerMessages      chan sb.BroadcastMessage
 	id                      string
 	SynchronizedBroadcaster *sb.SynchronizedBroadcaster
+	PlayerIndex             conway.Player
 }
 
 func NewPlayer(game *Game) *Player {
