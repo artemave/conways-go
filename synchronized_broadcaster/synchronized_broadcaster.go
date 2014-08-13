@@ -18,8 +18,8 @@ type SynchronizedBroadcaster struct {
 	messageAck   chan bool
 }
 
-func NewSynchronizedBroadcaster() SynchronizedBroadcaster {
-	sb := SynchronizedBroadcaster{
+func NewSynchronizedBroadcaster() *SynchronizedBroadcaster {
+	sb := &SynchronizedBroadcaster{
 		clients:      []SynchronizedBroadcasterClient{},
 		messageQueue: make(chan BroadcastMessage),
 		messageAck:   make(chan bool, 10),
@@ -54,15 +54,15 @@ func NewSynchronizedBroadcaster() SynchronizedBroadcaster {
 	return sb
 }
 
-func (sb SynchronizedBroadcaster) AddClient(client SynchronizedBroadcasterClient) {
+func (sb *SynchronizedBroadcaster) AddClient(client SynchronizedBroadcasterClient) {
 	sb.clients = append(sb.clients, client)
 }
 
-func (sb SynchronizedBroadcaster) Clients() []SynchronizedBroadcasterClient {
+func (sb *SynchronizedBroadcaster) Clients() []SynchronizedBroadcasterClient {
 	return sb.clients
 }
 
-func (sb SynchronizedBroadcaster) RemoveClient(client SynchronizedBroadcasterClient) error {
+func (sb *SynchronizedBroadcaster) RemoveClient(client SynchronizedBroadcasterClient) error {
 
 	for i, c := range sb.clients {
 		if c.ClientId() == client.ClientId() {
@@ -75,15 +75,15 @@ func (sb SynchronizedBroadcaster) RemoveClient(client SynchronizedBroadcasterCli
 	return errors.New("Trying to remove non existent client")
 }
 
-func (sb SynchronizedBroadcaster) MessageAcknowledged() {
+func (sb *SynchronizedBroadcaster) MessageAcknowledged() {
 	sb.messageAck <- true
 }
 
-func (sb SynchronizedBroadcaster) SendBroadcastMessage(data interface{}) {
+func (sb *SynchronizedBroadcaster) SendBroadcastMessage(data interface{}) {
 	u4 := uuid.New()
 	msg := BroadcastMessage{
 		MessageId: u4,
-		Server:    &sb,
+		Server:    sb,
 		Data:      data,
 	}
 

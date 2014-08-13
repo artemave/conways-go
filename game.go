@@ -70,6 +70,7 @@ func (g *Game) AddPlayer() (*Player, error) {
 		return &Player{}, errors.New("Game has already reached maximum number players")
 	}
 	p := NewPlayer(g)
+	g.players = append(g.players, p)
 
 	g.Broadcaster.AddClient(p)
 
