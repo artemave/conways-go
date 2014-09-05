@@ -1,4 +1,4 @@
-package main
+package game
 
 import (
 	"errors"
@@ -7,8 +7,15 @@ import (
 
 	"github.com/araddon/gou"
 	"github.com/artemave/conways-go/conway"
+	grc "github.com/artemave/conways-go/game_result_calculator"
 	sb "github.com/artemave/conways-go/synchronized_broadcaster"
 )
+
+var Delay = time.Duration(1000)
+
+type GameResult struct {
+	Winner *Player
+}
 
 type Broadcaster interface {
 	Clients() []sb.SynchronizedBroadcasterClient
@@ -22,6 +29,9 @@ type Game struct {
 	Id     string
 	Conway *conway.Game
 	Broadcaster
+	GameResultCalculator interface {
+		Winner(*conway.Generation, []*conway.Player) *conway.Player
+	}
 	currentGeneration *conway.Generation
 	startGeneration   *conway.Generation
 	stopClock         chan bool
@@ -46,13 +56,14 @@ func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 	}
 
 	game := &Game{
-		Id:              id,
-		Broadcaster:     sb.NewSynchronizedBroadcaster(),
-		Conway:          &conway.Game{Cols: cols, Rows: rows},
-		stopClock:       make(chan bool, 1),
-		clientCells:     make(chan []conway.Cell),
-		players:         []*Player{},
-		startGeneration: startGeneration,
+		Id:                   id,
+		Broadcaster:          sb.NewSynchronizedBroadcaster(),
+		GameResultCalculator: grc.CaptureFlagCalculator,
+		Conway:               &conway.Game{Cols: cols, Rows: rows},
+		stopClock:            make(chan bool, 1),
+		clientCells:          make(chan []conway.Cell),
+		players:              []*Player{},
+		startGeneration:      startGeneration,
 	}
 	return game
 }
@@ -110,38 +121,32 @@ func (g *Game) StartClock() {
 			case cells := <-g.clientCells:
 				g.currentGeneration.AddCells(cells)
 			default:
-				if gameResult := g.CalculateGameResult(); gameResult != nil {
-					g.Broadcaster.SendBroadcastMessage(gameResult)
+				if winnerIndex := g.GameResultCalculator.Winner(g.currentGeneration, g.playerIndexes()); winnerIndex != nil {
+					g.Broadcaster.SendBroadcastMessage(GameResult{g.playerByIndex(winnerIndex)})
 					return
 				} else {
 					g.Broadcaster.SendBroadcastMessage(g.NextGeneration())
 				}
-				time.Sleep(delay * time.Millisecond)
+				time.Sleep(Delay * time.Millisecond)
 			}
 		}
 	}()
 }
 
-type GameResult struct {
-	Winner Player
+func (g *Game) playerIndexes() []*conway.Player {
+	playerIndexes := []*conway.Player{}
+	for _, v := range g.players {
+		playerIndexes = append(playerIndexes, &v.PlayerIndex)
+	}
+	return playerIndexes
 }
 
-func (g *Game) CalculateGameResult() *GameResult {
-	if g.currentGeneration == nil {
-		return nil
-	}
-	for _, cell := range *g.currentGeneration {
-		// player1 wins
-		if cell.Player == conway.Player1 && cell.Point == g.WinSpot(conway.Player1) {
-
+func (self *Game) playerByIndex(idx *conway.Player) *Player {
+	for _, v := range self.players {
+		if v.PlayerIndex == *idx {
+			return v
 		}
-		// player2 wins
-		if cell.Player == conway.Player2 && cell.Point == g.WinSpot(conway.Player2) {
-
-		}
-		// handle draw maybe
 	}
-	// TODO no live cells for player1 or 2
 	return nil
 }
 

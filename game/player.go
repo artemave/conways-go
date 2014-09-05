@@ -1,4 +1,4 @@
-package main
+package game
 
 import (
 	"code.google.com/p/go-uuid/uuid"
@@ -13,11 +13,11 @@ type Player struct {
 	PlayerIndex conway.Player
 }
 
-func NewPlayer(game *Game) *Player {
+func NewPlayer(g *Game) *Player {
 	u4 := uuid.New()
 	player := &Player{
 		id:                 u4,
-		Broadcaster:        game.Broadcaster,
+		Broadcaster:        g.Broadcaster,
 		GameServerMessages: make(chan sb.BroadcastMessage),
 	}
 	return player

@@ -3,15 +3,13 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/araddon/gou"
 	"github.com/artemave/conways-go/conway"
+	. "github.com/artemave/conways-go/game"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
-
-var delay = time.Duration(1000)
 
 var gamesRepo = NewGamesRepo()
 
@@ -92,9 +90,9 @@ func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan b
 			case GameResult:
 				var result string
 				switch messageData.Winner {
-				case *player:
+				case player:
 					result = "won"
-				case Player{}:
+				case &Player{}:
 					result = "draw"
 				default:
 					result = "lost"

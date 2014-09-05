@@ -23,8 +23,9 @@ func wsRequest(path string) *websocket.Conn {
 
 var _ = Describe("GamePlayHandler", func() {
 
-	var clockStep int = 40
+	var clockStep int = 200
 	*TestDelay = time.Duration(clockStep)
+
 	var startGeneration = &conway.Generation{
 		{Point: conway.Point{Row: 3, Col: 2}, State: conway.Live, Player: conway.Player1},
 		{Point: conway.Point{Row: 3, Col: 3}, State: conway.Live, Player: conway.Player1},
@@ -105,6 +106,7 @@ var _ = Describe("GamePlayHandler", func() {
 				})
 
 				Describe("second client disconnects", func() {
+
 					BeforeEach(func() {
 						// to prevent sending ack to closed channel
 						time.Sleep(time.Millisecond * time.Duration(clockStep-20))

@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/artemave/conways-go/conway"
+	. "github.com/artemave/conways-go/game"
 )
 
 type GamesRepo struct {

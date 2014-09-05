@@ -1,10 +1,11 @@
 package main
 
+import "github.com/artemave/conways-go/game"
+
 var TestGameRepo = &gamesRepo
-var TestStartGeneration = &startGeneration
 
 func (self *GamesRepo) Empty() {
-	self.Games = []*Game{}
+	self.Games = []*game.Game{}
 }
 
-var TestDelay = &delay
+var TestDelay = &game.Delay
