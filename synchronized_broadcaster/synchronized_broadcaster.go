@@ -1,7 +1,6 @@
 package synchronized_broadcaster
 
 import (
-	"errors"
 	"fmt"
 
 	"code.google.com/p/go-uuid/uuid"
@@ -13,40 +12,68 @@ type SynchronizedBroadcasterClient interface {
 }
 
 type SynchronizedBroadcaster struct {
-	clients      []SynchronizedBroadcasterClient
-	messageQueue chan BroadcastMessage
-	messageAck   chan bool
+	clients       []SynchronizedBroadcasterClient
+	addClient     chan SynchronizedBroadcasterClient
+	clientAdded   chan bool
+	removeClient  chan SynchronizedBroadcasterClient
+	clientRemoved chan bool
+	messageQueue  chan BroadcastMessage
+	messageAck    chan SynchronizedBroadcasterClient
 }
 
 func NewSynchronizedBroadcaster() *SynchronizedBroadcaster {
 	sb := &SynchronizedBroadcaster{
-		clients:      []SynchronizedBroadcasterClient{},
-		messageQueue: make(chan BroadcastMessage),
-		messageAck:   make(chan bool, 10),
+		clients:       []SynchronizedBroadcasterClient{},
+		addClient:     make(chan SynchronizedBroadcasterClient),
+		clientAdded:   make(chan bool),
+		removeClient:  make(chan SynchronizedBroadcasterClient),
+		clientRemoved: make(chan bool),
+		messageQueue:  make(chan BroadcastMessage),
+		messageAck:    make(chan SynchronizedBroadcasterClient),
 	}
 
 	go func() {
 		for {
 			select {
-			case <-sb.messageAck: // remove possible ack from remove client while sb was idle
-				fmt.Printf("Rm client ack\n")
-			default:
-				for msg := range sb.messageQueue {
-					for _, c := range sb.clients {
-						c := c
-						go func() { c.Inbox() <- msg }()
+			case client := <-sb.addClient:
+				sb.clients = append(sb.clients, client)
+				sb.clientAdded <- true
+			case client := <-sb.removeClient:
+				fmt.Printf("FUCK\n")
+				for i, c := range sb.clients {
+					if c.ClientId() == client.ClientId() {
+						sb.clients = append(sb.clients[:i], sb.clients[i+1:]...)
+						sb.clientRemoved <- true
 					}
+				}
+			case msg := <-sb.messageQueue:
+				clientAcks := make(map[string]bool)
 
-					ackNum := 0
-					for _ = range sb.messageAck {
-						fmt.Printf("Ack\n")
-						ackNum += 1
-						if ackNum >= len(sb.clients) {
-							break
+				for _, c := range sb.clients {
+					clientAcks[c.ClientId()] = true
+					c := c
+					go func() { c.Inbox() <- msg }()
+				}
+
+			ACKS:
+				for {
+					select {
+					case client := <-sb.removeClient:
+						for i, c := range sb.clients {
+							if c.ClientId() == client.ClientId() {
+								sb.clients = append(sb.clients[:i], sb.clients[i+1:]...)
+								sb.clientRemoved <- true
+								delete(clientAcks, c.ClientId())
+							}
+						}
+					case client := <-sb.messageAck:
+						delete(clientAcks, client.ClientId())
+					default:
+						if len(clientAcks) == 0 {
+							break ACKS
 						}
 					}
 				}
-				break
 			}
 		}
 	}()
@@ -55,28 +82,21 @@ func NewSynchronizedBroadcaster() *SynchronizedBroadcaster {
 }
 
 func (sb *SynchronizedBroadcaster) AddClient(client SynchronizedBroadcasterClient) {
-	sb.clients = append(sb.clients, client)
+	sb.addClient <- client
+	<-sb.clientAdded
 }
 
 func (sb *SynchronizedBroadcaster) Clients() []SynchronizedBroadcasterClient {
 	return sb.clients
 }
 
-func (sb *SynchronizedBroadcaster) RemoveClient(client SynchronizedBroadcasterClient) error {
-
-	for i, c := range sb.clients {
-		if c.ClientId() == client.ClientId() {
-			sb.clients = append(sb.clients[:i], sb.clients[i+1:]...)
-			sb.messageAck <- true
-			return nil
-		}
-	}
-
-	return errors.New("Trying to remove non existent client")
+func (sb *SynchronizedBroadcaster) RemoveClient(client SynchronizedBroadcasterClient) {
+	sb.removeClient <- client
+	<-sb.clientRemoved
 }
 
-func (sb *SynchronizedBroadcaster) MessageAcknowledged() {
-	sb.messageAck <- true
+func (sb *SynchronizedBroadcaster) MessageAcknowledged(client SynchronizedBroadcasterClient) {
+	sb.messageAck <- client
 }
 
 func (sb *SynchronizedBroadcaster) SendBroadcastMessage(data interface{}) {

@@ -2,7 +2,6 @@ package game
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/araddon/gou"
@@ -20,9 +19,9 @@ type GameResult struct {
 type Broadcaster interface {
 	Clients() []sb.SynchronizedBroadcasterClient
 	AddClient(sb.SynchronizedBroadcasterClient)
-	RemoveClient(sb.SynchronizedBroadcasterClient) error
+	RemoveClient(sb.SynchronizedBroadcasterClient)
 	SendBroadcastMessage(interface{})
-	MessageAcknowledged()
+	MessageAcknowledged(sb.SynchronizedBroadcasterClient)
 }
 
 type Game struct {
@@ -170,12 +169,18 @@ func (g *Game) AddCells(cells []conway.Cell) {
 }
 
 func (g *Game) RemovePlayer(p *Player) error {
-	close(p.GameServerMessages)
-
-	if err := g.Broadcaster.RemoveClient(p); err != nil {
-		fmt.Printf("%s\n", err)
-		return err
+EMPTY_GAME_SERVER_MESSAGES:
+	for {
+		select {
+		case <-p.GameServerMessages:
+		default:
+			close(p.GameServerMessages)
+			break EMPTY_GAME_SERVER_MESSAGES
+		}
 	}
+
+	g.Broadcaster.RemoveClient(p)
+
 	enoughPlayersToStart := len(g.Broadcaster.Clients()) >= 2
 	g.Broadcaster.SendBroadcastMessage(enoughPlayersToStart)
 

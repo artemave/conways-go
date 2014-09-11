@@ -103,8 +103,6 @@ func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan b
 				}
 			}
 		case <-disconnected:
-			fmt.Printf("Client disconnected\n")
-			ws.Close()
 			return
 		}
 	}

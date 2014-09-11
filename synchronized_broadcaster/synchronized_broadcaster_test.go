@@ -71,7 +71,7 @@ var _ = Describe("SynchronizedBroadcaster", func() {
 			d := make(chan string)
 
 			sb.SendBroadcastMessage("msg")
-			sb.MessageAcknowledged()
+			sb.MessageAcknowledged(client1)
 
 			// send second message before first one is acknowledged by both clients
 			go func() {
@@ -87,7 +87,7 @@ var _ = Describe("SynchronizedBroadcaster", func() {
 
 			<-time.After(10 * time.Millisecond)
 			// complete acknowledge first message
-			sb.MessageAcknowledged()
+			sb.MessageAcknowledged(client2)
 
 			res := []string{<-d, <-d}
 
@@ -102,7 +102,7 @@ var _ = Describe("SynchronizedBroadcaster", func() {
 				d := make(chan string)
 
 				sb.SendBroadcastMessage("msg")
-				sb.MessageAcknowledged()
+				sb.MessageAcknowledged(client2)
 
 				// send second message before first one is acknowledged by both clients
 				go func() {
@@ -114,7 +114,7 @@ var _ = Describe("SynchronizedBroadcaster", func() {
 
 				Expect(<-d).To(Equal("msg1"))
 				close(done)
-			}, 0.05)
+			}, 0.5)
 		})
 
 		Context("Client disconnected while no message was in progress", func() {

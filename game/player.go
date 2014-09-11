@@ -32,5 +32,5 @@ func (p Player) Inbox() chan sb.BroadcastMessage {
 }
 
 func (p Player) MessageAcknowledged() {
-	p.Broadcaster.MessageAcknowledged()
+	p.Broadcaster.MessageAcknowledged(p)
 }

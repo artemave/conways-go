@@ -19,14 +19,12 @@ type StubBroadcaster struct {
 func (b *StubBroadcaster) Clients() []sb.SynchronizedBroadcasterClient {
 	return []sb.SynchronizedBroadcasterClient{}
 }
-func (b *StubBroadcaster) AddClient(sb.SynchronizedBroadcasterClient) {}
-func (b *StubBroadcaster) RemoveClient(sb.SynchronizedBroadcasterClient) error {
-	return nil
-}
+func (b *StubBroadcaster) AddClient(sb.SynchronizedBroadcasterClient)    {}
+func (b *StubBroadcaster) RemoveClient(sb.SynchronizedBroadcasterClient) {}
 func (b *StubBroadcaster) SendBroadcastMessage(data interface{}) {
 	b.Message = data
 }
-func (b *StubBroadcaster) MessageAcknowledged() {}
+func (b *StubBroadcaster) MessageAcknowledged(sb.SynchronizedBroadcasterClient) {}
 
 type StubResultCalculator func(*conway.Generation, []*conway.Player) *conway.Player
 

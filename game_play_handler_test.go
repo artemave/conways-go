@@ -1,7 +1,6 @@
 package main_test
 
 import (
-	"fmt"
 	"net/http/httptest"
 	"time"
 	. "github.com/artemave/conways-go"
@@ -23,7 +22,7 @@ func wsRequest(path string) *websocket.Conn {
 
 var _ = Describe("GamePlayHandler", func() {
 
-	var clockStep int = 200
+	var clockStep int = 0
 	*TestDelay = time.Duration(clockStep)
 
 	var startGeneration = &conway.Generation{
@@ -107,37 +106,48 @@ var _ = Describe("GamePlayHandler", func() {
 
 				Describe("second client disconnects", func() {
 
+					var recoverFromExtraGameMessage = func() {
+						if r := recover(); r != nil {
+							// Recovering from reading wrong type of message
+							sendAckMessage(firstWs, "game")
+							// Why wrong type? Because if client disconnects at exactly the same time as
+							// as game message sent we might get an extra one
+						}
+					}
+
 					BeforeEach(func() {
-						// to prevent sending ack to closed channel
-						time.Sleep(time.Millisecond * time.Duration(clockStep-20))
 						secondWs.Close()
+						justReadGameOutput(firstWs)
+						sendAckMessage(firstWs, "game")
 					})
 
 					It("tells first client to wait", func() {
-						justReadGameOutput(firstWs)
-
-						output := justReadHandshake(firstWs)
-						Expect(output.Handshake).To(Equal("wait"))
+						Eventually(func() string {
+							defer recoverFromExtraGameMessage()
+							o := justReadHandshake(firstWs)
+							return o.Handshake
+						}).Should(Equal("wait"))
 					})
 
 					It("stops game broadcast", func() {
+						Eventually(func() bool {
+							defer recoverFromExtraGameMessage()
+							justReadHandshake(firstWs)
+							return true
+						}).Should(Equal(true))
+
+						sendAckMessage(firstWs, "wait")
+
 						msgSent := make(chan bool)
-
-						justReadGameOutput(firstWs)
-						justReadHandshake(firstWs)
-
 						go func(c chan bool) {
 							defer func() {
 								if r := recover(); r != nil {
-									fmt.Println("Recovered after reading closed ws: ", r)
+									// reading closed ws after test finish should not fail the test
 								}
 							}()
-
 							justReadGameOutput(firstWs)
 							c <- true
 						}(msgSent)
-
-						sendAckMessage(firstWs, "wait")
 
 						for {
 							select {
