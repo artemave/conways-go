@@ -4,14 +4,20 @@ import (
 	. "github.com/artemave/conways-go/conway"
 )
 
-type ResultCalculator func(*Generation, []*Player) *Player
+type GameResultCalculator func(*Generation, []*Player, interface {
+	WinSpot(*Player) *Point
+}) *Player
 
-func (rc ResultCalculator) Winner(generation *Generation, players []*Player) *Player {
-	return rc(generation, players)
+func (grc GameResultCalculator) Winner(g *Generation, ps []*Player, game interface {
+	WinSpot(*Player) *Point
+}) *Player {
+	return grc(g, ps, game)
 }
 
-var CaptureFlagCalculator = ResultCalculator(
-	func(generation *Generation, players []*Player) *Player {
+var CaptureFlagCalculator = GameResultCalculator(
+	func(generation *Generation, players []*Player, game interface {
+		WinSpot(*Player) *Point
+	}) *Player {
 		return nil
 	},
 )

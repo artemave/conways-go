@@ -70,7 +70,7 @@ func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan b
 						Player:    int(player.PlayerIndex),
 						Cols:      game.Cols(),
 						Rows:      game.Rows(),
-						WinSpot:   game.WinSpot(player.PlayerIndex),
+						WinSpot:   *game.WinSpot(&player.PlayerIndex),
 					}
 					if err := ws.WriteJSON(serverMessage); err != nil {
 						gou.Error("Send to user: ", err)
