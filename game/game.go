@@ -29,7 +29,7 @@ type Game struct {
 	Conway *conway.Game
 	Broadcaster
 	GameResultCalculator interface {
-		Winner(*conway.Generation, []*conway.Player, interface {
+		Winner(*conway.Generation, interface {
 			WinSpot(*conway.Player) *conway.Point
 		}) *conway.Player
 	}
@@ -122,7 +122,7 @@ func (g *Game) StartClock() {
 			case cells := <-g.clientCells:
 				g.currentGeneration.AddCells(cells)
 			default:
-				if winnerIndex := g.GameResultCalculator.Winner(g.currentGeneration, g.playerIndexes(), g); winnerIndex != nil {
+				if winnerIndex := g.GameResultCalculator.Winner(g.currentGeneration, g); winnerIndex != nil {
 					g.Broadcaster.SendBroadcastMessage(GameResult{g.playerByIndex(winnerIndex)})
 					return
 				} else {

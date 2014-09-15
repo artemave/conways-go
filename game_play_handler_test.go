@@ -29,6 +29,7 @@ var _ = Describe("GamePlayHandler", func() {
 		{Point: conway.Point{Row: 3, Col: 2}, State: conway.Live, Player: conway.Player1},
 		{Point: conway.Point{Row: 3, Col: 3}, State: conway.Live, Player: conway.Player1},
 		{Point: conway.Point{Row: 3, Col: 4}, State: conway.Live, Player: conway.Player1},
+		{Point: conway.Point{Row: 13, Col: 14}, State: conway.Live, Player: conway.Player2},
 	}
 
 	BeforeEach(func() {

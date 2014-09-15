@@ -26,14 +26,14 @@ func (b *StubBroadcaster) SendBroadcastMessage(data interface{}) {
 }
 func (b *StubBroadcaster) MessageAcknowledged(sb.SynchronizedBroadcasterClient) {}
 
-type StubResultCalculator func(*conway.Generation, []*conway.Player, interface {
+type StubResultCalculator func(*conway.Generation, interface {
 	WinSpot(*conway.Player) *conway.Point
 }) *conway.Player
 
-func (self StubResultCalculator) Winner(generation *conway.Generation, players []*conway.Player, game interface {
+func (self StubResultCalculator) Winner(generation *conway.Generation, game interface {
 	WinSpot(*conway.Player) *conway.Point
 }) *conway.Player {
-	return self(generation, players, game)
+	return self(generation, game)
 }
 
 var testGeneration = &conway.Generation{
@@ -61,7 +61,7 @@ var _ = Describe("Game", func() {
 		Context("Game is on", func() {
 			BeforeEach(func() {
 				game.GameResultCalculator = StubResultCalculator(
-					func(generation *conway.Generation, players []*conway.Player, game interface {
+					func(generation *conway.Generation, game interface {
 						WinSpot(*conway.Player) *conway.Point
 					}) *conway.Player {
 						return nil
@@ -79,7 +79,7 @@ var _ = Describe("Game", func() {
 		Context("Game is complete", func() {
 			BeforeEach(func() {
 				game.GameResultCalculator = StubResultCalculator(
-					func(generation *conway.Generation, players []*conway.Player, game interface {
+					func(generation *conway.Generation, game interface {
 						WinSpot(*conway.Player) *conway.Point
 					}) *conway.Player {
 						r := conway.Player1
