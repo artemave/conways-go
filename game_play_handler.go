@@ -121,7 +121,7 @@ func Listen(ws *websocket.Conn, game *Game, player *Player, disconnected chan bo
 			return
 		} else {
 			switch msg.Acknowledged {
-			case "ready", "wait", "game":
+			case "ready", "wait", "game", "finish":
 				if msg.Cells != nil {
 					// TODO test
 					game.AddCells(msg.Cells)

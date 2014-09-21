@@ -1,10 +1,6 @@
 package synchronized_broadcaster
 
-import (
-	"fmt"
-
-	"code.google.com/p/go-uuid/uuid"
-)
+import "code.google.com/p/go-uuid/uuid"
 
 type SynchronizedBroadcasterClient interface {
 	ClientId() string
@@ -39,7 +35,6 @@ func NewSynchronizedBroadcaster() *SynchronizedBroadcaster {
 				sb.clients = append(sb.clients, client)
 				sb.clientAdded <- true
 			case client := <-sb.removeClient:
-				fmt.Printf("FUCK\n")
 				for i, c := range sb.clients {
 					if c.ClientId() == client.ClientId() {
 						sb.clients = append(sb.clients[:i], sb.clients[i+1:]...)
@@ -47,30 +42,35 @@ func NewSynchronizedBroadcaster() *SynchronizedBroadcaster {
 					}
 				}
 			case msg := <-sb.messageQueue:
-				clientAcks := make(map[string]bool)
+				if len(sb.clients) > 0 {
 
-				for _, c := range sb.clients {
-					clientAcks[c.ClientId()] = true
-					c := c
-					go func() { c.Inbox() <- msg }()
-				}
+					clientAcks := make(map[string]bool)
 
-			ACKS:
-				for {
-					select {
-					case client := <-sb.removeClient:
-						for i, c := range sb.clients {
-							if c.ClientId() == client.ClientId() {
-								sb.clients = append(sb.clients[:i], sb.clients[i+1:]...)
-								sb.clientRemoved <- true
-								delete(clientAcks, c.ClientId())
+					for _, c := range sb.clients {
+						clientAcks[c.ClientId()] = true
+						c := c
+						go func() { c.Inbox() <- msg }()
+					}
+
+				ACKS:
+					for {
+						select {
+						case client := <-sb.removeClient:
+							for i, c := range sb.clients {
+								if c.ClientId() == client.ClientId() {
+									sb.clients = append(sb.clients[:i], sb.clients[i+1:]...)
+									sb.clientRemoved <- true
+									delete(clientAcks, c.ClientId())
+								}
 							}
-						}
-					case client := <-sb.messageAck:
-						delete(clientAcks, client.ClientId())
-					default:
-						if len(clientAcks) == 0 {
-							break ACKS
+							if len(clientAcks) == 0 {
+								break ACKS
+							}
+						case client := <-sb.messageAck:
+							delete(clientAcks, client.ClientId())
+							if len(clientAcks) == 0 {
+								break ACKS
+							}
 						}
 					}
 				}

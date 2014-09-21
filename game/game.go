@@ -171,6 +171,7 @@ func (g *Game) AddCells(cells []conway.Cell) {
 }
 
 func (g *Game) RemovePlayer(p *Player) error {
+	gou.Debug("Removing player ", p.id)
 EMPTY_GAME_SERVER_MESSAGES:
 	for {
 		select {
@@ -198,6 +199,6 @@ EMPTY_GAME_SERVER_MESSAGES:
 	}
 	g.players = newPlayers
 
-	gou.Debug("Removing player ", p.id)
+	gou.Debug("Player removed ", p.id)
 	return nil
 }

@@ -1,6 +1,7 @@
 package main_test
 
 import (
+	"fmt"
 	"net/http/httptest"
 	"time"
 	. "github.com/artemave/conways-go"
@@ -22,7 +23,7 @@ func wsRequest(path string) *websocket.Conn {
 
 var _ = Describe("GamePlayHandler", func() {
 
-	var clockStep int = 0
+	var clockStep int = 10
 	*TestDelay = time.Duration(clockStep)
 
 	var startGeneration = &conway.Generation{
@@ -139,20 +140,21 @@ var _ = Describe("GamePlayHandler", func() {
 
 						sendAckMessage(firstWs, "wait")
 
-						msgSent := make(chan bool)
-						go func(c chan bool) {
+						msgSent := make(chan *conway.Generation)
+						go func(c chan *conway.Generation) {
 							defer func() {
 								if r := recover(); r != nil {
 									// reading closed ws after test finish should not fail the test
 								}
 							}()
-							justReadGameOutput(firstWs)
-							c <- true
+							o := justReadGameOutput(firstWs)
+							c <- o
 						}(msgSent)
 
 						for {
 							select {
-							case <-msgSent:
+							case g := <-msgSent:
+								fmt.Printf("%#v\n", *g)
 								Fail("Expected to stop broadcasting game")
 							case <-time.After(time.Millisecond * time.Duration(clockStep+10)):
 								close(msgSent)

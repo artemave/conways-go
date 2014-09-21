@@ -38,12 +38,15 @@ start up ()=
       is 'finish'
         when (msg.Result) [
           is 'won'
-            // Yay!
+            alert "You won"
+
           is 'lost'
-            // :(
+            alert "You lost"
+
           is 'draw'
-            // meh
+            alert "Draw"
         ]
+        ws.send(JSON.stringify {"acknowledged" = "finish"})
         
       otherwise
         if (msg :: Array)
