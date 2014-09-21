@@ -27,6 +27,9 @@ var CaptureFlagCalculator = GameResultCalculator(
 		playerHasLiveCells := make(map[Player]bool)
 
 		for _, cell := range *generation {
+			if cell.Player == None {
+				continue
+			}
 			playerHasLiveCells[cell.Player] = true
 
 			if cell.Point == *game.WinSpot(&cell.Player) {

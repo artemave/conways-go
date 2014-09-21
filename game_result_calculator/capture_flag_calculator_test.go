@@ -76,6 +76,7 @@ var _ = Describe("CaptureFlagCalculator", func() {
 			generation = &conway.Generation{
 				{Point: conway.Point{Row: 0, Col: 1}, State: conway.Live, Player: conway.Player2},
 				{Point: conway.Point{Row: 1, Col: 0}, State: conway.Live, Player: conway.Player2},
+				{Point: conway.Point{Row: 1, Col: 1}, State: conway.Live, Player: conway.None},
 			}
 		})
 		It("Declares the other player a winner", func() {
