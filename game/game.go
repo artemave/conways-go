@@ -16,6 +16,11 @@ type GameResult struct {
 	Winner *Player
 }
 
+type WinSpot struct {
+	Player conway.Player
+	Point  conway.Point
+}
+
 type Broadcaster interface {
 	Clients() []sb.SynchronizedBroadcasterClient
 	AddClient(sb.SynchronizedBroadcasterClient)
@@ -109,8 +114,16 @@ func (g *Game) WinSpot(playerIndex *conway.Player) *conway.Point {
 	if *playerIndex == conway.Player1 {
 		return &conway.Point{Col: g.Conway.Cols - 3, Row: g.Conway.Rows - 3}
 	} else {
-		return &conway.Point{Col: 3, Row: 3}
+		return &conway.Point{Col: 2, Row: 2}
 	}
+}
+
+func (g *Game) WinSpots() []WinSpot {
+	winSpots := []WinSpot{}
+	for _, playerIndex := range g.playerIndexes() {
+		winSpots = append(winSpots, WinSpot{Player: *playerIndex, Point: *g.WinSpot(playerIndex)})
+	}
+	return winSpots
 }
 
 func (g *Game) StartClock() {

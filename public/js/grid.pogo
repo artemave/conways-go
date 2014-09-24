@@ -1,4 +1,6 @@
-Grid (player, columns, rows) =
+_ = require 'lodash'
+
+Grid (player, columns, rows, winSpots) =
   self = this
   self.columns = columns
   self.rows = rows
@@ -6,6 +8,7 @@ Grid (player, columns, rows) =
   self.selection is in progress = false
   self.grid = []
   self.player = player
+  self.winSpots = winSpots
 
   viewport = window.document.get element by id 'viewport'
 
@@ -28,8 +31,8 @@ Grid (player, columns, rows) =
     viewport.set attribute 'style' "height:#(self.y(self.rows))px"
 
   scale xy () =
-    self.x = d3.scale.linear().domain([0, self.columns - 1]).rangeRound([0, viewport width()])
-    self.y = d3.scale.linear().domain([0, window.innerHeight / self.x(1)]).rangeRound([0, window.innerHeight])
+    self.x = d3.scale.linear().domain([0, self.columns]).rangeRound([0, viewport width()])
+    self.y = d3.scale.linear().domain([0, viewport height() / self.x(1)]).rangeRound([0, viewport height()])
 
   add (cell) to selection =
     if (self.selection is in progress && !_(this.class list).contains 'fog')
@@ -49,20 +52,35 @@ Grid (player, columns, rows) =
 
   self.render next (generation) =
     calculate live class (d) =
-      if ((this) is being drawn)
+      cell = this
+      c = if ((cell) is being drawn)
         'new'
       else
         "player#(d.Player) live"
 
+      if (win spot at (d))
+        c := c+" winSpot#(d.Player)"
+
+      c
+
     calculate dead class (d) =
+      cell = this
+
       my closest live cell is at least (number of) cells away =
         !_(generation).find @(gc)
           Math.abs(gc.Row - d.Row) < number of && Math.abs(gc.Col - d.Col) < number of && gc.Player == self.player
 
-      if ((this) is being drawn)
+      c = if ((cell) is being drawn)
         'new'
       else
         'dead' + if (my closest live cell is at least 5 cells away) @{' fog'} else @{''}
+
+      w = win spot at (d)
+
+      if (w)
+        c := c+" winSpot#(w.Player)"
+
+      c
 
     rect = svg.select 'rect' all.data (generation) @(d)
       cantors pairing (d.Row, d.Col)
@@ -91,21 +109,31 @@ Grid (player, columns, rows) =
           Col = ex
         }
 
+  win spot at (cell) =
+    p = {Row = cell.Row, Col = cell.Col}
+    s = _(self.winSpots).find @(spot)
+      _(p).isEqual(spot.Point)
+
+
+  calculate initial class (d) =
+    s = win spot at (d)
+    "dead#(if (s) @{" winSpot#(s.Player)"} else @{''})"
+
+  set viewport height()
+  svg.attr("width", viewport width())
+  svg.attr("height", viewport height())
+
   svg.select 'rect' all.data(self.grid).enter().append 'rect'.
   on 'mousedown' @{ self.selection is in progress = true }.
   on 'mousemove' (add to selection).
   on 'mouseup' @{ self.selection is in progress = false }.
   attr 'width' @{ self.x(0.8) }.
   attr 'height' @{ self.y(0.8) }.
-  attr 'class' 'dead'.
+  attr 'class' (calculate initial class).
   attr 'rx' @(d) @{ self.x(0.2)}.
   attr 'ry' @(d) @{ self.y(0.2)}.
   attr 'x' @(d) @{ self.x(d.Col) + self.x(0.1) }.
   attr 'y' @(d) @{ self.y(d.Row) + self.y(0.1) }
-
-  set viewport height()
-  svg.attr("width", viewport width())
-  svg.attr("height", viewport height())
 
   self
 

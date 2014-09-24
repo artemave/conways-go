@@ -56,10 +56,10 @@ var startGeneration = map[string]*conway.Generation{
 		{Point: conway.Point{Row: 5, Col: 5}, State: conway.Live, Player: conway.Player1},
 		{Point: conway.Point{Row: 4, Col: 5}, State: conway.Live, Player: conway.Player1},
 
-		{Point: conway.Point{Row: 20, Col: 33}, State: conway.Live, Player: conway.Player2},
-		{Point: conway.Point{Row: 21, Col: 33}, State: conway.Live, Player: conway.Player2},
-		{Point: conway.Point{Row: 21, Col: 34}, State: conway.Live, Player: conway.Player2},
 		{Point: conway.Point{Row: 20, Col: 34}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 21, Col: 34}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 21, Col: 35}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 20, Col: 35}, State: conway.Live, Player: conway.Player2},
 	},
 }
 

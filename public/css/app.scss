@@ -29,4 +29,13 @@ rect {
   &.new {
     fill: #CB60E6;
   }
+
+  &.winSpot1 {
+    stroke: lightblue;
+    stroke-width: 4;
+  }
+  &.winSpot2 {
+    stroke: lightgreen;
+    stroke-width: 4;
+  }
 }

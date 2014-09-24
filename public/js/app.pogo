@@ -14,7 +14,8 @@ start up ()=
   grid = nil
 
   window.onresize () =
-    grid.resize()
+    if (grid)
+      grid.resize()
 
   ws.onmessage (event) =
     msg = JSON.parse(event.data)
@@ -29,7 +30,7 @@ start up ()=
 
       is 'ready'
         if (!grid)
-          grid := @new Grid(msg.Player, msg.Cols, msg.Rows)
+          grid := @new Grid(msg.Player, msg.Cols, msg.Rows, msg.WinSpots)
 
         d3.select '#waiting_for_players'.transition().style 'opacity' 0.each 'end'
           grid.show()
