@@ -1,4 +1,5 @@
 var gulp           = require('gulp')
+var pogo           = require('gulp-pogo')
 var browserify     = require('gulp-browserify');
 var sass           = require('gulp-sass')
 var concat         = require('gulp-concat');
@@ -6,6 +7,8 @@ var plumber        = require('gulp-plumber')
 var gutil          = require('gulp-util')
 var fs             = require('fs')
 var gulpBowerFiles = require('gulp-bower-files')
+var watch          = require('gulp-watch')
+var karma          = require('karma').server;
 
 var onError = function (err) {
   gutil.beep();
@@ -44,7 +47,31 @@ gulp.task("bower-files", function() {
     .pipe(gulp.dest("./public"))
 });
 
+/**
+ * Run test once and exit
+ */
+gulp.task('test', function (done) {
+  karma.start({
+    configFile: __dirname + '/karma.conf.js',
+    singleRun: true
+  }, done);
+});
+
+/**
+ * Watch for file changes and re-run tests on each change
+ */
+gulp.task('tdd', function (done) {
+  karma.start({
+    configFile: __dirname + '/karma.conf.js'
+  }, done);
+});
+
 gulp.task("watch", function() {
+  watch('./public/test/**/*.pogo')
+    .pipe(plumber({errorHandler: onError}))
+    .pipe(pogo())
+    .pipe(gulp.dest('./public/test/'));
+
   gulp.watch('./public/js/**/*.pogo', ['scripts']);
   gulp.watch('./public/css/**', ['styles']);
 })

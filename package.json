@@ -17,5 +17,18 @@
   },
   "scripts": {
     "postinstall": "./node_modules/bower/bin/bower install && ./node_modules/gulp/bin/gulp.js"
+  },
+  "devDependencies": {
+    "karma-mocha": "^0.1.9",
+    "mocha": "^1.21.4",
+    "chai": "^1.9.1",
+    "karma-chai": "^0.1.0",
+    "sinon": "^1.10.3",
+    "karma-sinon": "^1.0.3",
+    "karma": "^0.12.23",
+    "gulp-watch": "^1.0.7",
+    "karma-browserify": "^0.2.1",
+    "karma-phantomjs-launcher": "^0.1.4",
+    "gulp-karma": "0.0.4"
   }
 }
