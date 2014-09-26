@@ -29,37 +29,31 @@ func RootHandler(w http.ResponseWriter, req *http.Request) {
 
 var startGeneration = map[string]*conway.Generation{
 	"large": &conway.Generation{
+		{Point: conway.Point{Row: 3, Col: 4}, State: conway.Live, Player: conway.Player1},
 		{Point: conway.Point{Row: 4, Col: 4}, State: conway.Live, Player: conway.Player1},
 		{Point: conway.Point{Row: 5, Col: 4}, State: conway.Live, Player: conway.Player1},
-		{Point: conway.Point{Row: 5, Col: 5}, State: conway.Live, Player: conway.Player1},
-		{Point: conway.Point{Row: 4, Col: 5}, State: conway.Live, Player: conway.Player1},
 
-		{Point: conway.Point{Row: 64, Col: 93}, State: conway.Live, Player: conway.Player2},
-		{Point: conway.Point{Row: 65, Col: 93}, State: conway.Live, Player: conway.Player2},
-		{Point: conway.Point{Row: 65, Col: 94}, State: conway.Live, Player: conway.Player2},
-		{Point: conway.Point{Row: 64, Col: 94}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 64, Col: 95}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 65, Col: 95}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 66, Col: 95}, State: conway.Live, Player: conway.Player2},
 	},
 	"medium": &conway.Generation{
+		{Point: conway.Point{Row: 3, Col: 4}, State: conway.Live, Player: conway.Player1},
 		{Point: conway.Point{Row: 4, Col: 4}, State: conway.Live, Player: conway.Player1},
 		{Point: conway.Point{Row: 5, Col: 4}, State: conway.Live, Player: conway.Player1},
-		{Point: conway.Point{Row: 5, Col: 5}, State: conway.Live, Player: conway.Player1},
-		{Point: conway.Point{Row: 4, Col: 5}, State: conway.Live, Player: conway.Player1},
 
-		{Point: conway.Point{Row: 44, Col: 73}, State: conway.Live, Player: conway.Player2},
-		{Point: conway.Point{Row: 45, Col: 73}, State: conway.Live, Player: conway.Player2},
-		{Point: conway.Point{Row: 45, Col: 74}, State: conway.Live, Player: conway.Player2},
-		{Point: conway.Point{Row: 44, Col: 74}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 44, Col: 75}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 45, Col: 75}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 46, Col: 75}, State: conway.Live, Player: conway.Player2},
 	},
 	"small": &conway.Generation{
+		{Point: conway.Point{Row: 3, Col: 4}, State: conway.Live, Player: conway.Player1},
 		{Point: conway.Point{Row: 4, Col: 4}, State: conway.Live, Player: conway.Player1},
 		{Point: conway.Point{Row: 5, Col: 4}, State: conway.Live, Player: conway.Player1},
-		{Point: conway.Point{Row: 5, Col: 5}, State: conway.Live, Player: conway.Player1},
-		{Point: conway.Point{Row: 4, Col: 5}, State: conway.Live, Player: conway.Player1},
 
-		{Point: conway.Point{Row: 20, Col: 34}, State: conway.Live, Player: conway.Player2},
-		{Point: conway.Point{Row: 21, Col: 34}, State: conway.Live, Player: conway.Player2},
-		{Point: conway.Point{Row: 21, Col: 35}, State: conway.Live, Player: conway.Player2},
 		{Point: conway.Point{Row: 20, Col: 35}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 21, Col: 35}, State: conway.Live, Player: conway.Player2},
+		{Point: conway.Point{Row: 22, Col: 35}, State: conway.Live, Player: conway.Player2},
 	},
 }
 
