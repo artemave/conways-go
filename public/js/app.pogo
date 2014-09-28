@@ -1,8 +1,11 @@
-Grid = require './grid'
 require './when'
+Grid = require './grid'
+Button bar = require './button_bar'
 
 start up ()=
   game id = window.location.pathname.split "/".pop()
+
+  button bar = @new Button bar (document. get element by id "button-bar")
 
   if (! game id)
     return
@@ -24,6 +27,7 @@ start up ()=
       is 'wait'
         if (grid)
           grid.hide()
+          button bar.hide()
 
         d3.select '#waiting_for_players'.transition().style 'opacity' 1.each 'end'
           ws.send(JSON.stringify {"acknowledged" = "wait"})
@@ -33,6 +37,7 @@ start up ()=
           grid := @new Grid(msg.Player, msg.Cols, msg.Rows, msg.WinSpots)
 
         d3.select '#waiting_for_players'.transition().style 'opacity' 0.each 'end'
+          button bar.show()
           grid.show()
           ws.send(JSON.stringify {"acknowledged" = "ready"})
 

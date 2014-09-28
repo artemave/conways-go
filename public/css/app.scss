@@ -5,7 +5,7 @@
   width: 90%;
 }
 
-#toolbar {
+#button-bar {
   margin: 0 auto 10px auto;
   overflow: hidden;
   width: 90%;
@@ -59,6 +59,26 @@
     }
 
     &.glider {
+      .top1left3 {
+        top: 3px;
+        left: 30px;
+      }
+      .top2left3 {
+        left: 30px;
+        top: 10px;
+      }
+      .top3left3 {
+        left: 30px;
+        top: 17px;
+      }
+      .top4left2 {
+        left: 23px;
+        top: 23px;
+      }
+      .top3left1 {
+        top: 17px;
+        left: 16px;
+      }
     }
   }
 }
