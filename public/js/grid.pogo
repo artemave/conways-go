@@ -1,5 +1,3 @@
-_ = require 'lodash'
-
 Grid (player, columns, rows, winSpots) =
   self = this
   self.columns = columns

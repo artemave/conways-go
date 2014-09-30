@@ -1,8 +1,6 @@
-React = require 'react'
 key = require 'keymaster'
 
 ButtonBar (el) =
-  self.el = el
   R = React.DOM
 
   button (type, shape)=
@@ -62,7 +60,7 @@ ButtonBar (el) =
   buttonGlider = button('glider', glider)
   pointerGlider = pointer('glider', glider)
 
-  buttonBar = React.createClass {
+  self.reactComponent = React.createClass {
       getInitialState ()=
         { buttonClicked = 'none' }
 
@@ -75,9 +73,15 @@ ButtonBar (el) =
       cancelPlaceShape ()=
         self.setState {buttonClicked = 'none'}
 
+        e = @new CustomEvent "no-shape-wants-to-be-placed"
+        document.dispatchEvent(e)
+
       handleClick (type) =
         self.cancelPlaceShape()
         self.setState {buttonClicked = type}
+
+        e = @new CustomEvent "about-to-place-shape" {detail = {shape = type}}
+        document.dispatchEvent(e)
 
       render () = 
         R.div (
@@ -91,7 +95,10 @@ ButtonBar (el) =
         )
     }
 
-  React.render (buttonBar(), el) component
+
+  self.render(el) =
+    self.el = el
+    React.render (self.reactComponent(), el) component
 
   self.hide() =
     self.el.style.display = 'none'

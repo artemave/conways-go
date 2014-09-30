@@ -5,7 +5,8 @@ Button bar = require './button_bar'
 start up ()=
   game id = window.location.pathname.split "/".pop()
 
-  button bar = @new Button bar (document. get element by id "button-bar")
+  button bar = @new Button bar()
+  button bar.render(document. get element by id "button-bar")
 
   if (! game id)
     return

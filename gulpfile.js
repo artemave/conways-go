@@ -26,19 +26,28 @@ gulp.task('styles', function (callback) {
     .pipe(gulp.dest('./public'))
 });
 
-gulp.task('scripts', function() {
-  return gulp.src('./public/js/app.pogo', {read: false})
+gulp.task('compile-pogo', function(callback){
+    return gulp.src('./public/js/**/*.pogo')
+      .pipe(plumber({errorHandler: onError}))
+      .pipe(pogo())
+      .pipe(gulp.dest('./public/js/'));
+})
+
+gulp.task('scripts', ['compile-pogo'], function() {
+    return gulp.start('browserify')
+});
+
+gulp.task('browserify', function() {
+  return gulp.src('./public/js/app.js', {read: false})
     .pipe(plumber({
       errorHandler: onError
     }))
     .pipe(browserify({
-      transform: ['pogoify'],
-      extensions: ['.pogo'],
       insertGlobals: true
     }))
     .pipe(concat('bundle.js'))
     .pipe(gulp.dest('./public'))
-});
+})
 
 
 gulp.task("bower-files", function() {
@@ -72,7 +81,12 @@ gulp.task("watch", function() {
     .pipe(pogo())
     .pipe(gulp.dest('./public/test/'));
 
-  gulp.watch('./public/js/**/*.pogo', ['scripts']);
+  watch('./public/js/**/*.pogo')
+    .pipe(plumber({errorHandler: onError}))
+    .pipe(pogo())
+    .pipe(gulp.dest('./public/js/'));
+
+  gulp.watch('./public/js/**/*.js', ['browserify']);
   gulp.watch('./public/css/**', ['styles']);
 })
 
