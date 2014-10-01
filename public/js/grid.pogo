@@ -19,9 +19,6 @@ Grid (player, columns, rows, winSpots) =
   viewport height () =
     window.getComputedStyle(viewport).get property value "height".replace "px" ''
 
-  (cell) is being drawn =
-    self.selection is in progress && cell.get 'class' attribute == 'new'
-
   cantors pairing (a, b) =
     0.5 * (a + b) * (a + b + 1) + b
 
@@ -32,21 +29,19 @@ Grid (player, columns, rows, winSpots) =
     self.x = d3.scale.linear().domain([0, self.columns]).rangeRound([0, viewport width()])
     self.y = d3.scale.linear().domain([0, viewport height() / self.x(1)]).rangeRound([0, viewport height()])
 
-  add (cell) to selection =
-    if (self.selection is in progress && !_(this.class list).contains 'fog')
-      this.set 'class' attribute 'new'
-      self.selection.push(cell)
+  (cell) is being drawn =
+    self.selection is in progress && cell.get 'class' attribute == 'new'
+
+  self.has selection to send (callback) =
+    if (!self.selection is in progress && self.selection.length > 0)
+      callback(self.selection)
+      self.selection = []
 
   self.show () =
     svg.style 'visibility' 'visible'
 
   self.hide () =
     svg.style 'visibility' 'hidden'
-
-  self.has selection to send (callback) =
-    if (!self.selection is in progress && self.selection.length > 0)
-      callback(self.selection)
-      self.selection = []
 
   self.render next (generation) =
     calculate live class (d) =
@@ -122,9 +117,6 @@ Grid (player, columns, rows, winSpots) =
   svg.attr("height", viewport height())
 
   svg.select 'rect' all.data(self.grid).enter().append 'rect'.
-  on 'mousedown' @{ self.selection is in progress = true }.
-  on 'mousemove' (add to selection).
-  on 'mouseup' @{ self.selection is in progress = false }.
   attr 'width' @{ self.x(0.8) }.
   attr 'height' @{ self.y(0.8) }.
   attr 'class' (calculate initial class).
