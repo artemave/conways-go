@@ -6,7 +6,7 @@ var concat         = require('gulp-concat');
 var plumber        = require('gulp-plumber')
 var gutil          = require('gulp-util')
 var fs             = require('fs')
-var gulpBowerFiles = require('gulp-bower-files')
+var gulpBowerFiles = require('main-bower-files')
 var watch          = require('gulp-watch')
 var karma          = require('karma').server;
 
@@ -51,7 +51,7 @@ gulp.task('browserify', function() {
 
 
 gulp.task("bower-files", function() {
-  return gulpBowerFiles()
+  return gulp.src(gulpBowerFiles())
     .pipe(concat('deps.js'))
     .pipe(gulp.dest("./public"))
 });
