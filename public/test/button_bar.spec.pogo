@@ -18,4 +18,17 @@ describe "ButtonBar"
       
 
   describe "when escape is pressed"
-    it "triggers event (to grid) that no button is currently clicked"
+    it "triggers event (to grid) that no button is currently clicked" @(done)
+      bb = @new ButtonBar()
+      comp = TestUtils.renderIntoDocument(bb.reactComponent())
+
+      cb(e) =
+        done()
+
+      document.addEventListener('no-shape-wants-to-be-placed', cb)
+
+      e = document.createEvent "Events"
+      e.initEvent("keydown", true, true)
+      e.keyCode = 27
+      e.which = 27
+      document.dispatchEvent(e)
