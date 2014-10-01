@@ -1,3 +1,5 @@
+Hover = require './hover'
+
 Grid (player, columns, rows, winSpots) =
   self = this
   self.columns = columns
@@ -18,9 +20,6 @@ Grid (player, columns, rows, winSpots) =
 
   viewport height () =
     window.getComputedStyle(viewport).get property value "height".replace "px" ''
-
-  cantors pairing (a, b) =
-    0.5 * (a + b) * (a + b + 1) + b
 
   set viewport height() =
     viewport.set attribute 'style' "height:#(self.y(self.rows))px"
@@ -76,7 +75,7 @@ Grid (player, columns, rows, winSpots) =
       c
 
     rect = svg.select 'rect' all.data (generation) @(d)
-      cantors pairing (d.Row, d.Col)
+      "#(d.Row)_#(d.Col)"
 
     rect.attr('class', calculate live class)
     rect.exit().attr('class', calculate dead class)
@@ -116,12 +115,15 @@ Grid (player, columns, rows, winSpots) =
   svg.attr("width", viewport width())
   svg.attr("height", viewport height())
 
+  hover = @new Hover(svg)
+
   svg.select 'rect' all.data(self.grid).enter().append 'rect'.
+  on 'mousemove' @(d) @{ hover.maybeDrawShape(d) }.
   attr 'width' @{ self.x(0.8) }.
   attr 'height' @{ self.y(0.8) }.
   attr 'class' (calculate initial class).
-  attr 'rx' @(d) @{ self.x(0.2)}.
-  attr 'ry' @(d) @{ self.y(0.2)}.
+  attr 'rx' @{ self.x(0.2)}.
+  attr 'ry' @{ self.y(0.2)}.
   attr 'x' @(d) @{ self.x(d.Col) + self.x(0.1) }.
   attr 'y' @(d) @{ self.y(d.Row) + self.y(0.1) }
 

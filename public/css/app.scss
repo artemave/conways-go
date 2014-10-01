@@ -103,11 +103,10 @@ rect {
     stroke-width: 0.1;
     fill: transparent;
 
-    &:hover {
+    &.hover {
       fill: #CCFFFF;
     }
-
-    &.fog, &.fog:hover {
+    &.fog {
       fill: lightgrey;
     }
   }
