@@ -79,6 +79,7 @@ gulp.task("watch", function() {
   watch('./public/test/**/*.pogo')
     .pipe(plumber({errorHandler: onError}))
     .pipe(pogo())
+    .pipe(browserify())
     .pipe(gulp.dest('./public/test/'));
 
   watch('./public/js/**/*.pogo')

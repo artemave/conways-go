@@ -36,6 +36,14 @@ Grid (player, columns, rows, winSpots) =
       callback(self.selection)
       self.selection = []
 
+  self.add class (class) to (data) =
+    svg.selectAll 'rect'.data(data) @(d) @{ "#(d.Row)_#(d.Col)" }.
+    classed(class, true).
+    exit().classed(class, false)
+
+  self.clearClass(class) =
+    svg.selectAll "rect.#(class)".classed(class, false)
+
   self.show () =
     svg.style 'visibility' 'visible'
 
@@ -115,7 +123,7 @@ Grid (player, columns, rows, winSpots) =
   svg.attr("width", viewport width())
   svg.attr("height", viewport height())
 
-  hover = @new Hover(svg)
+  hover = @new Hover(self)
 
   svg.select 'rect' all.data(self.grid).enter().append 'rect'.
   on 'mousemove' @(d) @{ hover.maybeDrawShape(d) }.

@@ -2,13 +2,18 @@ ButtonBar = require '../js/button_bar'
 TestUtils = React.addons.TestUtils
 
 describe "ButtonBar"
+  cb = nil
+
   describe "when button clicked"
+    afterEach
+      document.removeEventListener('about-to-place-shape', cb)
+
     it "triggers event (to grid) about which button is clicked" @(done)
       bb = @new ButtonBar()
       comp = TestUtils.renderIntoDocument(bb.reactComponent())
       buttonLine = TestUtils.findRenderedDOMComponentWithClass(comp, 'button line')
 
-      cb(e) =
+      cb(e) :=
         expect(e.detail.shape).to.eq 'line'
         done()
 
@@ -18,11 +23,14 @@ describe "ButtonBar"
       
 
   describe "when escape is pressed"
+    afterEach
+      document.removeEventListener('no-shape-wants-to-be-placed', cb)
+
     it "triggers event (to grid) that no button is currently clicked" @(done)
       bb = @new ButtonBar()
       comp = TestUtils.renderIntoDocument(bb.reactComponent())
 
-      cb(e) =
+      cb(e) :=
         done()
 
       document.addEventListener('no-shape-wants-to-be-placed', cb)

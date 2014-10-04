@@ -1,32 +1,21 @@
 require './when'
+shapeForCell = require './shape_for_cell'
 
-Hover(svg) =
+Hover(grid) =
   currently pressed button = nil
 
   document.addEventListener 'about-to-place-shape' @(e)
     currently pressed button := e.detail.shape
 
   document.addEventListener 'no-shape-wants-to-be-placed' @(e)
-    svg.selectAll 'rect.hover'.classed 'hover' (false)
+    grid.clearClass 'hover'
     currently pressed button := nil
 
   this.maybeDrawShape(cell) =
     if (!currently pressed button)
       return
 
-    shape = []
-    when(currently pressed button) [
-      is 'line'
-        shape := [
-          { Row = cell.Row, Col = cell.Col-1 }
-          { Row = cell.Row, Col = cell.Col }
-          { Row = cell.Row, Col = cell.Col+1 }
-        ]
-    ]
-
-    svg.selectAll 'rect'.data(shape) @(d) @{ "#(d.Row)_#(d.Col)" }.
-    classed 'hover' (true).
-    exit().classed 'hover' (false)
+    grid.add class 'hover' to (shapeForCell(currently pressed button, cell))
 
   this
 
