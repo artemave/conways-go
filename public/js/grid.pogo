@@ -1,11 +1,10 @@
 Hover = require './hover'
+emitEscape = require './emit_escape'
 
 Grid (player, columns, rows, winSpots) =
   self = this
   self.columns = columns
   self.rows = rows
-  self.selection = []
-  self.selection is in progress = false
   self.grid = []
   self.player = player
   self.winSpots = winSpots
@@ -28,10 +27,8 @@ Grid (player, columns, rows, winSpots) =
     self.x = d3.scale.linear().domain([0, self.columns]).rangeRound([0, viewport width()])
     self.y = d3.scale.linear().domain([0, viewport height() / self.x(1)]).rangeRound([0, viewport height()])
 
-  self.has selection to send (callback) =
-    if (!self.selection is in progress && self.selection.length > 0)
-      callback(self.selection)
-      self.selection = []
+  self.new cells to send() =
+    s = svg.selectAll 'rect.new'.data()
 
   self.add class (class) to (data) =
     svg.selectAll 'rect'.data(data) @(d) @{ "#(d.Row)_#(d.Col)" }.
@@ -66,12 +63,14 @@ Grid (player, columns, rows, winSpots) =
       "#(d.Row)_#(d.Col)"
 
     rect.
+    classed('new', false).
     classed('dead', false).
     classed('live', true).
     classed('player1', @(d) @{ d.Player == 1 }, true).
     classed('player2', @(d) @{ d.Player == 2 }, true)
 
     rect.exit().
+    classed('new', false).
     classed('live', false).
     classed('dead', true).
     classed('fog', maybeFog)
@@ -102,10 +101,13 @@ Grid (player, columns, rows, winSpots) =
     s = _(self.winSpots).find @(spot)
       _(p).isEqual(spot.Point)
 
-
   calculate initial class (d) =
     s = win spot at (d)
     "dead#(if (s) @{" winSpot#(s.Player)"} else @{''})"
+
+  mark hovered cells new() =
+    svg.selectAll('rect.hover').classed('new', true).classed('hover', false)
+    emitEscape()
 
   set viewport height()
   svg.attr("width", viewport width())
@@ -115,6 +117,7 @@ Grid (player, columns, rows, winSpots) =
 
   svg.select 'rect' all.data(self.grid).enter().append 'rect'.
   on 'mousemove' @(d) @{ hover.maybeDrawShape(d) }.
+  on 'click' (mark hovered cells new).
   attr 'width' @{ self.x(0.8) }.
   attr 'height' @{ self.y(0.8) }.
   attr 'class' (calculate initial class).

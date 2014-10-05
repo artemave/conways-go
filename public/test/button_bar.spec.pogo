@@ -1,3 +1,4 @@
+emitEscape = require '../js/emit_escape'
 ButtonBar = require '../js/button_bar'
 TestUtils = React.addons.TestUtils
 
@@ -20,7 +21,7 @@ describe "ButtonBar"
       document.addEventListener('about-to-place-shape', cb)
 
       TestUtils.Simulate.click(buttonLine)
-      
+
 
   describe "when escape is pressed"
     afterEach
@@ -35,8 +36,4 @@ describe "ButtonBar"
 
       document.addEventListener('no-shape-wants-to-be-placed', cb)
 
-      e = document.createEvent "Events"
-      e.initEvent("keydown", true, true)
-      e.keyCode = 27
-      e.which = 27
-      document.dispatchEvent(e)
+      emitEscape()

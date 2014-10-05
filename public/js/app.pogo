@@ -54,19 +54,20 @@ start up ()=
             alert "Draw"
         ]
         ws.send(JSON.stringify {"acknowledged" = "finish"})
-        
+
       otherwise
         if (msg :: Array)
+          ack = {"acknowledged" = "game"}
+          new cells = grid.new cells to send()
+
           grid.render next (msg)
 
-          ack = {"acknowledged" = "game"}
-
-          grid.has selection to send @(selection)
-            selection.for each @(cell)
+          if (new cells.length)
+            new cells.for each @(cell)
               cell.State = 1
               cell.Player = grid.player
 
-            ack.cells = selection
+            ack.cells = new cells
 
           ws.send(JSON.stringify(ack))
         else

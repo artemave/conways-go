@@ -20,8 +20,8 @@ shapeForCell(shape, cell) =
         { Row = cell.Row-1, Col = cell.Col }
         { Row = cell.Row, Col = cell.Col }
         { Row = cell.Row+1, Col = cell.Col }
-        { Row = cell.Row+2, Col = cell.Col-1 }
-        { Row = cell.Row+1, Col = cell.Col-2 }
+        { Row = cell.Row+1, Col = cell.Col-1 }
+        { Row = cell.Row, Col = cell.Col-2 }
       ]
   ]
 

@@ -54,8 +54,8 @@ ButtonBar (el) =
     R.div {className = "point top1left3"}
     R.div {className = "point top2left3"}
     R.div {className = "point top3left3"}
-    R.div {className = "point top4left2"}
-    R.div {className = "point top3left1"}
+    R.div {className = "point top3left2"}
+    R.div {className = "point top2left1"}
   ]
   buttonGlider = button('glider', glider)
   pointerGlider = pointer('glider', glider)
@@ -83,7 +83,7 @@ ButtonBar (el) =
         e = @new CustomEvent "about-to-place-shape" {detail = {shape = type}}
         document.dispatchEvent(e)
 
-      render () = 
+      render () =
         R.div (
           null
           buttonLine {handleClick = self.handleClick}

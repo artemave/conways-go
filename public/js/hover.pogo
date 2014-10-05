@@ -7,7 +7,7 @@ Hover(grid) =
   document.addEventListener 'about-to-place-shape' @(e)
     currently pressed button := e.detail.shape
 
-  document.addEventListener 'no-shape-wants-to-be-placed' @(e)
+  document.addEventListener 'no-shape-wants-to-be-placed'
     grid.clearClass 'hover'
     currently pressed button := nil
 
@@ -17,7 +17,7 @@ Hover(grid) =
 
     cells = shapeForCell(currently pressed button, cell)
 
-    if (grid.any of (cells) classed with any of (['fog', 'live']))
+    if (grid.any of (cells) classed with any of (['fog', 'live', 'new']))
       grid.clearClass 'hover'
     else
       grid.add class 'hover' to (cells)
