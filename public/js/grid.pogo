@@ -28,9 +28,6 @@ Grid (player, columns, rows, winSpots) =
     self.x = d3.scale.linear().domain([0, self.columns]).rangeRound([0, viewport width()])
     self.y = d3.scale.linear().domain([0, viewport height() / self.x(1)]).rangeRound([0, viewport height()])
 
-  (cell) is being drawn =
-    self.selection is in progress && cell.get 'class' attribute == 'new'
-
   self.has selection to send (callback) =
     if (!self.selection is in progress && self.selection.length > 0)
       callback(self.selection)
@@ -51,42 +48,26 @@ Grid (player, columns, rows, winSpots) =
     svg.style 'visibility' 'hidden'
 
   self.render next (generation) =
-    calculate live class (d) =
-      cell = this
-      c = if ((cell) is being drawn)
-        'new'
-      else
-        "player#(d.Player) live"
+    closest to (d) live cell is at least (number of) cells away =
+      !_(generation).find @(gc)
+        Math.abs(gc.Row - d.Row) < number of && Math.abs(gc.Col - d.Col) < number of && gc.Player == self.player
 
-      if (win spot at (d))
-        c := c+" winSpot#(d.Player)"
-
-      c
-
-    calculate dead class (d) =
-      cell = this
-
-      my closest live cell is at least (number of) cells away =
-        !_(generation).find @(gc)
-          Math.abs(gc.Row - d.Row) < number of && Math.abs(gc.Col - d.Col) < number of && gc.Player == self.player
-
-      c = if ((cell) is being drawn)
-        'new'
-      else
-        'dead' + if (my closest live cell is at least 5 cells away) @{' fog'} else @{''}
-
-      w = win spot at (d)
-
-      if (w)
-        c := c+" winSpot#(w.Player)"
-
-      c
+    maybeFog(d) =
+      closest to (d) live cell is at least 5 cells away
 
     rect = svg.select 'rect' all.data (generation) @(d)
       "#(d.Row)_#(d.Col)"
 
-    rect.attr('class', calculate live class)
-    rect.exit().attr('class', calculate dead class)
+    rect.
+    classed('dead', false).
+    classed('live', true).
+    classed('player1', @(d) @{ d.Player == 1 }, true).
+    classed('player2', @(d) @{ d.Player == 2 }, true)
+
+    rect.exit().
+    classed('live', false).
+    classed('dead', true).
+    classed('fog', maybeFog)
 
   self.resize () =
     scale xy()
