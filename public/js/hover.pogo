@@ -15,7 +15,12 @@ Hover(grid) =
     if (!currently pressed button)
       return
 
-    grid.add class 'hover' to (shapeForCell(currently pressed button, cell))
+    cells = shapeForCell(currently pressed button, cell)
+
+    if (grid.any of (cells) classed with any of (['fog', 'live']))
+      grid.clearClass 'hover'
+    else
+      grid.add class 'hover' to (cells)
 
   this
 

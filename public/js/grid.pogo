@@ -41,6 +41,13 @@ Grid (player, columns, rows, winSpots) =
   self.clearClass(class) =
     svg.selectAll "rect.#(class)".classed(class, false)
 
+  self.any of (cells) classed with any of (classes) =
+    !svg.selectAll(["rect.#(c)", where: c <- classes].join()).filter @(d)
+      // check if cell from selection is withing cells from args
+      _(cells).any @(c)
+        c.Row == d.Row && c.Col == d.Col
+    .empty()
+
   self.show () =
     svg.style 'visibility' 'visible'
 
