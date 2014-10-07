@@ -15,7 +15,11 @@ Hover(grid) =
     if (!currently pressed button)
       return
 
-    cells = shapeForCell(currently pressed button, cell)
+    shape = shapeForCell(currently pressed button)
+    if (grid.player == 2)
+      shape.flipAcrossYeqX()
+
+    cells = shape.cells(cell)
 
     if (grid.any of (cells) classed with any of (['fog', 'live', 'new']))
       grid.clearClass 'hover'

@@ -1,28 +1,42 @@
-shapeForCell(shape, cell) =
+Shape = prototype {
+  matrix = math.matrix()
+
+  flipAcrossYeqX() =
+    self.matrix
+
+  cells(center cell) =
+    math.transpose(self.matrix)._data.map @(coord)
+      {
+        Col = center cell.Col+coord.0
+        Row = center cell.Row+(coord.1 * -1)
+      }
+}
+
+Line() = Shape {
+  matrix = math.matrix [[-1,0,1],[0,0,0]]
+}
+
+Square() = Shape {
+  matrix = math.matrix [[0,1,1,0],[0,0,-1,-1]]
+}
+
+Glider() = Shape {
+  matrix = math.matrix [[1,1,1,0,-1],[1,0,-1,-1,0]]
+
+  flipAcrossYeqX() =
+    self.matrix = math.multiply([[0,1],[1,0]], self.matrix)
+}
+
+shapeForCell(shape) =
   when (shape) [
     is 'line'
-      [
-        { Row = cell.Row, Col = cell.Col-1 }
-        { Row = cell.Row, Col = cell.Col }
-        { Row = cell.Row, Col = cell.Col+1 }
-      ]
+      Line()
 
     is 'square'
-      [
-        { Row = cell.Row, Col = cell.Col }
-        { Row = cell.Row, Col = cell.Col+1 }
-        { Row = cell.Row+1, Col = cell.Col+1 }
-        { Row = cell.Row+1, Col = cell.Col }
-      ]
+      Square()
 
     is 'glider'
-      [
-        { Row = cell.Row-1, Col = cell.Col }
-        { Row = cell.Row, Col = cell.Col }
-        { Row = cell.Row+1, Col = cell.Col }
-        { Row = cell.Row+1, Col = cell.Col-1 }
-        { Row = cell.Row, Col = cell.Col-2 }
-      ]
+      Glider()
   ]
 
 module.exports = shapeForCell
