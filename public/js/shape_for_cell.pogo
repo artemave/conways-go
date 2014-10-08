@@ -2,7 +2,7 @@ Shape = prototype {
   matrix = math.matrix()
 
   flipAcrossYeqX() =
-    self.matrix
+    self
 
   cells(center cell) =
     self.points().map @(point)
@@ -29,6 +29,7 @@ Glider() = Shape {
 
   flipAcrossYeqX() =
     self.matrix = math.multiply([[0,1],[1,0]], self.matrix)
+    self
 }
 
 shapeOf(shape) =

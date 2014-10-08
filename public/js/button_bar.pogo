@@ -1,7 +1,7 @@
 key = require 'keymaster'
 shapeOf = require './shape_for_cell'
 
-ButtonBar (el) =
+ButtonBar(player) =
   R = React.DOM
 
   button (type)=
@@ -11,6 +11,9 @@ ButtonBar (el) =
 
         render () =
           shape = shapeOf(type)
+
+          if (player == 2)
+            shape := shape.flipAcrossYeqX()
 
           points = shape.points().map @(point)
             R.div {className = 'point', style = {left = (point.0 * 7) - 3, top = (point.1 * 7) - 3}}
@@ -37,6 +40,9 @@ ButtonBar (el) =
 
         render ()=
           shape = shapeOf(type)
+
+          if (player == 2)
+            shape := shape.flipAcrossYeqX()
 
           points = shape.points().map @(point)
             R.div {className = 'point', style = {left = (point.0 * 7) + 15, top = (point.1 * 7) + 15}}

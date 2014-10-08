@@ -5,9 +5,6 @@ Button bar = require './button_bar'
 start up ()=
   game id = window.location.pathname.split "/".pop()
 
-  button bar = @new Button bar()
-  button bar.render(document. get element by id "button-bar")
-
   if (! game id)
     return
 
@@ -16,6 +13,7 @@ start up ()=
   ws = @new Web socket "ws://#(window.location.host)/games/play/#(game id)"
 
   grid = nil
+  button bar = nil
 
   window.onresize () =
     if (grid)
@@ -28,6 +26,8 @@ start up ()=
       is 'wait'
         if (grid)
           grid.hide()
+
+        if (button bar)
           button bar.hide()
 
         d3.select '#waiting_for_players'.transition().style 'opacity' 1.each 'end'
@@ -36,6 +36,10 @@ start up ()=
       is 'ready'
         if (!grid)
           grid := @new Grid(msg.Player, msg.Cols, msg.Rows, msg.WinSpots)
+
+        if (!button bar)
+          button bar := @new Button bar(msg.Player)
+          button bar.render(document. get element by id "button-bar")
 
         d3.select '#waiting_for_players'.transition().style 'opacity' 0.each 'end'
           button bar.show()
