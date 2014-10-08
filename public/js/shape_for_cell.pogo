@@ -5,11 +5,15 @@ Shape = prototype {
     self.matrix
 
   cells(center cell) =
-    math.transpose(self.matrix)._data.map @(coord)
+    self.points().map @(point)
       {
-        Col = center cell.Col+coord.0
-        Row = center cell.Row+(coord.1 * -1)
+        Col = center cell.Col+point.0
+        Row = center cell.Row+point.1
       }
+
+  points() =
+    math.transpose(self.matrix)._data.map @(coord)
+      [coord.0, coord.1 * -1]
 }
 
 Line() = Shape {

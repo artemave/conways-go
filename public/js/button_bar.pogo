@@ -1,18 +1,27 @@
 key = require 'keymaster'
+shapeForCell = require './shape_for_cell'
 
 ButtonBar (el) =
   R = React.DOM
 
-  button (type, shape)=
+  button (type)=
     React.createClass {
         onClick (e) =
           self.props.handleClick(type)
 
         render () =
-          R.div.apply(null, [{className = "button #(type)", onClick = self.onClick}].concat(shape))
+          shape = shapeForCell(type)
+
+          points = shape.points().map @(point)
+            R.div {className = 'point', style = {left = (point.0 * 7) - 3, top = (point.1 * 7) - 3}}
+
+          R.div(
+            {className = "button #(type)", onClick = self.onClick}
+            R.div.apply(null, [{className = "null-coordinate"}].concat(points))
+          )
       }
 
-  pointer(type, shape) =
+  pointer(type) =
     React.createClass {
         getInitialState()=
           { top = 0, left = 0 }
@@ -27,38 +36,25 @@ ButtonBar (el) =
           document.removeEventListener('mousemove', self.onMouseMove)
 
         render ()=
+          shape = shapeForCell(type)
+
+          points = shape.points().map @(point)
+            R.div {className = 'point', style = {left = (point.0 * 7) + 15, top = (point.1 * 7) + 15}}
+
           if (self.props.buttonClicked == type)
-            R.div.apply(null, [{className = "pointer #(type)", style = {top = self.state.top, left = self.state.left}}].concat(shape))
+            R.div.apply(null, [{className = "pointer #(type)", style = {top = self.state.top, left = self.state.left}}].concat(points))
           else
             null
       }
 
-  line = [
-    R.div {className = "point top1left1"}
-    R.div {className = "point top1left2"}
-    R.div {className = "point top1left3"}
-  ]
-  buttonLine = button('line', line)
-  pointerLine = pointer('line', line)
+  buttonLine = button('line')
+  pointerLine = pointer('line')
 
-  square = [
-    R.div {className = "point top1left1"}
-    R.div {className = "point top1left2"}
-    R.div {className = "point top2left1"}
-    R.div {className = "point top2left2"}
-  ]
-  buttonSquare = button('square', square)
-  pointerSquare = pointer('square', square)
+  buttonSquare = button('square')
+  pointerSquare = pointer('square')
 
-  glider = [
-    R.div {className = "point top1left3"}
-    R.div {className = "point top2left3"}
-    R.div {className = "point top3left3"}
-    R.div {className = "point top3left2"}
-    R.div {className = "point top2left1"}
-  ]
-  buttonGlider = button('glider', glider)
-  pointerGlider = pointer('glider', glider)
+  buttonGlider = button('glider')
+  pointerGlider = pointer('glider')
 
   self.reactComponent = React.createClass {
       getInitialState ()=
