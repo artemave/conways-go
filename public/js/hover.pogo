@@ -1,5 +1,5 @@
 require './when'
-shapeForCell = require './shape_for_cell'
+shapeOf = require './shape_for_cell'
 
 Hover(grid) =
   currently pressed button = nil
@@ -15,7 +15,7 @@ Hover(grid) =
     if (!currently pressed button)
       return
 
-    shape = shapeForCell(currently pressed button)
+    shape = shapeOf(currently pressed button)
     if (grid.player == 2)
       shape.flipAcrossYeqX()
 

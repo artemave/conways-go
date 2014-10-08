@@ -1,5 +1,5 @@
 key = require 'keymaster'
-shapeForCell = require './shape_for_cell'
+shapeOf = require './shape_for_cell'
 
 ButtonBar (el) =
   R = React.DOM
@@ -10,7 +10,7 @@ ButtonBar (el) =
           self.props.handleClick(type)
 
         render () =
-          shape = shapeForCell(type)
+          shape = shapeOf(type)
 
           points = shape.points().map @(point)
             R.div {className = 'point', style = {left = (point.0 * 7) - 3, top = (point.1 * 7) - 3}}
@@ -36,7 +36,7 @@ ButtonBar (el) =
           document.removeEventListener('mousemove', self.onMouseMove)
 
         render ()=
-          shape = shapeForCell(type)
+          shape = shapeOf(type)
 
           points = shape.points().map @(point)
             R.div {className = 'point', style = {left = (point.0 * 7) + 15, top = (point.1 * 7) + 15}}

@@ -1,5 +1,5 @@
 Hover = require '../js/hover'
-shapeForCell = require '../js/shape_for_cell'
+shapeOf = require '../js/shape_for_cell'
 
 describe "Hover"
 
@@ -10,6 +10,9 @@ describe "Hover"
 
       beforeEach
         grid.addClassTo = sinon.spy()
+        grid.any of classed with any of () =
+          false
+
         hover := @new Hover(grid)
 
         e = @new CustomEvent "about-to-place-shape" {detail = {shape = s}}
@@ -19,4 +22,4 @@ describe "Hover"
         cell = {Row = 2, Col = 2}
 
         hover.maybeDrawShape(cell)
-        expect(grid.add class to).to.have.been.calledWith('hover', shapeForCell(s, cell))
+        expect(grid.add class to).to.have.been.calledWith('hover', shapeOf(s).cells(cell))

@@ -31,7 +31,7 @@ Glider() = Shape {
     self.matrix = math.multiply([[0,1],[1,0]], self.matrix)
 }
 
-shapeForCell(shape) =
+shapeOf(shape) =
   when (shape) [
     is 'line'
       Line()
@@ -43,4 +43,4 @@ shapeForCell(shape) =
       Glider()
   ]
 
-module.exports = shapeForCell
+module.exports = shapeOf
