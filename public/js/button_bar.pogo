@@ -19,7 +19,7 @@ ButtonBar(player) =
             R.div {className = 'point', style = {left = (point.0 * 7) - 3, top = (point.1 * 7) - 3}}
 
           R.div(
-            {className = "button #(type)", onClick = self.onClick}
+            {className = "button #(type) player#(player)", onClick = self.onClick}
             R.div.apply(null, [{className = "null-coordinate"}].concat(points))
           )
       }

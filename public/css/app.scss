@@ -13,10 +13,16 @@
 }
 
 .button {
+  &.player1 {
+    float: left;
+    margin-right: 10px;
+  }
+  &.player2 {
+    float: right;
+    margin-left: 10px;
+  }
   min-width: 50px;
   min-height: 30px;
-  float: left;
-  margin-right: 10px;
   display: flex;
   justify-content: center;
   align-items: center;
