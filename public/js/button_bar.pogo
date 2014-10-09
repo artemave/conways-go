@@ -4,29 +4,42 @@ shapeOf = require './shape_for_cell'
 ButtonBar(player) =
   R = React.DOM
 
-  button (type)=
+  button(type) =
     React.createClass {
-        onClick (e) =
-          self.props.handleClick(type)
+        disabled = false
 
-        render () =
+        onClick (e) =
+          if (!self.disabled)
+            self.props.handleClick(type)
+
+        render() =
           shape = shapeOf(type)
 
           if (player == 2)
             shape := shape.flipAcrossYeqX()
 
-          points = shape.points().map @(point)
-            R.div {className = 'point', style = {left = (point.0 * 7) - 3, top = (point.1 * 7) - 3}}
+          points = shape.points().map @(point, i)
+            className = if (self.props.freeCellsCount > i) @{ 'point' } else @{ 'point disabled' }
+            R.div {className = className, style = {left = (point.0 * 7) - 3, top = (point.1 * 7) - 3}}
+
+          if (self.props.freeCellsCount < points.length)
+            self.disabled = true
+          else
+            self.disabled = false
+
+          cName = "button #(type) player#(player)"
+          if (self.disabled)
+            cName := cName + ' disabled'
 
           R.div(
-            {className = "button #(type) player#(player)", onClick = self.onClick}
+            {className = cName, onClick = self.onClick}
             R.div.apply(null, [{className = "null-coordinate"}].concat(points))
           )
       }
 
   pointer(type) =
     React.createClass {
-        getInitialState()=
+        getInitialState() =
           { top = 0, left = 0 }
 
         onMouseMove(e) =
@@ -53,6 +66,38 @@ ButtonBar(player) =
             null
       }
 
+  CellCounter = React.createClass {
+    getInitialState() =
+      { freeCellsCount = 5 }
+
+    componentDidMount() =
+      document.addEventListener('shape-placed', self.shapePlacedHandler)
+
+    componentWillUnmount() =
+      document.removeEventListener('shape-placed', self.shapePlacedHandler)
+
+    replenishCellCount() =
+      if (self.state.freeCellsCount < 5)
+        setTimeout
+          newCount = self.state.freeCellsCount + 1
+          self.setState {freeCellsCount = newCount}
+          self.props.publishFreeCellsCount(newCount)
+          self.replenishCellCount()
+        1000
+
+    shapePlacedHandler(e) =
+      newCount = self.state.freeCellsCount - e.detail.shapeCellCount
+      self.setState {freeCellsCount = newCount}
+      self.props.publishFreeCellsCount(newCount)
+      self.replenishCellCount()
+
+    render() =
+      R.div({className = "cellCounter player#(player)"}, self.state.freeCellsCount)
+  }
+
+  buttonDot = button('dot')
+  pointerDot = pointer('dot')
+
   buttonLine = button('line')
   pointerLine = pointer('line')
 
@@ -64,7 +109,7 @@ ButtonBar(player) =
 
   self.reactComponent = React.createClass {
       getInitialState ()=
-        { buttonClicked = 'none' }
+        { buttonClicked = 'none', freeCellsCount = 5 }
 
       componentDidMount () =
         key('esc', self.cancelPlaceShape)
@@ -85,18 +130,23 @@ ButtonBar(player) =
         e = @new CustomEvent "about-to-place-shape" {detail = {shape = type}}
         document.dispatchEvent(e)
 
+      publishFreeCellsCount(count) =
+        self.setState {freeCellsCount = count}
+
       render () =
         R.div (
           null
-          buttonLine {handleClick = self.handleClick}
+          buttonDot {handleClick = self.handleClick, freeCellsCount = self.state.freeCellsCount}
+          pointerDot {buttonClicked = self.state.buttonClicked}
+          buttonLine {handleClick = self.handleClick, freeCellsCount = self.state.freeCellsCount}
           pointerLine {buttonClicked = self.state.buttonClicked}
-          buttonSquare {handleClick = self.handleClick}
+          buttonSquare {handleClick = self.handleClick, freeCellsCount = self.state.freeCellsCount}
           pointerSquare {buttonClicked = self.state.buttonClicked}
-          buttonGlider {handleClick = self.handleClick}
+          buttonGlider {handleClick = self.handleClick, freeCellsCount = self.state.freeCellsCount}
           pointerGlider {buttonClicked = self.state.buttonClicked}
+          CellCounter {publishFreeCellsCount = self.publishFreeCellsCount}
         )
     }
-
 
   self.render(el) =
     self.el = el

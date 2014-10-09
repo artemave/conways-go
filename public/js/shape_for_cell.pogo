@@ -16,6 +16,10 @@ Shape = prototype {
       [coord.0, coord.1 * -1]
 }
 
+Dot() = Shape {
+  matrix = math.matrix [[0],[0]]
+}
+
 Line() = Shape {
   matrix = math.matrix [[-1,0,1],[0,0,0]]
 }
@@ -34,6 +38,9 @@ Glider() = Shape {
 
 shapeOf(shape) =
   when (shape) [
+    is 'dot'
+      Dot()
+
     is 'line'
       Line()
 

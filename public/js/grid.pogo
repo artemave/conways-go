@@ -106,7 +106,14 @@ Grid (player, columns, rows, winSpots) =
     "dead#(if (s) @{" winSpot#(s.Player)"} else @{''})"
 
   mark hovered cells new() =
-    svg.selectAll('rect.hover').classed('new', true).classed('hover', false)
+    s = svg.selectAll('rect.hover')
+    cellCount = s.size()
+
+    s.classed('new', true).classed('hover', false)
+
+    e = @new CustomEvent "shape-placed" {detail = {shapeCellCount = cellCount}}
+    document.dispatchEvent(e)
+
     emitEscape()
 
   set viewport height()

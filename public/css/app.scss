@@ -12,6 +12,16 @@
   display: none;
 }
 
+.cellCounter {
+  color: red;
+  &.player1 {
+    float: left;
+  }
+  &.player2 {
+    float: right;
+  }
+}
+
 .button {
   &.player1 {
     float: left;
@@ -44,6 +54,9 @@
 }
 
 .point {
+  &.disabled {
+    background: grey;
+  }
   position: absolute;
   width: 6px;
   height: 6px;
