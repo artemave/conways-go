@@ -1,5 +1,9 @@
 @import "button";
 
+body {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
 #viewport {
   margin: 10px auto 0 auto;
   width: 90%;
@@ -13,7 +17,11 @@
 }
 
 .cellCounter {
-  color: red;
+  height: 30px;
+  line-height: 30px;
+  .counter {
+    color: red;
+  }
   &.player1 {
     float: left;
   }

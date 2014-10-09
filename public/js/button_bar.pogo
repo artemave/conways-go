@@ -92,7 +92,11 @@ ButtonBar(player) =
       self.replenishCellCount()
 
     render() =
-      R.div({className = "cellCounter player#(player)"}, self.state.freeCellsCount)
+      R.div(
+        {className = "cellCounter player#(player)"}
+        "cells left: "
+        R.span({className = "counter"}, self.state.freeCellsCount)
+      )
   }
 
   buttonDot = button('dot')
