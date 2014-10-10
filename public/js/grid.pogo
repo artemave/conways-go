@@ -103,7 +103,7 @@ Grid (player, columns, rows, winSpots) =
 
   calculate initial class (d) =
     s = win spot at (d)
-    "dead#(if (s) @{" winSpot#(s.Player)"} else @{''})"
+    "dead#(if (s) @{" winSpot winSpot#(s.Player)"} else @{''})"
 
   mark hovered cells new() =
     s = svg.selectAll('rect.hover')
@@ -132,6 +132,14 @@ Grid (player, columns, rows, winSpots) =
   attr 'ry' @{ self.y(0.2)}.
   attr 'x' @(d) @{ self.x(d.Col) + self.x(0.1) }.
   attr 'y' @(d) @{ self.y(d.Row) + self.y(0.1) }
+
+  tip = d3.tip().attr 'class' 'd3-tip'.offset([self.y(-0.6),0]).html @(d)
+    win spot = win spot at (d)
+    if (win spot)
+      if (self.player == win spot.Player) @{ "Enemy flag" } else @{ "Your flag" }
+
+  svg.call(tip)
+  svg.selectAll 'rect.winSpot'.on 'mousemove' (tip.show).on 'mouseout' (tip.hide)
 
   self
 
