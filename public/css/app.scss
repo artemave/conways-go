@@ -44,8 +44,11 @@ body {
   }
   min-width: 50px;
   min-height: 30px;
+  display: -webkit-flex;
   display: flex;
+  -webkit-justify-content: center;
   justify-content: center;
+  -webkit-align-items: center;
   align-items: center;
 
   &.square {
