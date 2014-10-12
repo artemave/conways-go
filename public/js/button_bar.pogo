@@ -83,7 +83,7 @@ ButtonBar(player) =
           self.setState {freeCellsCount = newCount}
           self.props.publishFreeCellsCount(newCount)
           self.replenishCellCount()
-        1000
+        2000
 
     shapePlacedHandler(e) =
       newCount = self.state.freeCellsCount - e.detail.shapeCellCount
