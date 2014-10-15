@@ -78,4 +78,35 @@ start up ()=
           console.log("Bad ws response:", msg)
     ]
 
-start up()
+/* start up() */
+
+R = React
+RR = ReactRouter
+
+App = React.createClass {
+  render() =
+    self.props.activeRouteHandler()
+}
+
+routes = RR.Routes (
+  { location = 'history' }
+  RR.Route (
+    {
+      name = 'app'
+      handler = App
+      path = ''
+    }
+    RR.Route {
+      name = 'game'
+      handler = require './views/game'
+      path = '/games/:gameId'
+    }
+    RR.Route {
+      name = 'start_menu'
+      handler = require './views/start_menu'
+      path = '/'
+    }
+  )
+)
+
+React.renderComponent(routes, document.getElementsByTagName 'main'.0)
