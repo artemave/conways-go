@@ -1,5 +1,9 @@
-require './when'
-Grid = require './grid'
+when       = require './when'.when
+is         = require './when'.is
+otherwise  = require './when'.otherwise
+React      = require 'react'
+RR         = require 'react-router'
+Grid       = require './grid'
 Button bar = require './button_bar'
 
 start up ()=
@@ -79,9 +83,6 @@ start up ()=
     ]
 
 /* start up() */
-
-R = React
-RR = ReactRouter
 
 App = React.createClass {
   render() =

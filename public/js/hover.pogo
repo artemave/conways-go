@@ -1,4 +1,3 @@
-require './when'
 shapeOf = require './shape_for_cell'
 
 Hover(grid) =

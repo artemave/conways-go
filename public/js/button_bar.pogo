@@ -1,3 +1,4 @@
+React = require 'react'
 key = require 'keymaster'
 shapeOf = require './shape_for_cell'
 

@@ -1,4 +1,5 @@
-Hover = require './hover'
+d3         = require 'd3'
+Hover      = require './hover'
 emitEscape = require './emit_escape'
 
 Grid (player, columns, rows, winSpots) =

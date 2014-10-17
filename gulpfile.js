@@ -1,14 +1,15 @@
-var gulp           = require('gulp')
-var pogo           = require('gulp-pogo')
-var browserify     = require('gulp-browserify');
-var sass           = require('gulp-sass')
-var concat         = require('gulp-concat');
-var plumber        = require('gulp-plumber')
-var gutil          = require('gulp-util')
-var fs             = require('fs')
-var gulpBowerFiles = require('main-bower-files')
-var watch          = require('gulp-watch')
-var karma          = require('karma').server;
+var gulp       = require('gulp');
+var pogo       = require('gulp-pogo');
+var browserify = require('browserify');
+var sass       = require('gulp-sass');
+var concat     = require('gulp-concat');
+var plumber    = require('gulp-plumber');
+var gutil      = require('gulp-util');
+var fs         = require('fs');
+var watch      = require('gulp-watch');
+var karma      = require('karma').server;
+var watchify   = require('watchify');
+var source     = require('vinyl-source-stream');
 
 var onError = function (err) {
   gutil.beep();
@@ -24,36 +25,6 @@ gulp.task('styles', function (callback) {
     .pipe(sass())
     .pipe(concat('bundle.css'))
     .pipe(gulp.dest('./public'))
-});
-
-gulp.task('compile-pogo', function(callback){
-    return gulp.src('./public/js/**/*.pogo')
-      .pipe(plumber({errorHandler: onError}))
-      .pipe(pogo())
-      .pipe(gulp.dest('./public/js/'));
-})
-
-gulp.task('scripts', ['compile-pogo'], function() {
-    return gulp.start('browserify')
-});
-
-gulp.task('browserify', function() {
-  return gulp.src('./public/js/app.js', {read: false})
-    .pipe(plumber({
-      errorHandler: onError
-    }))
-    .pipe(browserify({
-      insertGlobals: true
-    }))
-    .pipe(concat('bundle.js'))
-    .pipe(gulp.dest('./public'))
-})
-
-
-gulp.task("bower-files", function() {
-  return gulp.src(gulpBowerFiles())
-    .pipe(concat('deps.js'))
-    .pipe(gulp.dest("./public"))
 });
 
 /**
@@ -75,11 +46,38 @@ gulp.task('tdd', function (done) {
   }, done);
 });
 
-gulp.task("watch", function() {
+gulp.task("watchify", function() {
+    browserifyAndMaybeWatchify(true)
+})
+
+gulp.task("browserify", function() {
+    browserifyAndMaybeWatchify(false)
+})
+
+
+function browserifyAndMaybeWatchify(watch) {
+  var bundler = browserify("./public/js/app.js", watchify.args)
+
+  var bundle = function() {
+    return bundler
+    .bundle()
+    .on('error', onError)
+    .pipe(source('bundle.js'))
+    .pipe(gulp.dest('./public/'));
+  };
+
+  if (watch) {
+    bundler = watchify(bundler);
+    bundler.on("update", bundle);
+  }
+
+  bundle()
+}
+
+gulp.task("watch", ["watchify"], function() {
   watch('./public/test/**/*.pogo')
     .pipe(plumber({errorHandler: onError}))
     .pipe(pogo())
-    .pipe(browserify())
     .pipe(gulp.dest('./public/test/'));
 
   watch('./public/js/**/*.pogo')
@@ -87,8 +85,7 @@ gulp.task("watch", function() {
     .pipe(pogo())
     .pipe(gulp.dest('./public/js/'));
 
-  gulp.watch('./public/js/**/*.js', ['browserify']);
   gulp.watch('./public/css/**', ['styles']);
 })
 
-gulp.task('default', ['styles', 'bower-files', 'scripts']);
+gulp.task('default', ['styles', 'browserify']);

@@ -1,3 +1,5 @@
+React = require 'react'
+
 R = React.DOM
 
 StartMenu = React.createClass {

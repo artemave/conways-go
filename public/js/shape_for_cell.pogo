@@ -1,3 +1,8 @@
+math      = require 'mathjs'
+when      = require './when'.when
+is        = require './when'.is
+otherwise = require './when'.otherwise
+
 Shape = prototype {
   matrix = math.matrix()
 

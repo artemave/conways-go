@@ -1,6 +1,8 @@
+require 'es5-shim'
 emitEscape = require '../js/emit_escape'
-ButtonBar = require '../js/button_bar'
-TestUtils = React.addons.TestUtils
+ButtonBar  = require '../js/button_bar'
+React      = require 'react/addons'
+TestUtils  = React.addons.TestUtils
 
 describe "ButtonBar"
   cb = nil
