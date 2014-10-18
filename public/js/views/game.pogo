@@ -1,8 +1,9 @@
 React = require 'react'
+R = React.DOM
 
 Game = React.createClass {
   render() =
-    1
+    R.div(null, "Waiting for another player to join")
 }
 
 module.exports = Game

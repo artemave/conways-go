@@ -5,6 +5,7 @@ import (
 
 	"code.google.com/p/go-uuid/uuid"
 
+	"fmt"
 	"github.com/araddon/gou"
 	"github.com/artemave/conways-go/conway"
 	"github.com/gorilla/mux"
@@ -67,7 +68,7 @@ func CreateGameHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	http.Redirect(w, r, "/games/"+u4, 302)
+	fmt.Fprintf(w, u4)
 }
 
 func ShowGameHandler(w http.ResponseWriter, req *http.Request) {
