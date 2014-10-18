@@ -1,21 +1,28 @@
-var gulp       = require('gulp');
-var pogo       = require('gulp-pogo');
-var browserify = require('browserify');
-var sass       = require('gulp-sass');
-var concat     = require('gulp-concat');
-var plumber    = require('gulp-plumber');
-var gutil      = require('gulp-util');
-var fs         = require('fs');
-var watch      = require('gulp-watch');
-var karma      = require('karma').server;
-var watchify   = require('watchify');
-var source     = require('vinyl-source-stream');
+var gulp           = require('gulp');
+var pogo           = require('gulp-pogo');
+var browserify     = require('browserify');
+var sass           = require('gulp-sass');
+var concat         = require('gulp-concat');
+var plumber        = require('gulp-plumber');
+var gutil          = require('gulp-util');
+var fs             = require('fs');
+var watch          = require('gulp-watch');
+var karma          = require('karma').server;
+var watchify       = require('watchify');
+var source         = require('vinyl-source-stream');
+var gulpBowerFiles = require('main-bower-files');
 
 var onError = function (err) {
   gutil.beep();
   gutil.log(gutil.colors.red(err.message))
   gutil.log(err)
 };
+
+gulp.task("bower-files", function() {
+  return gulp.src(gulpBowerFiles())
+    .pipe(concat('deps.js'))
+    .pipe(gulp.dest("./public"))
+});
 
 gulp.task('styles', function (callback) {
   return gulp.src('./public/css/app.scss')
@@ -54,16 +61,22 @@ gulp.task("browserify", function() {
     browserifyAndMaybeWatchify(false)
 })
 
+gulp.task('compile-pogo', function(callback){
+    return gulp.src('./public/{js,test}/**/*.pogo')
+      .pipe(plumber({errorHandler: onError}))
+      .pipe(pogo())
+      .pipe(gulp.dest('./public/'));
+})
 
 function browserifyAndMaybeWatchify(watch) {
   var bundler = browserify("./public/js/app.js", watchify.args)
 
   var bundle = function() {
     return bundler
-    .bundle()
-    .on('error', onError)
-    .pipe(source('bundle.js'))
-    .pipe(gulp.dest('./public/'));
+      .bundle()
+      .on('error', onError)
+      .pipe(source('bundle.js'))
+      .pipe(gulp.dest('./public/'));
   };
 
   if (watch) {
@@ -74,18 +87,13 @@ function browserifyAndMaybeWatchify(watch) {
   bundle()
 }
 
-gulp.task("watch", ["watchify"], function() {
-  watch('./public/test/**/*.pogo')
+gulp.task("watch", ["compile-pogo", "watchify"], function() {
+  watch('./public/{js,test}/**/*.pogo')
     .pipe(plumber({errorHandler: onError}))
     .pipe(pogo())
-    .pipe(gulp.dest('./public/test/'));
-
-  watch('./public/js/**/*.pogo')
-    .pipe(plumber({errorHandler: onError}))
-    .pipe(pogo())
-    .pipe(gulp.dest('./public/js/'));
+    .pipe(gulp.dest('./public/'));
 
   gulp.watch('./public/css/**', ['styles']);
 })
 
-gulp.task('default', ['styles', 'browserify']);
+gulp.task('default', ['styles', 'bower-files', 'browserify']);
