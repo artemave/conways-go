@@ -5,17 +5,16 @@ body {
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
-#viewport {
+.D3Grid {
   margin: 10px auto 0 auto;
   width: 90%;
   max-width: 800px;
 }
 
-#button-bar {
+.ButtonBar {
   margin: 0 auto 10px auto;
   overflow: hidden;
   width: 90%;
-  display: none;
   max-width: 800px;
 }
 

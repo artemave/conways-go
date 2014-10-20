@@ -10,13 +10,6 @@ Grid                    = require '../grid'
 D = React.DOM
 
 Game = React.createClass {
-  propTypes = {
-    player     = React.PropTypes.number
-    cols       = React.PropTypes.number
-    rows       = React.PropTypes.number
-    winSpots   = React.PropTypes.arrayOf(React.PropTypes.object)
-    generation = React.PropTypes.arrayOf(React.PropTypes.object)
-  }
 
   getInitialState() =
     { waitingForAnotherPlayer = true }
@@ -66,7 +59,7 @@ Game = React.createClass {
             if (new cells.length)
               new cells.for each @(cell)
                 cell.State = 1
-                cell.Player = shmelf.refs.grid.player
+                cell.Player = shmelf.state.player
 
               ack.cells = new cells
 
@@ -83,8 +76,16 @@ Game = React.createClass {
       null
       WaitingForAnotherPlayer { show = self.state.waitingForAnotherPlayer }
       ButtonBar { player = self.state.player, show = !self.state.waitingForAnotherPlayer }
+      Grid {
+        ref        = "grid"
+        show       = !self.state.waitingForAnotherPlayer
+        generation = self.state.generation
+        player     = self.state.player
+        cols       = self.state.cols
+        rows       = self.state.rows
+        winSpots   = self.state.winSpots
+      }
     )
 }
 
-      /* Grid { show = !self.state.waitingForAnotherPlayer } */
 module.exports = Game

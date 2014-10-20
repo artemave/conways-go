@@ -72,6 +72,7 @@ pointer(type) =
 
 CellCounter = React.createClass {
   propTypes = {
+    show   = React.PropTypes.bool
     player = React.PropTypes.number
   }
 
@@ -153,7 +154,7 @@ ButtonBar = React.createClass {
   render () =
     if (self.props.show)
       R.div (
-        null
+        {className = 'ButtonBar'}
         buttonDot {handleClick = self.handleClick, freeCellsCount = self.state.freeCellsCount, player = self.props.player}
         pointerDot {buttonClicked = self.state.buttonClicked, player = self.props.player}
         buttonLine {handleClick = self.handleClick, freeCellsCount = self.state.freeCellsCount, player = self.props.player}
