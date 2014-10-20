@@ -10,19 +10,12 @@ var watch          = require('gulp-watch');
 var karma          = require('karma').server;
 var watchify       = require('watchify');
 var source         = require('vinyl-source-stream');
-var gulpBowerFiles = require('main-bower-files');
 
 var onError = function (err) {
   gutil.beep();
   gutil.log(gutil.colors.red(err.message))
   gutil.log(err)
 };
-
-gulp.task("bower-files", function() {
-  return gulp.src(gulpBowerFiles())
-    .pipe(concat('deps.js'))
-    .pipe(gulp.dest("./public"))
-});
 
 gulp.task('styles', function (callback) {
   return gulp.src('./public/css/app.scss')
@@ -96,4 +89,4 @@ gulp.task("watch", ["compile-pogo", "watchify"], function() {
   gulp.watch('./public/css/**', ['styles']);
 })
 
-gulp.task('default', ['styles', 'bower-files', 'browserify']);
+gulp.task('default', ['styles', 'browserify']);
