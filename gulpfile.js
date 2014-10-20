@@ -50,7 +50,7 @@ gulp.task("watchify", function() {
     browserifyAndMaybeWatchify(true)
 })
 
-gulp.task("browserify", function() {
+gulp.task("browserify", ["compile-pogo"], function() {
     browserifyAndMaybeWatchify(false)
 })
 
