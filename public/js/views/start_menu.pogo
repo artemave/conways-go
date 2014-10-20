@@ -11,7 +11,7 @@ StartMenu = React.createClass {
     e.preventDefault()
     gameSize = self.refs.gameSize.getDOMNode().value
 
-    request.post '/games' {size = gameSize} @(error) @(res)
+    request.post '/games'.type 'form'.send {gameSize = gameSize}.end @(error) @(res)
       gameId = res.text
       self.transitionTo("/games/#(gameId)")
 

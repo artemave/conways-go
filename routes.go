@@ -6,9 +6,10 @@ import (
 	"code.google.com/p/go-uuid/uuid"
 
 	"fmt"
-	"github.com/araddon/gou"
 	"github.com/artemave/conways-go/conway"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"os"
 )
 
 func RegisterRoutes() {
@@ -19,12 +20,11 @@ func RegisterRoutes() {
 	r.HandleFunc("/games/{id}", ShowGameHandler)
 	r.HandleFunc("/games/play/{id}", GamePlayHandler)
 
-	http.Handle("/", r)
+	http.Handle("/", handlers.LoggingHandler(os.Stdout, r))
 	http.Handle("/public/", http.FileServer(http.Dir("./")))
 }
 
 func RootHandler(w http.ResponseWriter, req *http.Request) {
-	gou.Debug("GET: /")
 	http.ServeFile(w, req, "./public/index.html")
 }
 
@@ -59,8 +59,7 @@ var startGeneration = map[string]*conway.Generation{
 }
 
 func CreateGameHandler(w http.ResponseWriter, r *http.Request) {
-	gou.Debug("POST: /games/")
-	gameSize := r.PostFormValue("size")
+	gameSize := r.PostFormValue("gameSize")
 
 	u4 := uuid.New()
 	_, err := gamesRepo.CreateGameById(u4, gameSize, startGeneration[gameSize])
@@ -72,8 +71,5 @@ func CreateGameHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ShowGameHandler(w http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	id := vars["id"]
-	gou.Debug("GET: /games/" + id)
 	http.ServeFile(w, req, "./public/index.html")
 }

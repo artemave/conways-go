@@ -27,8 +27,6 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	gou.Debug("WS: /games/play/" + id)
-
 	game := gamesRepo.FindGameById(id)
 	if game == nil {
 		ws.WriteJSON(map[string]string{"handshake": "game not found"})
