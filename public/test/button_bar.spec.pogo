@@ -12,9 +12,8 @@ describe "ButtonBar"
       document.removeEventListener('about-to-place-shape', cb)
 
     it "triggers event (to grid) about which button is clicked" @(done)
-      bb = @new ButtonBar()
-      comp = TestUtils.renderIntoDocument(bb.reactComponent())
-      buttonLine = TestUtils.findRenderedDOMComponentWithClass(comp, 'button line')
+      bb = TestUtils.renderIntoDocument(ButtonBar {show = true})
+      buttonLine = TestUtils.findRenderedDOMComponentWithClass(bb, 'button line')
 
       cb(e) :=
         expect(e.detail.shape).to.eq 'line'
@@ -30,8 +29,7 @@ describe "ButtonBar"
       document.removeEventListener('no-shape-wants-to-be-placed', cb)
 
     it "triggers event (to grid) that no button is currently clicked" @(done)
-      bb = @new ButtonBar()
-      comp = TestUtils.renderIntoDocument(bb.reactComponent())
+      bb = TestUtils.renderIntoDocument(ButtonBar {show = true})
 
       cb(e) :=
         done()

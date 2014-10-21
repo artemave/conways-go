@@ -2,7 +2,7 @@ React   = require 'react'
 request = require 'superagent'
 RR      = require 'react-router'
 
-R = React.DOM
+D = React.DOM
 
 StartMenu = React.createClass {
   mixins = [RR.Navigation]
@@ -16,16 +16,16 @@ StartMenu = React.createClass {
       self.transitionTo("/games/#(gameId)")
 
   render() =
-    R.form(
+    D.form(
       { onSubmit = self.onSubmit }
-      R.label { htmlFor = "gameSize" } "Select field size"
-      R.select(
+      D.label { htmlFor = "gameSize" } "Select field size"
+      D.select(
         { id = "gameSize", ref = "gameSize" }
-        R.option { value = "small" } "Small"
-        R.option { value = "medium" } "Medium"
-        R.option { value = "large" } "Large"
+        D.option { value = "small" } "Small"
+        D.option { value = "medium" } "Medium"
+        D.option { value = "large" } "Large"
       )
-      R.input { type = "submit", value = "Create" }
+      D.input { type = "submit", value = "Create" }
     )
 
 }
