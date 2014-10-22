@@ -4,28 +4,23 @@ emitEscape = require './emit_escape'
 _          = require 'lodash'
 require 'd3-tip'
 
-D3Grid (viewport, opts) =
-  self          = this
-  self.cols     = opts.cols
-  self.rows     = opts.rows
-  self.player   = opts.player
-  self.winSpots = opts.winSpots
-  self.grid     = []
+D3Grid (el, opts) =
+  self = this
+  grid = []
+  svg  = null
 
-  svg = d3.select(viewport).append "svg"
+  el width () =
+    window.getComputedStyle(el).get property value "width".replace "px" ''
 
-  viewport width () =
-    window.getComputedStyle(viewport).get property value "width".replace "px" ''
+  el height () =
+    window.getComputedStyle(el).get property value "height".replace "px" ''
 
-  viewport height () =
-    window.getComputedStyle(viewport).get property value "height".replace "px" ''
-
-  set viewport height() =
-    viewport.set attribute 'style' "height:#(self.y(self.rows))px"
+  set el height() =
+    el.set attribute 'style' "height:#(self.y(opts.rows))px"
 
   scale xy () =
-    self.x = d3.scale.linear().domain([0, self.cols]).rangeRound([0, viewport width()])
-    self.y = d3.scale.linear().domain([0, viewport height() / self.x(1)]).rangeRound([0, viewport height()])
+    self.x = d3.scale.linear().domain([0, opts.cols]).rangeRound([0, el width()])
+    self.y = d3.scale.linear().domain([0, el height() / self.x(1)]).rangeRound([0, el height()])
 
   self.newCellsToSend() =
     s = svg.selectAll 'rect.new'.data()
@@ -48,7 +43,7 @@ D3Grid (viewport, opts) =
   self.render next (generation) =
     closest to (d) live cell is at least (number of) cells away =
       !_(generation).find @(gc)
-        Math.abs(gc.Row - d.Row) < number of && Math.abs(gc.Col - d.Col) < number of && gc.Player == self.player
+        Math.abs(gc.Row - d.Row) < number of && Math.abs(gc.Col - d.Col) < number of && gc.Player == opts.player
 
     maybeFog(d) =
       closest to (d) live cell is at least 5 cells away
@@ -77,24 +72,13 @@ D3Grid (viewport, opts) =
     attr 'x' @(d) @{ self.x(d.Col) + self.x(0.1) }.
     attr 'y' @(d) @{ self.y(d.Row) + self.y(0.1) }
 
-    set viewport height()
-    svg.attr("width", viewport width())
-    svg.attr("height", viewport height())
-
-  window.onresize = self.resize.bind(self)
-
-  scale xy()
-
-  for (ey = 0, ey < self.rows, ey:=ey+1)
-    for (ex = 0, ex < self.cols, ex:=ex+1)
-      self.grid.push {
-          Row = ey
-          Col = ex
-        }
+    set el height()
+    svg.attr("width", el width())
+    svg.attr("height", el height())
 
   win spot at (cell) =
     p = {Row = cell.Row, Col = cell.Col}
-    s = _(self.winSpots).find @(spot)
+    s = _(opts.winSpots).find @(spot)
       _(p).isEqual(spot.Point)
 
   calculate initial class (d) =
@@ -112,31 +96,46 @@ D3Grid (viewport, opts) =
 
     emitEscape()
 
-  set viewport height()
-  svg.attr("width", viewport width())
-  svg.attr("height", viewport height())
+  init() =
+    svg := d3.select(el).append "svg"
 
-  hover = @new Hover(self)
+    scale xy()
 
-  svg.select 'rect' all.data(self.grid).enter().append 'rect'.
-  on 'mousemove' @(d) @{ hover.maybeDrawShape(d) }.
-  on 'click' (mark hovered cells new).
-  attr 'width' @{ self.x(0.8) }.
-  attr 'height' @{ self.y(0.8) }.
-  attr 'class' (calculate initial class).
-  attr 'rx' @{ self.x(0.2)}.
-  attr 'ry' @{ self.y(0.2)}.
-  attr 'x' @(d) @{ self.x(d.Col) + self.x(0.1) }.
-  attr 'y' @(d) @{ self.y(d.Row) + self.y(0.1) }
+    for (ey = 0, ey < opts.rows, ey:=ey+1)
+      for (ex = 0, ex < opts.cols, ex:=ex+1)
+        grid.push {
+            Row = ey
+            Col = ex
+          }
 
-  tip = d3.tip().attr 'class' 'd3-tip'.offset([self.y(-0.6),0]).html @(d)
-    win spot = win spot at (d)
-    if (win spot)
-      if (self.player == win spot.Player) @{ "Enemy flag" } else @{ "Your flag" }
+    set el height()
+    svg.attr("width", el width())
+    svg.attr("height", el height())
 
-  svg.call(tip)
-  svg.selectAll 'rect.winSpot'.on 'mousemove' (tip.show).on 'mouseout' (tip.hide)
+    hover = @new Hover(self)
 
+    svg.select 'rect' all.data(grid).enter().append 'rect'.
+    on 'mousemove' @(d) @{ hover.maybeDrawShape(d) }.
+    on 'click' (mark hovered cells new).
+    attr 'width' @{ self.x(0.8) }.
+    attr 'height' @{ self.y(0.8) }.
+    attr 'class' (calculate initial class).
+    attr 'rx' @{ self.x(0.2)}.
+    attr 'ry' @{ self.y(0.2)}.
+    attr 'x' @(d) @{ self.x(d.Col) + self.x(0.1) }.
+    attr 'y' @(d) @{ self.y(d.Row) + self.y(0.1) }
+
+    tip = d3.tip().attr 'class' 'd3-tip'.offset([self.y(-0.6),0]).html @(d)
+      win spot = win spot at (d)
+      if (win spot)
+        if (opts.player == win spot.Player) @{ "Enemy flag" } else @{ "Your flag" }
+
+    svg.call(tip)
+    svg.selectAll 'rect.winSpot'.on 'mousemove' (tip.show).on 'mouseout' (tip.hide)
+
+    window.onresize = self.resize.bind(self)
+
+  init()
   self
 
 module.exports = D3Grid
