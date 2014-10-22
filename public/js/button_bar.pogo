@@ -85,20 +85,19 @@ CellCounter = React.createClass {
   componentWillUnmount() =
     document.removeEventListener('shape-placed', self.shapePlacedHandler)
 
-  replenishCellCount() =
-    if (self.state.freeCellsCount < 5)
-      setTimeout
-        newCount = self.state.freeCellsCount + 1
-        self.setState {freeCellsCount = newCount}
-        self.props.publishFreeCellsCount(newCount)
-        self.replenishCellCount()
-      2000
-
-  shapePlacedHandler(e) =
-    newCount = self.state.freeCellsCount - e.detail.shapeCellCount
+  setFreeCellsCount(newCount) =
     self.setState {freeCellsCount = newCount}
     self.props.publishFreeCellsCount(newCount)
     self.replenishCellCount()
+
+  replenishCellCount() =
+    if (self.state.freeCellsCount < 5)
+      setTimeout
+        self.setFreeCellsCount(self.state.freeCellsCount + 1)
+      2000
+
+  shapePlacedHandler(e) =
+    self.setFreeCellsCount(self.state.freeCellsCount - e.detail.shapeCellCount)
 
   render() =
     R.div(
