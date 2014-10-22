@@ -14,59 +14,59 @@ Game = React.createClass {
   getInitialState() =
     { waitingForAnotherPlayer = true }
 
+  onWsMessage(event) =
+    msg = JSON.parse(event.data)
+
+    when (msg.Handshake) [
+      is 'wait'
+        self.setState {waitingForAnotherPlayer = true}
+        self.ws.send(JSON.stringify {"acknowledged" = "wait"})
+
+      is 'ready'
+        self.setState(
+          player                  = msg.Player
+          cols                    = msg.Cols
+          rows                    = msg.Rows
+          winSpots                = msg.WinSpots
+          waitingForAnotherPlayer = false
+        )
+        self.ws.send(JSON.stringify {"acknowledged" = "ready"})
+
+      is 'finish'
+        when (msg.Result) [
+          is 'won'
+            alert "You won"
+
+          is 'lost'
+            alert "You lost"
+
+          is 'draw'
+            alert "Draw"
+        ]
+        self.ws.send(JSON.stringify {"acknowledged" = "finish"})
+
+      otherwise
+        if (msg :: Array)
+          ack = {"acknowledged" = "game"}
+          new cells = self.refs.grid.newCellsToSend()
+
+          self.setState(generation = msg)
+
+          if (new cells.length)
+            new cells.for each @(cell)
+              cell.State = 1
+              cell.Player = self.state.player
+
+            ack.cells = new cells
+
+          self.ws.send(JSON.stringify(ack))
+        else
+          console.log("Bad ws response:", msg)
+    ]
+
   componentWillMount() =
     self.ws = @new WebSocket "ws://#(window.location.host)/games/play/#(self.props.params.gameId)"
-    shmelf = self
-
-    self.ws.onmessage (event) =
-      msg = JSON.parse(event.data)
-
-      when (msg.Handshake) [
-        is 'wait'
-          shmelf.setState {waitingForAnotherPlayer = true}
-          shmelf.ws.send(JSON.stringify {"acknowledged" = "wait"})
-
-        is 'ready'
-          shmelf.setState(
-            player                  = msg.Player
-            cols                    = msg.Cols
-            rows                    = msg.Rows
-            winSpots                = msg.WinSpots
-            waitingForAnotherPlayer = false
-          )
-          shmelf.ws.send(JSON.stringify {"acknowledged" = "ready"})
-
-        is 'finish'
-          when (msg.Result) [
-            is 'won'
-              alert "You won"
-
-            is 'lost'
-              alert "You lost"
-
-            is 'draw'
-              alert "Draw"
-          ]
-          shmelf.ws.send(JSON.stringify {"acknowledged" = "finish"})
-
-        otherwise
-          if (msg :: Array)
-            ack = {"acknowledged" = "game"}
-            new cells = shmelf.refs.grid.newCellsToSend()
-
-            shmelf.setState(generation = msg)
-
-            if (new cells.length)
-              new cells.for each @(cell)
-                cell.State = 1
-                cell.Player = shmelf.state.player
-
-              ack.cells = new cells
-
-            shmelf.ws.send(JSON.stringify(ack))
-          else
-            console.log("Bad ws response:", msg)
-      ]
+    self.ws.onmessage = self.onWsMessage
 
   componentWillUnmount() =
     self.ws.close()
