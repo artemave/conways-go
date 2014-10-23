@@ -15,8 +15,10 @@ D3Grid (el, opts) =
   el height () =
     window.getComputedStyle(el).get property value "height".replace "px" ''
 
-  set el height() =
+  setGridHeight() =
     el.set attribute 'style' "height:#(self.y(opts.rows))px"
+    svg.attr("width", el width())
+    svg.attr("height", el height())
 
   scale xy () =
     self.x = d3.scale.linear().domain([0, opts.cols]).rangeRound([0, el width()])
@@ -64,7 +66,7 @@ D3Grid (el, opts) =
     classed('dead', true).
     classed('fog', maybeFog)
 
-  self.resize () =
+  resize() =
     scale xy()
 
     svg.select 'rect 'all.attr 'width' @{ self.x(0.8) }.
@@ -72,9 +74,7 @@ D3Grid (el, opts) =
     attr 'x' @(d) @{ self.x(d.Col) + self.x(0.1) }.
     attr 'y' @(d) @{ self.y(d.Row) + self.y(0.1) }
 
-    set el height()
-    svg.attr("width", el width())
-    svg.attr("height", el height())
+    setGridHeight()
 
   win spot at (cell) =
     p = {Row = cell.Row, Col = cell.Col}
@@ -108,9 +108,7 @@ D3Grid (el, opts) =
             Col = ex
           }
 
-    set el height()
-    svg.attr("width", el width())
-    svg.attr("height", el height())
+    setGridHeight()
 
     hover = @new Hover(self)
 
@@ -133,7 +131,7 @@ D3Grid (el, opts) =
     svg.call(tip)
     svg.selectAll 'rect.winSpot'.on 'mousemove' (tip.show).on 'mouseout' (tip.hide)
 
-    window.onresize = self.resize.bind(self)
+    window.onresize = resize
 
   init()
   self
