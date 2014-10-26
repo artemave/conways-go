@@ -4,7 +4,7 @@ Cookies = require 'cookies-js'
 D = React.DOM
 
 DoNotAutoShowCheckbox = React.createClass {
-  doNotAutoShow() =
+  onChange() =
     if (self.refs.checkbox.getDOMNode().checked)
       Cookies.set "knows-how-to-play" "true"
     else
@@ -12,7 +12,7 @@ DoNotAutoShowCheckbox = React.createClass {
 
   render() =
     self.transferPropsTo(
-      D.input { type = 'checkbox', onChange = self.doNotAutoShow, ref = 'checkbox' }
+      D.input { type = 'checkbox', onChange = self.onChange, ref = 'checkbox' }
     )
 }
 
@@ -26,7 +26,7 @@ HelpPopup = React.createClass {
     if (self.props.show)
       D.div(
         { className = 'helpPopup' }
-        D.div { className = 'popupCloseButton', onClick = self.props.onClose }
+        D.div { className = 'icon-cancel', onClick = self.props.onClose }
         D.div { className = 'popupText' } "help text"
         D.label(
           { htmlFor = 'doNotAutoShow' }

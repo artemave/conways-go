@@ -16,17 +16,16 @@ Grid = React.createClass {
       self.grid.newCellsToSend()
 
   componentDidUpdate() =
-    if (self.props.show)
-      if (self.grid)
+    if (self.grid)
+      if (self.props.generation)
         self.grid.renderNext(self.props.generation)
-      else
-        if (self.props.player && self.props.cols && self.props.rows && self.props.winSpots)
-          self.grid = @new D3Grid(self.getDOMNode(), self.props)
     else
-      self.grid = null
+      if (self.props.player && self.props.cols && self.props.rows && self.props.winSpots)
+        self.grid = @new D3Grid(self.getDOMNode(), self.props)
 
   render() =
-    if (self.props.show) @{ React.DOM.div {className = 'D3Grid'} } else @{ null }
+    display = if (self.props.show) @{ 'block' } else @{ 'none' }
+    React.DOM.div {className = 'D3Grid', style = {display = display}}
 }
 
 module.exports = Grid

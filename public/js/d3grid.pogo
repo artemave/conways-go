@@ -104,9 +104,9 @@ D3Grid (el, opts) =
     for (ey = 0, ey < opts.rows, ey:=ey+1)
       for (ex = 0, ex < opts.cols, ex:=ex+1)
         grid.push {
-            Row = ey
-            Col = ex
-          }
+          Row = ey
+          Col = ex
+        }
 
     setGridHeight()
 
