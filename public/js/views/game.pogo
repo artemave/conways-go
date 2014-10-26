@@ -1,3 +1,4 @@
+Cookies                 = require 'cookies-js'
 React                   = require 'react'
 WebSocket               = require 'ReconnectingWebSocket'
 when                    = require '../when'.when
@@ -6,21 +7,26 @@ otherwise               = require '../when'.otherwise
 WaitingForAnotherPlayer = require '../waiting_for_another_player'
 ButtonBar               = require '../button_bar'
 Grid                    = require '../grid'
+HelpPopup               = require '../help_popup'
 
 D = React.DOM
 
 Game = React.createClass {
 
   getInitialState() =
-    { waitingForAnotherPlayer = true }
+    {
+      waitingForAnotherPlayer = true
+      showHelpPopup = !Cookies.get("knows-how-to-play")
+    }
 
   onWsMessage(event) =
     msg = JSON.parse(event.data)
+    ack = null
 
     when (msg.Handshake) [
       is 'wait'
         self.setState {waitingForAnotherPlayer = true}
-        self.ws.send(JSON.stringify {"acknowledged" = "wait"})
+        ack := {"acknowledged" = "wait"}
 
       is 'ready'
         self.setState(
@@ -30,7 +36,7 @@ Game = React.createClass {
           winSpots                = msg.WinSpots
           waitingForAnotherPlayer = false
         )
-        self.ws.send(JSON.stringify {"acknowledged" = "ready"})
+        ack := {"acknowledged" = "ready"}
 
       is 'finish'
         when (msg.Result) [
@@ -43,11 +49,11 @@ Game = React.createClass {
           is 'draw'
             alert "Draw"
         ]
-        self.ws.send(JSON.stringify {"acknowledged" = "finish"})
+        ack := {"acknowledged" = "finish"}
 
       otherwise
         if (msg :: Array)
-          ack = {"acknowledged" = "game"}
+          ack := {"acknowledged" = "game"}
           new cells = self.refs.grid.newCellsToSend()
 
           self.setState(generation = msg)
@@ -58,11 +64,22 @@ Game = React.createClass {
               cell.Player = self.state.player
 
             ack.cells = new cells
-
-          self.ws.send(JSON.stringify(ack))
         else
           console.log("Bad ws response:", msg)
     ]
+
+    if (ack)
+      if (self.state.showHelpPopup)
+        self.deferredAck = ack
+      else
+        self.ws.send(JSON.stringify(ack))
+
+  onHelpPopupClose() =
+    if (self.deferredAck)
+      self.ws.send(JSON.stringify(self.deferredAck))
+      self.deferredAck = null
+
+    self.setState { showHelpPopup = false }
 
   componentWillMount() =
     self.ws = @new WebSocket "ws://#(window.location.host)/games/play/#(self.props.params.gameId)"
@@ -74,6 +91,7 @@ Game = React.createClass {
   render() =
     D.div(
       null
+      HelpPopup { show = self.state.showHelpPopup, onClose = self.onHelpPopupClose }
       WaitingForAnotherPlayer { show = self.state.waitingForAnotherPlayer }
       ButtonBar { player = self.state.player, show = !self.state.waitingForAnotherPlayer }
       Grid {

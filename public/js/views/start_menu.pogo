@@ -1,3 +1,4 @@
+Cookies = require 'cookies-js'
 React   = require 'react'
 request = require 'superagent'
 RR      = require 'react-router'
@@ -13,6 +14,7 @@ StartMenu = React.createClass {
 
     request.post '/games'.type 'form'.send {gameSize = gameSize}.end @(error) @(res)
       gameId = res.text
+      Cookies.set("knows-how-to-play", "true")
       self.transitionTo("/games/#(gameId)")
 
   render() =

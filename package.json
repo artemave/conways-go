@@ -5,6 +5,7 @@
     "ReconnectingWebSocket": "git+https://github.com/joewalnes/reconnecting-websocket.git",
     "bluebird": "^2.3.4",
     "browserify": "^6.1.0",
+    "cookies-js": "^0.4.0",
     "d3": "^3.4.13",
     "d3-tip": "git+https://github.com/jansegre/d3-tip.git",
     "gulp": "^3.6.1",
