@@ -1,3 +1,4 @@
+@import "normalize";
 @import "fontello";
 @import "button";
 @import "d3-tip";
@@ -13,7 +14,7 @@ body {
 }
 
 .ButtonBar {
-  margin: 0 auto 10px auto;
+  margin: 10px auto 10px auto;
   overflow: hidden;
   width: 90%;
   max-width: 800px;
@@ -116,7 +117,7 @@ rect {
 .helpPopup {
   position: absolute;
   width: 80%;
-  height: 80%;
+  max-height: 95%;
   left: 10%;
   top: 20px;
   z-index: 2;
@@ -132,19 +133,38 @@ rect {
   .popupText {
     -webkit-flex-grow: 2;
     flex-grow: 2;
+    padding: 0 15px 15px 15px;
+    overflow: scroll;
+  }
+
+  .hr {
+    width: 70%;
+    border-top: 1px solid lightskyblue;
+    -webkit-align-self: center;
+    align-self: center;
+    padding-bottom: 10px;
   }
 
   .doNotAutoShowCheckbox {
     -webkit-align-self: center;
     align-self: center;
+    padding-bottom: 10px;
+
+    input {
+      margin-right: 5px;
+    }
+  }
+
+  .icon-play-circled {
+    -webkit-align-self: center;
+    align-self: center;
+    font-size: 2rem;
+    padding-bottom: 5px;
   }
 
   .icon-cancel {
     -webkit-align-self: flex-end;
     align-self: flex-end;
-
-    &:hover {
-      cursor: pointer;
-    }
+    padding: 10px 10px 0 0;
   }
 }

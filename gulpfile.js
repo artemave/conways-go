@@ -1,15 +1,16 @@
-var gulp           = require('gulp');
-var pogo           = require('gulp-pogo');
-var browserify     = require('browserify');
-var sass           = require('gulp-sass');
-var concat         = require('gulp-concat');
-var plumber        = require('gulp-plumber');
-var gutil          = require('gulp-util');
-var fs             = require('fs');
-var watch          = require('gulp-watch');
-var karma          = require('karma').server;
-var watchify       = require('watchify');
-var source         = require('vinyl-source-stream');
+var gulp        = require('gulp');
+var pogo        = require('gulp-pogo');
+var browserify  = require('browserify');
+var sass        = require('gulp-sass');
+var concat      = require('gulp-concat');
+var plumber     = require('gulp-plumber');
+var gutil       = require('gulp-util');
+var fs          = require('fs');
+var watch       = require('gulp-watch');
+var karma       = require('karma').server;
+var watchify    = require('watchify');
+var source      = require('vinyl-source-stream');
+var markdownify = require('markdownify');
 
 var onError = function (err) {
   gutil.beep();
@@ -62,7 +63,12 @@ gulp.task('compile-pogo', function(callback){
 })
 
 function browserifyAndMaybeWatchify(watch) {
-  var bundler = browserify("./public/js/app.js", watchify.args)
+  args = watchify.args;
+  args.extensions = ['.md'];
+
+  var bundler = browserify("./public/js/app.js", args);
+
+  bundler.transform(markdownify);
 
   var bundle = function() {
     return bundler

@@ -7,6 +7,8 @@
 <font-face font-family="fontello" font-weight="400" font-stretch="normal" units-per-em="1000" ascent="850" descent="-150" />
 <missing-glyph horiz-adv-x="1000" />
 <glyph glyph-name="cancel" unicode="&#xe800;" d="m0 71l279 279-279 279 221 221 279-279 279 279 221-221-279-279 279-279-221-221-279 279-279-279z" horiz-adv-x="1000" />
+<glyph glyph-name="youtube-play" unicode="&#xe801;" d="m0 350q0 54 1 84t4 76 13 82q9 41 38 69t70 32q123 14 374 14t374-14q40-4 70-32t39-69q7-36 12-82t4-76 1-84-1-84-4-76-13-82q-9-41-38-69t-70-32q-123-14-374-14t-374 14q-40 4-70 32t-39 69q-7 36-12 82t-4 76-1 84z m357-179q0-21 19-31 9-4 17-4 11 0 19 5l286 179q16 9 16 30t-16 30l-286 179q-17 11-36 1-19-10-19-31v-358z" horiz-adv-x="1000" />
+<glyph glyph-name="play-circled" unicode="&#xe802;" d="m0 350q0 117 58 215t155 156 216 58 215-58 156-156 57-215-57-215-156-156-215-58-216 58-155 156-58 215z m286-179q0-20 18-31 9-4 17-4 10 0 18 5l304 178q18 10 18 31t-18 31l-304 178q-17 11-35 1-18-11-18-31v-358z" horiz-adv-x="857.1" />
 </font>
 </defs>
 </svg>

@@ -53,4 +53,14 @@
 .icon-cancel {
   color: red;
   &:before { content: '\e800'; } /* '' */
+  &:hover {
+    cursor: pointer;
+  }
+}
+.icon-play-circled {
+  color: green;
+  &:before { content: '\e802'; } /* '' */
+  &:hover {
+    cursor: pointer;
+  }
 }

@@ -19,6 +19,7 @@
     "karma": "^0.12.23",
     "keymaster": "^1.6.2",
     "lodash": "^2.4.1",
+    "markdownify": "^0.1.0",
     "mathjs": "^1.0.1",
     "pogo": "^0.9.5",
     "pogoify": "0.0.2",
