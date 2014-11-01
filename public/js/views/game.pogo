@@ -8,6 +8,7 @@ WaitingForAnotherPlayer = require '../waiting_for_another_player'
 ButtonBar               = require '../button_bar'
 Grid                    = require '../grid'
 HelpPopup               = require '../help_popup'
+key                     = require 'keymaster'
 
 D = React.DOM
 
@@ -75,7 +76,7 @@ Game = React.createClass {
       else
         self.ws.send(JSON.stringify(ack))
 
-  onHelpPopupClose() =
+  helpPopupWantsToHide() =
     if (self.deferredAck)
       self.ws.send(JSON.stringify(self.deferredAck))
       self.deferredAck = null
@@ -89,6 +90,7 @@ Game = React.createClass {
   componentWillMount() =
     self.ws = @new WebSocket "ws://#(window.location.host)/games/play/#(self.props.params.gameId)"
     self.ws.onmessage = self.onWsMessage
+    key('esc', self.helpPopupWantsToHide)
 
   componentWillUnmount() =
     self.ws.close()
@@ -98,7 +100,7 @@ Game = React.createClass {
       null
       HelpPopup {
         show                     = self.state.showHelpPopup
-        onClose                  = self.onHelpPopupClose
+        wantsToHide              = self.helpPopupWantsToHide
         withDontShowThisCheckbox = self.state.withDontShowThisCheckbox
       }
       WaitingForAnotherPlayer { show = self.state.waitingForAnotherPlayer }

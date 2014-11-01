@@ -20,7 +20,7 @@ DoNotAutoShowCheckbox = React.createClass {
 HelpPopup = React.createClass {
   propTypes = {
     show                     = React.PropTypes.bool
-    onClose                  = React.PropTypes.func
+    wantsToHide              = React.PropTypes.func
     withDontShowThisCheckbox = React.PropTypes.bool
   }
 
@@ -28,7 +28,7 @@ HelpPopup = React.createClass {
     if (self.props.show)
       D.div(
         { className = 'helpPopup' }
-        D.div { className = 'icon-cancel', onClick = self.props.onClose }
+        D.div { className = 'icon-cancel', onClick = self.props.wantsToHide }
         D.div { className = 'popupText', dangerouslySetInnerHTML = { __html = helpText } }
         D.div { className = 'hr' }
         D.div(
@@ -42,7 +42,7 @@ HelpPopup = React.createClass {
             "Got it. Don't show this again"
           )
         )
-        D.div { className = 'icon-play-circled', onClick = self.props.onClose }
+        D.div { className = 'icon-play-circled', onClick = self.props.wantsToHide }
       )
     else
       null
