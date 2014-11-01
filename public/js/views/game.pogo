@@ -15,8 +15,9 @@ Game = React.createClass {
 
   getInitialState() =
     {
-      waitingForAnotherPlayer = true
-      showHelpPopup = !Cookies.get("knows-how-to-play")
+      waitingForAnotherPlayer  = true
+      showHelpPopup            = !Cookies.get("knows-how-to-play")
+      withDontShowThisCheckbox = true
     }
 
   onWsMessage(event) =
@@ -82,7 +83,8 @@ Game = React.createClass {
     self.setState { showHelpPopup = false }
 
   onHelpButtonClicked() =
-    self.setState { showHelpPopup = true }
+    self.setState { showHelpPopup            = true }
+    self.setState { withDontShowThisCheckbox = false }
 
   componentWillMount() =
     self.ws = @new WebSocket "ws://#(window.location.host)/games/play/#(self.props.params.gameId)"
@@ -94,7 +96,11 @@ Game = React.createClass {
   render() =
     D.div(
       null
-      HelpPopup { show = self.state.showHelpPopup, onClose = self.onHelpPopupClose }
+      HelpPopup {
+        show                     = self.state.showHelpPopup
+        onClose                  = self.onHelpPopupClose
+        withDontShowThisCheckbox = self.state.withDontShowThisCheckbox
+      }
       WaitingForAnotherPlayer { show = self.state.waitingForAnotherPlayer }
       ButtonBar {
         player              = self.state.player

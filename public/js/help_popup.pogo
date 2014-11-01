@@ -19,8 +19,9 @@ DoNotAutoShowCheckbox = React.createClass {
 
 HelpPopup = React.createClass {
   propTypes = {
-    show    = React.PropTypes.bool
-    onClose = React.PropTypes.func
+    show                     = React.PropTypes.bool
+    onClose                  = React.PropTypes.func
+    withDontShowThisCheckbox = React.PropTypes.bool
   }
 
   render() =
@@ -31,7 +32,10 @@ HelpPopup = React.createClass {
         D.div { className = 'popupText', dangerouslySetInnerHTML = { __html = helpText } }
         D.div { className = 'hr' }
         D.div(
-          { className = 'doNotAutoShowCheckbox' }
+          {
+            className = 'doNotAutoShowCheckbox'
+            style = { display = if (self.props.withDontShowThisCheckbox) @{'block'} else @{'none'} }
+          }
           D.label(
             { htmlFor = 'doNotAutoShow' }
             DoNotAutoShowCheckbox { id = 'doNotAutoShow' }
