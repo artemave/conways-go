@@ -35,15 +35,26 @@ body {
 }
 
 .button {
+  &.help {
+    min-width: 30px;
+  }
   &.player1 {
+    &.help {
+      float: right;
+    }
     float: left;
     margin-right: 10px;
   }
   &.player2 {
+    &.help {
+      float: left;
+    }
     float: right;
     margin-left: 10px;
   }
-  min-width: 50px;
+  &.shape {
+    min-width: 50px;
+  }
   min-height: 30px;
   display: -webkit-flex;
   display: flex;

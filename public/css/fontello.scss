@@ -64,3 +64,11 @@
     cursor: pointer;
   }
 }
+
+.icon-help {
+  &:before {
+    font-size: 1rem;
+    color: orange;
+    content: '\e803';
+  }
+}

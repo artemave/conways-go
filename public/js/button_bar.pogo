@@ -33,7 +33,7 @@ button(type) =
       else
         self.disabled = false
 
-      cName = "button #(type) player#(self.props.player)"
+      cName = "button shape #(type) player#(self.props.player)"
       if (self.disabled)
         cName := cName + ' disabled'
 
@@ -175,6 +175,7 @@ ButtonBar = React.createClass {
           player                = self.props.player
           freeCellsCount        = self.state.freeCellsCount
         }
+        R.div { className = "button player#(self.props.player) icon-help help", onClick = self.props.onHelpButtonClicked }
       )
     else
       null

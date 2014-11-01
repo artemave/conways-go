@@ -81,6 +81,9 @@ Game = React.createClass {
 
     self.setState { showHelpPopup = false }
 
+  onHelpButtonClicked() =
+    self.setState { showHelpPopup = true }
+
   componentWillMount() =
     self.ws = @new WebSocket "ws://#(window.location.host)/games/play/#(self.props.params.gameId)"
     self.ws.onmessage = self.onWsMessage
@@ -93,7 +96,11 @@ Game = React.createClass {
       null
       HelpPopup { show = self.state.showHelpPopup, onClose = self.onHelpPopupClose }
       WaitingForAnotherPlayer { show = self.state.waitingForAnotherPlayer }
-      ButtonBar { player = self.state.player, show = !self.state.waitingForAnotherPlayer }
+      ButtonBar {
+        player              = self.state.player
+        show                = !self.state.waitingForAnotherPlayer
+        onHelpButtonClicked = self.onHelpButtonClicked
+      }
       Grid {
         ref        = "grid"
         show       = !self.state.waitingForAnotherPlayer
