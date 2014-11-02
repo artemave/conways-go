@@ -94,6 +94,7 @@ Game = React.createClass {
 
   componentWillUnmount() =
     self.ws.close()
+    key.unbind('esc', self.helpPopupWantsToHide)
 
   render() =
     D.div(

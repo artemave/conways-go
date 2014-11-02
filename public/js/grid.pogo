@@ -14,14 +14,21 @@ Grid = React.createClass {
   newCellsToSend() =
     if (self.grid)
       self.grid.newCellsToSend()
+    else
+      []
 
-  componentDidUpdate() =
+  shouldComponentUpdate(nextProps, nextState) =
     if (self.grid)
       if (self.props.generation)
         self.grid.renderNext(self.props.generation)
+
+        if (nextProps.show == self.props.show)
+          return (false)
     else
       if (self.props.player && self.props.cols && self.props.rows && self.props.winSpots)
         self.grid = @new D3Grid(self.getDOMNode(), self.props)
+
+    true
 
   render() =
     display = if (self.props.show) @{ 'block' } else @{ 'none' }

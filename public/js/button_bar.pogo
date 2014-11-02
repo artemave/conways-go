@@ -137,9 +137,11 @@ ButtonBar = React.createClass {
 
   componentDidMount () =
     key('esc', self.cancelPlaceShape)
+    document.addEventListener('shape-placed', self.cancelPlaceShape)
 
   componentWillUnmount()=
     key.unbind('esc', self.cancelPlaceShape)
+    document.removeEventListener('shape-placed', self.cancelPlaceShape)
 
   cancelPlaceShape ()=
     self.setState {buttonClicked = 'none'}

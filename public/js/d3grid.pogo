@@ -1,7 +1,6 @@
-d3         = require 'd3'
-Hover      = require './hover'
-emitEscape = require './emit_escape'
-_          = require 'lodash'
+d3    = require 'd3'
+Hover = require './hover'
+_     = require 'lodash'
 require 'd3-tip'
 
 D3Grid (el, opts) =
@@ -93,8 +92,6 @@ D3Grid (el, opts) =
 
     e = @new CustomEvent "shape-placed" {detail = {shapeCellCount = cellCount}}
     document.dispatchEvent(e)
-
-    emitEscape()
 
   init() =
     svg := d3.select(el).append "svg"
