@@ -1,21 +1,22 @@
-var gulp        = require('gulp');
-var pogo        = require('gulp-pogo');
-var browserify  = require('browserify');
-var sass        = require('gulp-sass');
-var concat      = require('gulp-concat');
-var plumber     = require('gulp-plumber');
-var gutil       = require('gulp-util');
-var fs          = require('fs');
-var watch       = require('gulp-watch');
-var karma       = require('karma').server;
-var watchify    = require('watchify');
-var source      = require('vinyl-source-stream');
-var markdownify = require('markdownify');
-var argv        = require('yargs').argv;
-var uglify      = require('gulp-uglify');
-var gulpif      = require('gulp-if');
-var buffer      = require('vinyl-buffer');
-var size        = require('gulp-size');
+var gulp         = require('gulp');
+var pogo         = require('gulp-pogo');
+var browserify   = require('browserify');
+var sass         = require('gulp-sass');
+var concat       = require('gulp-concat');
+var plumber      = require('gulp-plumber');
+var gutil        = require('gulp-util');
+var fs           = require('fs');
+var watch        = require('gulp-watch');
+var karma        = require('karma').server;
+var watchify     = require('watchify');
+var source       = require('vinyl-source-stream');
+var markdownify  = require('markdownify');
+var argv         = require('yargs').argv;
+var uglify       = require('gulp-uglify');
+var gulpif       = require('gulp-if');
+var buffer       = require('vinyl-buffer');
+var size         = require('gulp-size');
+var autoprefixer = require('gulp-autoprefixer');
 
 var onError = function (err) {
   gutil.beep();
@@ -29,6 +30,7 @@ gulp.task('styles', function (callback) {
       errorHandler: onError
     }))
     .pipe(sass())
+    .pipe(autoprefixer())
     .pipe(concat('bundle.css'))
     .pipe(gulp.dest('./public'))
 });

@@ -10,6 +10,7 @@
     "d3-tip": "git+https://github.com/jansegre/d3-tip.git",
     "gaze": "^0.6.4",
     "gulp": "^3.6.1",
+    "gulp-autoprefixer": "^1.0.1",
     "gulp-concat": "^2.2.0",
     "gulp-if": "^1.2.5",
     "gulp-karma": "0.0.4",

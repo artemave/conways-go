@@ -56,11 +56,8 @@ body {
     min-width: 50px;
   }
   min-height: 30px;
-  display: -webkit-flex;
   display: flex;
-  -webkit-justify-content: center;
   justify-content: center;
-  -webkit-align-items: center;
   align-items: center;
 
   &.square {
@@ -132,9 +129,7 @@ rect {
   left: 10%;
   top: 20px;
   z-index: 2;
-  display: -webkit-flex;
   display: flex;
-  -webkit-flex-direction: column;
   flex-direction: column;
   background-color: #eee;
   opacity: 0.8;
@@ -142,7 +137,6 @@ rect {
   box-shadow: 0px 0px 25px 0px rgba(0,0,0,0.75);
 
   .popupText {
-    -webkit-flex-grow: 2;
     flex-grow: 2;
     padding: 0 15px 15px 15px;
     overflow: scroll;
@@ -151,13 +145,11 @@ rect {
   .hr {
     width: 70%;
     border-top: 1px solid lightskyblue;
-    -webkit-align-self: center;
     align-self: center;
     padding-bottom: 10px;
   }
 
   .doNotAutoShowCheckbox {
-    -webkit-align-self: center;
     align-self: center;
     padding-bottom: 10px;
 
@@ -167,14 +159,12 @@ rect {
   }
 
   .icon-play-circled {
-    -webkit-align-self: center;
     align-self: center;
     font-size: 2rem;
     padding-bottom: 5px;
   }
 
   .icon-cancel {
-    -webkit-align-self: flex-end;
     align-self: flex-end;
     padding: 10px 10px 0 0;
   }
