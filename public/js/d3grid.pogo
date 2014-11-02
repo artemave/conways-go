@@ -107,7 +107,7 @@ D3Grid (el, opts) =
 
     setGridHeight()
 
-    hover = @new Hover(self)
+    hover = @new Hover(self, opts.player)
 
     svg.select 'rect' all.data(grid).enter().append 'rect'.
     on 'mousemove' @(d) @{ hover.maybeDrawShape(d) }.

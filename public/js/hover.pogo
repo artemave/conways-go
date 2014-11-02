@@ -1,6 +1,6 @@
 shapeOf = require './shape_for_cell'
 
-Hover(grid) =
+Hover(grid, player) =
   currently pressed button = nil
 
   document.addEventListener 'about-to-place-shape' @(e)
@@ -15,7 +15,7 @@ Hover(grid) =
       return
 
     shape = shapeOf(currently pressed button)
-    if (grid.player == 2)
+    if (player == 2)
       shape.flipAcrossYeqX()
 
     cells = shape.cells(cell)
