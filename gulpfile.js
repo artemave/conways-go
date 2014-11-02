@@ -11,6 +11,11 @@ var karma       = require('karma').server;
 var watchify    = require('watchify');
 var source      = require('vinyl-source-stream');
 var markdownify = require('markdownify');
+var argv        = require('yargs').argv;
+var uglify      = require('gulp-uglify');
+var gulpif      = require('gulp-if');
+var buffer      = require('vinyl-buffer');
+var size        = require('gulp-size');
 
 var onError = function (err) {
   gutil.beep();
@@ -75,6 +80,9 @@ function browserifyAndMaybeWatchify(watch) {
       .bundle()
       .on('error', onError)
       .pipe(source('bundle.js'))
+      .pipe(buffer())
+      .pipe(gulpif(argv.production, uglify()))
+      .pipe(size())
       .pipe(gulp.dest('./public/'));
   };
 
