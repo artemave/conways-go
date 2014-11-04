@@ -93,6 +93,9 @@ D3Grid (el, opts) =
     e = @new CustomEvent "shape-placed" {detail = {shapeCellCount = cellCount}}
     document.dispatchEvent(e)
 
+  self.unbindResize() =
+    window.removeEventListener('resize', resize)
+
   init() =
     svg := d3.select(el).append "svg"
 
@@ -128,7 +131,7 @@ D3Grid (el, opts) =
     svg.call(tip)
     svg.selectAll 'rect.winSpot'.on 'mousemove' (tip.show).on 'mouseout' (tip.hide)
 
-    window.onresize = resize
+    window.addEventListener('resize', resize)
 
   init()
   self
