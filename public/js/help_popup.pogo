@@ -24,6 +24,9 @@ HelpPopup = React.createClass {
     withDontShowThisCheckbox = React.PropTypes.bool
   }
 
+  getDefaultProps() =
+    { withDontShowThisCheckbox = false }
+
   render() =
     if (self.props.show)
       D.div(
