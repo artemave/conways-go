@@ -1,4 +1,4 @@
-# HOW TO PLAY
+_Real-time "capture the flag" game based on the rules of [Conway's Game of Life](http://en.wikipedia.org/wiki/Conway's_Game_of_Life#Rules)_.
 
 ## objective
 
@@ -6,15 +6,13 @@ Capture enemy flag or eliminate all enemy cells.
 
 ## gameplay
 
-You do that by placing cells on the battlefield. Cells are placed in shapes. Of which there are four: point, line, square and glider.
+Place cells on the battlefield. Cells are placed in shapes. Of which there are four: point, line, square and glider.
 
 Each cell clears a small area of fog around it, thus allowing you to place more cells.
 
-Cells interact with each other according to the rules of [Conway's Game of Life](http://en.wikipedia.org/wiki/Conway's_Game_of_Life#Rules).
-
 There is one extra rule to those of Game of Life: a cell belongs to a player. When cells of different players collide, they produce neutral cells. When a cell of a player meets a neutral cell, the result (if any) is that player’s cells.
 
-Each shape costs the amount of cells it consists from (e.g. the price to place a square is four cells). This is taken out from your pool of cells. That pool is being replenished over time.
+Each shape has a price to be placed (it equals to the amount of cells that forms a shape). This is taken out from your pool of cells. That pool is being replenished over time.
 
 Here is what you get for your money:
 
