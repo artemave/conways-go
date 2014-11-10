@@ -29,13 +29,13 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 
 	game := gamesRepo.FindGameById(id)
 	if game == nil {
-		ws.WriteJSON(map[string]string{"handshake": "game not found"})
+		ws.WriteJSON(map[string]string{"Handshake": "game_not_found"})
 		return
 	}
 
 	player, err := game.AddPlayer()
 	if err != nil {
-		ws.WriteJSON(map[string]string{"handshake": "game_taken"})
+		ws.WriteJSON(map[string]string{"Handshake": "game_taken"})
 		return
 	} else {
 		defer game.RemovePlayer(player)

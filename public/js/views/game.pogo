@@ -9,10 +9,12 @@ ButtonBar               = require '../button_bar'
 Grid                    = require '../grid'
 HelpPopup               = require '../help_popup'
 key                     = require 'keymaster'
+RR                      = require 'react-router'
 
 D = React.DOM
 
 Game = React.createClass {
+  mixins = [RR.Navigation]
 
   getInitialState() =
     {
@@ -41,17 +43,32 @@ Game = React.createClass {
         ack := {"acknowledged" = "ready"}
 
       is 'finish'
-        when (msg.Result) [
+        self.ws.send(JSON.stringify({"acknowledged" = "finish"}))
+        self.ws.close(1000)
+
+        m = when (msg.Result) [
           is 'won'
-            alert "You won"
+            "You won"
 
           is 'lost'
-            alert "You lost"
+            "You lost"
 
           is 'draw'
-            alert "Draw"
+            "Draw"
         ]
-        ack := {"acknowledged" = "finish"}
+
+        alert(m)
+        self.transitionTo "start_menu"
+
+      is 'game_taken'
+        self.ws.close(1000)
+        alert "This game has already got enough players :("
+        self.transitionTo "start_menu"
+
+      is 'game_not_found'
+        self.ws.close(1000)
+        alert "This game does not exist :("
+        self.transitionTo "start_menu"
 
       otherwise
         if (msg :: Array)
@@ -93,7 +110,7 @@ Game = React.createClass {
     key('esc', self.helpPopupWantsToHide)
 
   componentWillUnmount() =
-    self.ws.close()
+    self.ws.close(1000)
     key.unbind('esc', self.helpPopupWantsToHide)
 
   render() =
