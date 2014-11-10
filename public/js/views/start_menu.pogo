@@ -17,7 +17,7 @@ StartMenu = React.createClass {
     key('esc', self.hideHelpPopup)
 
   componentWillUnmount() =
-    key.unbind('esc', self.hideHelpPopup)
+    key.unbind('esc')
 
   newGame(e) =
     e.preventDefault()

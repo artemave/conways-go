@@ -61,12 +61,10 @@ Game = React.createClass {
         self.transitionTo "start_menu"
 
       is 'game_taken'
-        self.ws.close(1000)
         alert "This game has already got enough players :("
         self.transitionTo "start_menu"
 
       is 'game_not_found'
-        self.ws.close(1000)
         alert "This game does not exist :("
         self.transitionTo "start_menu"
 
@@ -111,7 +109,7 @@ Game = React.createClass {
 
   componentWillUnmount() =
     self.ws.close(1000)
-    key.unbind('esc', self.helpPopupWantsToHide)
+    key.unbind('esc')
 
   render() =
     D.div(
