@@ -1,4 +1,4 @@
-_Real-time "capture the flag" game based on the rules of [Conway's Game of Life](http://en.wikipedia.org/wiki/Conway's_Game_of_Life#Rules)_.
+__Conway's Battle of Life__ is a real-time "capture the flag" game based on the rules of [Conway's Game of Life](http://en.wikipedia.org/wiki/Conway's_Game_of_Life#Rules).
 
 ## objective
 
@@ -6,7 +6,7 @@ Capture enemy flag or eliminate all enemy cells.
 
 ## gameplay
 
-Place cells on the battlefield. Cells are placed in shapes. Of which there are four: point, line, square and glider.
+Place cells on the battlefield. Cells are placed in shapes. Of which there are four: point, line, square and glider (keyboard shortcuts: 'p', 'l', 's' and 'g' respectively).
 
 Each cell clears a small area of fog around it, thus allowing you to place more cells.
 

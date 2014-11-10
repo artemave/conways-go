@@ -4,7 +4,7 @@ shapeOf = require './shape_for_cell'
 
 R = React.DOM
 
-button(type) =
+button(type, shortcut) =
   React.createClass {
     propTypes = {
       player         = React.PropTypes.number
@@ -17,6 +17,12 @@ button(type) =
     onClick (e) =
       if (!self.disabled)
         self.props.handleClick(type)
+
+    componentDidMount() =
+      key(shortcut, self.onClick)
+
+    componentWillUnmount() =
+      key.unbind(shortcut)
 
     render() =
       shape = shapeOf(type)
@@ -112,16 +118,16 @@ CellCounter = React.createClass {
     )
 }
 
-buttonDot = button('dot')
+buttonDot = button('dot', 'p')
 pointerDot = pointer('dot')
 
-buttonLine = button('line')
+buttonLine = button('line', 'l')
 pointerLine = pointer('line')
 
-buttonSquare = button('square')
+buttonSquare = button('square', 's')
 pointerSquare = pointer('square')
 
-buttonGlider = button('glider')
+buttonGlider = button('glider', 'g')
 pointerGlider = pointer('glider')
 
 ButtonBar = React.createClass {
@@ -140,7 +146,7 @@ ButtonBar = React.createClass {
     document.addEventListener('shape-placed', self.cancelPlaceShape)
 
   componentWillUnmount()=
-    key.unbind('esc', self.cancelPlaceShape)
+    key.unbind('esc')
     document.removeEventListener('shape-placed', self.cancelPlaceShape)
 
   cancelPlaceShape ()=
