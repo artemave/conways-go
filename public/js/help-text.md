@@ -20,3 +20,7 @@ Here is what you get for your money:
 - Line (3 cells). The cheapest way to advance.
 - Square (4 cells). A better alternative to Line. It does not pulsate and so the edge of the fog does not pulsate making it easier to place next shape.
 - Glider (5 cells). Unlike all other shapes, glider is moving towards the enemy.
+
+__Good luck!__
+
+_To pause the game press help._

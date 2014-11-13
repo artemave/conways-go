@@ -19,6 +19,7 @@ Game = React.createClass {
   getInitialState() =
     {
       waitingForAnotherPlayer  = true
+      showShareInstructions    = true
       showHelpPopup            = !Cookies.get("knows-how-to-play")
       withDontShowThisCheckbox = true
     }
@@ -39,6 +40,7 @@ Game = React.createClass {
           rows                    = msg.Rows
           winSpots                = msg.WinSpots
           waitingForAnotherPlayer = false
+          showShareInstructions   = false
         )
         ack := {"acknowledged" = "ready"}
 
@@ -119,7 +121,10 @@ Game = React.createClass {
         wantsToHide              = self.helpPopupWantsToHide
         withDontShowThisCheckbox = self.state.withDontShowThisCheckbox
       }
-      WaitingForAnotherPlayer { show = self.state.waitingForAnotherPlayer }
+      WaitingForAnotherPlayer {
+        show                  = self.state.waitingForAnotherPlayer
+        showShareInstructions = self.state.showShareInstructions
+      }
       ButtonBar {
         player              = self.state.player
         show                = !self.state.waitingForAnotherPlayer
