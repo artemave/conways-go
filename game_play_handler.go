@@ -48,16 +48,26 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type WsServerMessage struct {
-	Handshake string
-	Player    int
-	Cols      int
-	Rows      int
-	WinSpots  []WinSpot
+	Handshake    string
+	Player       int
+	Cols         int
+	Rows         int
+	WinSpots     []WinSpot
+	GameIsPaused bool
 }
 
 func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan bool) {
 	for {
 		select {
+		case msg := <-player.GamePauseMessages:
+			serverMessage := WsServerMessage{
+				Handshake:    "pause",
+				GameIsPaused: msg,
+			}
+			if err := ws.WriteJSON(serverMessage); err != nil {
+				gou.Error("Send to user: ", err)
+				return
+			}
 		case msg := <-player.GameServerMessages:
 
 			switch messageData := msg.Data.(type) {
@@ -107,7 +117,8 @@ func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan b
 }
 
 type WsClientMessage struct {
-	Acknowledged string        `json:acknowledged`
+	Acknowledged string        `json:acknowledged,omitempty`
+	Command      string        `json:command,omitempty`
 	Cells        []conway.Cell `json:cells,omitempty`
 }
 
@@ -118,15 +129,26 @@ func Listen(ws *websocket.Conn, game *Game, player *Player, disconnected chan bo
 			disconnected <- true
 			return
 		} else {
-			switch msg.Acknowledged {
-			case "ready", "wait", "game", "finish":
-				if msg.Cells != nil {
-					// TODO test
-					game.AddCells(msg.Cells)
+			if msg.Command != "" {
+				switch msg.Command {
+				case "pause":
+					game.PauseBy(player)
+				case "resume":
+					game.ResumeBy(player)
+				default:
+					fmt.Printf("Unknown command %s\n", msg.Command)
 				}
-				player.MessageAcknowledged()
-			default:
-				fmt.Printf("Unknown client message\n")
+			} else {
+				switch msg.Acknowledged {
+				case "ready", "wait", "game", "finish":
+					if msg.Cells != nil {
+						// TODO test
+						game.AddCells(msg.Cells)
+					}
+					player.MessageAcknowledged()
+				default:
+					fmt.Printf("Unknown client message\n")
+				}
 			}
 		}
 	}

@@ -44,6 +44,12 @@ Game = React.createClass {
         )
         ack := {"acknowledged" = "ready"}
 
+      is 'pause'
+        if (msg.GameIsPaused)
+          self.setState {waitingForAnotherPlayer = true}
+        else
+          self.setState {waitingForAnotherPlayer = false}
+
       is 'finish'
         self.ws.send(JSON.stringify({"acknowledged" = "finish"}))
         self.ws.close(1000)
@@ -94,6 +100,8 @@ Game = React.createClass {
         self.ws.send(JSON.stringify(ack))
 
   helpPopupWantsToHide() =
+    self.ws.send(JSON.stringify { command = "resume" })
+
     if (self.deferredAck)
       self.ws.send(JSON.stringify(self.deferredAck))
       self.deferredAck = null
@@ -101,6 +109,7 @@ Game = React.createClass {
     self.setState { showHelpPopup = false }
 
   onHelpButtonClicked() =
+    self.ws.send(JSON.stringify { command = "pause" })
     self.setState { showHelpPopup            = true }
     self.setState { withDontShowThisCheckbox = false }
 

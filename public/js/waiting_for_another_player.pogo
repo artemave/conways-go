@@ -6,8 +6,8 @@ WaitingForAnotherPlayer = React.createClass {
       if (self.props.showShareInstructions)
         React.DOM.div(
           { className = 'start_menu' }
-          React.DOM.p (null) "Send a url to this page to your opponent."
-          React.DOM.p (null) "Once they join the game will start."
+          React.DOM.p (null) "Copy current url and send it to your opponent."
+          React.DOM.p (null) "Once they join, the game will start."
         )
       else
         React.DOM.div(

@@ -126,6 +126,22 @@ func (g *Game) WinSpots() []WinSpot {
 	return winSpots
 }
 
+func (g *Game) PauseBy(player *Player) {
+	for _, p := range g.players {
+		if p.ClientId() != player.ClientId() {
+			p.GamePauseMessages <- true
+		}
+	}
+}
+
+func (g *Game) ResumeBy(player *Player) {
+	for _, p := range g.players {
+		if p.ClientId() != player.ClientId() {
+			p.GamePauseMessages <- false
+		}
+	}
+}
+
 func (g *Game) StartClock() {
 	go func() {
 		for {

@@ -212,6 +212,45 @@ var _ = Describe("GamePlayHandler", func() {
 			})
 		})
 
+		Context("player paused the game", func() {
+			BeforeEach(func() {
+				secondWs = wsRequest("/games/play/123")
+
+				justReadHandshake(firstWs)
+				justReadHandshake(secondWs)
+
+				sendAckMessage(firstWs, "ready")
+				sendAckMessage(secondWs, "ready")
+
+				justReadGameOutput(firstWs)
+				justReadGameOutput(secondWs)
+
+				sendAckMessage(secondWs, "game")
+				sendPause(firstWs)
+			})
+			AfterEach(func() {
+				secondWs.Close()
+			})
+
+			It("tells another player that the game is paused", func() {
+				output := justReadHandshake(secondWs)
+				Expect(output.Handshake).To(Equal("pause"))
+				Expect(output.GameIsPaused).To(Equal(true))
+			})
+
+			Context("player resumes the game", func() {
+				BeforeEach(func() {
+					justReadHandshake(secondWs)
+					sendResume(firstWs)
+				})
+
+				It("tells another player that the game is resumed", func() {
+					output := justReadHandshake(secondWs)
+					Expect(output.Handshake).To(Equal("pause"))
+					Expect(output.GameIsPaused).To(Equal(false))
+				})
+			})
+		})
 	})
 })
 
@@ -256,6 +295,18 @@ func assertGenerationTwo(ws *websocket.Conn) {
 
 func sendAckMessage(ws *websocket.Conn, msg string) {
 	if err := ws.WriteJSON(map[string]string{"acknowledged": msg}); err != nil {
+		panic(err)
+	}
+}
+
+func sendPause(ws *websocket.Conn) {
+	if err := ws.WriteJSON(map[string]string{"command": "pause"}); err != nil {
+		panic(err)
+	}
+}
+
+func sendResume(ws *websocket.Conn) {
+	if err := ws.WriteJSON(map[string]string{"command": "resume"}); err != nil {
 		panic(err)
 	}
 }
