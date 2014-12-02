@@ -34,3 +34,8 @@ func (p Player) Inbox() chan sb.BroadcastMessage {
 func (p Player) MessageAcknowledged() {
 	p.Broadcaster.MessageAcknowledged(p)
 }
+
+func (p Player) CleanUp() {
+	close(p.GameServerMessages)
+	close(p.GamePauseMessages)
+}

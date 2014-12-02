@@ -185,17 +185,9 @@ func (g *Game) AddCells(cells []conway.Cell) {
 
 func (g *Game) RemovePlayer(p *Player) error {
 	gou.Debug("Removing player ", p.id)
-EMPTY_GAME_SERVER_MESSAGES:
-	for {
-		select {
-		case <-p.GameServerMessages:
-		default:
-			close(p.GameServerMessages)
-			break EMPTY_GAME_SERVER_MESSAGES
-		}
-	}
 
 	g.Broadcaster.RemoveClient(p)
+	p.CleanUp()
 
 	enoughPlayersToStart := len(g.Broadcaster.Clients()) >= 2
 	g.Broadcaster.SendBroadcastMessage(enoughPlayersToStart)

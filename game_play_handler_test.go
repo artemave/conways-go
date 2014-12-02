@@ -2,13 +2,13 @@ package main_test
 
 import (
 	"fmt"
-	"net/http/httptest"
-	"time"
 	. "github.com/artemave/conways-go"
 	"github.com/artemave/conways-go/conway"
 	"github.com/gorilla/websocket"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"net/http/httptest"
+	"time"
 )
 
 var server = httptest.NewServer(nil)
