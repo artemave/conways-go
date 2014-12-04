@@ -11,7 +11,16 @@ HelpPopup               = require '../help_popup'
 key                     = require 'keymaster'
 RR                      = require 'react-router'
 
+knowsHowToPlay = Cookies.get("knows-how-to-play")
 D = React.DOM
+
+wsSend(ws, callback) =
+  setTimeout
+    if (ws.readyState == 1)
+      callback()
+    else
+      wsSend(ws, callback)
+  10
 
 Game = React.createClass {
   mixins = [RR.Navigation]
@@ -20,7 +29,7 @@ Game = React.createClass {
     {
       waitingForAnotherPlayer  = true
       showShareInstructions    = true
-      showHelpPopup            = !Cookies.get("knows-how-to-play")
+      showHelpPopup            = !knowsHowToPlay
       withDontShowThisCheckbox = true
     }
 
@@ -116,6 +125,11 @@ Game = React.createClass {
   componentWillMount() =
     self.ws = @new WebSocket "ws://#(window.location.host)/games/play/#(self.props.params.gameId)"
     self.ws.onmessage = self.onWsMessage
+
+    wsSend(self.ws)
+      if (!knowsHowToPlay)
+        self.ws.send(JSON.stringify { command = "pause" })
+
     key('esc', self.helpPopupWantsToHide)
 
   componentWillUnmount() =
