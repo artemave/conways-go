@@ -205,13 +205,6 @@ func (g *Game) RemovePlayer(p *Player) error {
 	g.Broadcaster.RemoveClient(p)
 	p.CleanUp()
 
-	enoughPlayersToStart := len(g.Broadcaster.Clients()) >= 2
-	g.Broadcaster.SendBroadcastMessage(enoughPlayersToStart)
-
-	if !enoughPlayersToStart {
-		g.StopClock()
-	}
-
 	newPlayers := []*Player{}
 	for _, pl := range g.players {
 		if pl.id != p.id {
@@ -219,6 +212,13 @@ func (g *Game) RemovePlayer(p *Player) error {
 		}
 	}
 	g.players = newPlayers
+
+	enoughPlayersToStart := len(g.Broadcaster.Clients()) >= 2
+	g.Broadcaster.SendBroadcastMessage(enoughPlayersToStart)
+
+	if !enoughPlayersToStart {
+		g.StopClock()
+	}
 
 	gou.Debug("Player removed ", p.id)
 	return nil
