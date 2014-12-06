@@ -112,16 +112,16 @@ func (sb *SynchronizedBroadcaster) Clients() []SynchronizedBroadcasterClient {
 }
 
 func (sb *SynchronizedBroadcaster) RemoveClient(client SynchronizedBroadcasterClient) {
-	gou.Debug("RemoveClient start", client.ClientId())
-	sb.removeClient <- client
+	gou.Debug("RemoveClient start ", client.ClientId())
 	sb.clientInboxClosed[client.ClientId()] <- true
+	sb.removeClient <- client
 EMPTY_CLIENT_INBOX:
 	for {
 		select {
 		case <-client.Inbox():
-			gou.Debug("Draining inbox of client", client.ClientId())
+			gou.Debug("Draining inbox of client ", client.ClientId())
 		default:
-			gou.Debug("Send client removed", client.ClientId())
+			gou.Debug("Send client removed ", client.ClientId())
 			<-sb.clientRemoved
 			close(sb.clientInboxClosed[client.ClientId()])
 			delete(sb.clientInboxClosed, client.ClientId())

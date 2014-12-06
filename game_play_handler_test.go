@@ -214,6 +214,7 @@ var _ = Describe("GamePlayHandler", func() {
 
 		Context("player paused the game", func() {
 			BeforeEach(func() {
+				*TestDelay = time.Duration(clockStep * 5)
 				secondWs = wsRequest("/games/play/123")
 
 				justReadHandshake(firstWs)
@@ -225,29 +226,40 @@ var _ = Describe("GamePlayHandler", func() {
 				justReadGameOutput(firstWs)
 				justReadGameOutput(secondWs)
 
+				sendPause(secondWs)
+				sendAckMessage(firstWs, "game")
 				sendAckMessage(secondWs, "game")
-				sendPause(firstWs)
 			})
 			AfterEach(func() {
+				*TestDelay = time.Duration(clockStep)
 				secondWs.Close()
 			})
 
-			It("tells another player that the game is paused", func() {
-				output := justReadHandshake(secondWs)
+			It("tells all players that the game is paused", func() {
+				output := justReadHandshake(firstWs)
 				Expect(output.Handshake).To(Equal("pause"))
-				Expect(output.GameIsPaused).To(Equal(true))
+
+				output = justReadHandshake(secondWs)
+				Expect(output.Handshake).To(Equal("pause"))
 			})
 
 			Context("player resumes the game", func() {
 				BeforeEach(func() {
+					justReadHandshake(firstWs)
 					justReadHandshake(secondWs)
+
+					sendAckMessage(firstWs, "pause")
+					sendAckMessage(secondWs, "pause")
+
 					sendResume(firstWs)
 				})
 
-				It("tells another player that the game is resumed", func() {
-					output := justReadHandshake(secondWs)
-					Expect(output.Handshake).To(Equal("pause"))
-					Expect(output.GameIsPaused).To(Equal(false))
+				It("tells all player that the game is resumed", func() {
+					output := justReadHandshake(firstWs)
+					Expect(output.Handshake).To(Equal("resume"))
+
+					output = justReadHandshake(secondWs)
+					Expect(output.Handshake).To(Equal("resume"))
 				})
 			})
 		})

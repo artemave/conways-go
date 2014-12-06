@@ -7,7 +7,6 @@ import (
 )
 
 type Player struct {
-	GamePauseMessages  chan bool
 	GameServerMessages chan sb.BroadcastMessage
 	id                 string
 	Broadcaster
@@ -20,7 +19,6 @@ func NewPlayer(g *Game) *Player {
 		id:                 u4,
 		Broadcaster:        g.Broadcaster,
 		GameServerMessages: make(chan sb.BroadcastMessage),
-		GamePauseMessages:  make(chan bool),
 	}
 	return player
 }
@@ -39,5 +37,4 @@ func (p Player) MessageAcknowledged() {
 
 func (p Player) CleanUp() {
 	close(p.GameServerMessages)
-	close(p.GamePauseMessages)
 }

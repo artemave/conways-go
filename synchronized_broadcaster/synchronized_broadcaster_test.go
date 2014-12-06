@@ -47,14 +47,16 @@ var _ = Describe("SynchronizedBroadcaster", func() {
 	})
 
 	AfterEach(func() {
-		select {
-		case <-client1.Inbox():
-		case <-client2.Inbox():
-		default:
-			close(client1.Inbox())
-			close(client2.Inbox())
-			return
+		for _, c := range sb.Clients() {
+			if c.ClientId() == client1.ClientId() {
+				sb.RemoveClient(client1)
+			}
+			if c.ClientId() == client2.ClientId() {
+				sb.RemoveClient(client2)
+			}
 		}
+		close(client1.Inbox())
+		close(client2.Inbox())
 	})
 
 	It("Broadcasts message to clients", func() {
@@ -70,29 +72,32 @@ var _ = Describe("SynchronizedBroadcaster", func() {
 		assertBlocksUntilAllClientsAcknowledgedMessage := func() {
 			d := make(chan string)
 
-			sb.SendBroadcastMessage("msg")
+			sb.SendBroadcastMessage("msg1")
 			sb.MessageAcknowledged(client1)
 
 			// send second message before first one is acknowledged by both clients
 			go func() {
-				sb.SendBroadcastMessage("msg2")
+				sb.SendBroadcastMessage("msg3")
+				d <- (<-client1.Messages).Data.(string)
+				d <- (<-client2.Messages).Data.(string)
+				d <- (<-client1.Messages).Data.(string)
+				d <- (<-client2.Messages).Data.(string)
+			}()
+
+			time.Sleep(20 * time.Millisecond)
+
+			go func() {
 				d <- "msg2"
 			}()
 
-			<-time.After(10 * time.Millisecond)
-
-			go func() {
-				d <- "msg1"
-			}()
-
-			<-time.After(10 * time.Millisecond)
+			time.Sleep(20 * time.Millisecond)
 			// complete acknowledge first message
 			sb.MessageAcknowledged(client2)
 
-			res := []string{<-d, <-d}
+			res := []string{<-d, <-d, <-d, <-d, <-d}
 
 			// the order is important
-			Expect(res).To(Equal([]string{"msg1", "msg2"}))
+			Expect(res).To(Equal([]string{"msg2", "msg1", "msg1", "msg3", "msg3"}))
 		}
 
 		It("Blocks until all clients acknowledged it", assertBlocksUntilAllClientsAcknowledgedMessage)

@@ -48,26 +48,16 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type WsServerMessage struct {
-	Handshake    string
-	Player       int
-	Cols         int
-	Rows         int
-	WinSpots     []WinSpot
-	GameIsPaused bool
+	Handshake string
+	Player    int
+	Cols      int
+	Rows      int
+	WinSpots  []WinSpot
 }
 
 func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan bool) {
 	for {
 		select {
-		case msg := <-player.GamePauseMessages:
-			serverMessage := WsServerMessage{
-				Handshake:    "pause",
-				GameIsPaused: msg,
-			}
-			if err := ws.WriteJSON(serverMessage); err != nil {
-				gou.Error("Send to user: ", err)
-				return
-			}
 		case msg := <-player.GameServerMessages:
 
 			switch messageData := msg.Data.(type) {
@@ -89,6 +79,17 @@ func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan b
 						gou.Error("Send to user: ", err)
 						return
 					}
+				}
+			case PauseGame:
+				var serverMessage WsServerMessage
+				if messageData {
+					serverMessage = WsServerMessage{Handshake: "pause"}
+				} else {
+					serverMessage = WsServerMessage{Handshake: "resume"}
+				}
+				if err := ws.WriteJSON(serverMessage); err != nil {
+					gou.Error("Send to user: ", err)
+					return
 				}
 			case *conway.Generation:
 				if err := ws.WriteJSON(messageData); err != nil {
@@ -132,15 +133,15 @@ func Listen(ws *websocket.Conn, game *Game, player *Player, disconnected chan bo
 			if msg.Command != "" {
 				switch msg.Command {
 				case "pause":
-					game.PauseBy(player)
+					go func() { game.Pause() }()
 				case "resume":
-					game.ResumeBy(player)
+					go func() { game.Resume() }()
 				default:
 					fmt.Printf("Unknown command %s\n", msg.Command)
 				}
 			} else {
 				switch msg.Acknowledged {
-				case "ready", "wait", "game", "finish":
+				case "ready", "wait", "game", "finish", "pause", "resume":
 					if msg.Cells != nil {
 						// TODO test
 						game.AddCells(msg.Cells)

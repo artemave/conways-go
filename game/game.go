@@ -12,6 +12,8 @@ import (
 
 var Delay = time.Duration(1000)
 
+type PauseGame bool
+
 type GameResult struct {
 	Winner *Player
 }
@@ -126,20 +128,14 @@ func (g *Game) WinSpots() []WinSpot {
 	return winSpots
 }
 
-func (g *Game) PauseBy(player *Player) {
-	for _, p := range g.players {
-		if p.ClientId() != player.ClientId() {
-			p.GamePauseMessages <- true
-		}
-	}
+func (g *Game) Pause() {
+	g.StopClock()
+	g.Broadcaster.SendBroadcastMessage(PauseGame(true))
 }
 
-func (g *Game) ResumeBy(player *Player) {
-	for _, p := range g.players {
-		if p.ClientId() != player.ClientId() {
-			p.GamePauseMessages <- false
-		}
-	}
+func (g *Game) Resume() {
+	g.Broadcaster.SendBroadcastMessage(PauseGame(false))
+	g.StartClock()
 }
 
 func (g *Game) StartClock() {
