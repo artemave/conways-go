@@ -13,6 +13,7 @@ import (
 var Delay = time.Duration(1000)
 
 type PauseGame bool
+type PlayersAreReady bool
 
 type GameResult struct {
 	Winner *Player
@@ -93,7 +94,7 @@ func (g *Game) AddPlayer() (*Player, error) {
 
 	g.Broadcaster.AddClient(p)
 
-	enoughPlayersToStart := len(g.Broadcaster.Clients()) >= 2
+	enoughPlayersToStart := PlayersAreReady(len(g.Broadcaster.Clients()) >= 2)
 	g.Broadcaster.SendBroadcastMessage(enoughPlayersToStart)
 
 	pNum := conway.Player1
@@ -209,7 +210,7 @@ func (g *Game) RemovePlayer(p *Player) error {
 	}
 	g.players = newPlayers
 
-	enoughPlayersToStart := len(g.Broadcaster.Clients()) >= 2
+	enoughPlayersToStart := PlayersAreReady(len(g.Broadcaster.Clients()) >= 2)
 	g.Broadcaster.SendBroadcastMessage(enoughPlayersToStart)
 
 	if !enoughPlayersToStart {

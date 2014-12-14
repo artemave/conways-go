@@ -96,7 +96,7 @@ function browserifyAndMaybeWatchify(watch) {
   bundle()
 }
 
-gulp.task("watch", ["compile-pogo", "watchify"], function() {
+gulp.task("watch", ["watchify"], function() {
   watch('./public/{js,test}/**/*.pogo')
     .pipe(plumber({errorHandler: onError}))
     .pipe(pogo())

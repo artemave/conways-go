@@ -61,7 +61,7 @@ func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan b
 		case msg := <-player.GameServerMessages:
 
 			switch messageData := msg.Data.(type) {
-			case bool:
+			case PlayersAreReady:
 				if messageData {
 					serverMessage := WsServerMessage{
 						Handshake: "ready",
