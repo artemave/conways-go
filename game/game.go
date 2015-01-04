@@ -46,6 +46,7 @@ type Game struct {
 	stopClock         chan bool
 	players           []*Player
 	clientCells       chan []conway.Cell
+	PausedByPlayer    conway.Player
 }
 
 func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
@@ -73,6 +74,7 @@ func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 		clientCells:          make(chan []conway.Cell),
 		players:              []*Player{},
 		startGeneration:      startGeneration,
+		PausedByPlayer:       conway.None,
 	}
 	return game
 }
@@ -129,14 +131,20 @@ func (g *Game) WinSpots() []WinSpot {
 	return winSpots
 }
 
-func (g *Game) Pause() {
+func (g *Game) PauseBy(player *Player) {
 	g.StopClock()
+	g.PausedByPlayer = player.PlayerIndex
 	g.Broadcaster.SendBroadcastMessage(PauseGame(true))
 }
 
 func (g *Game) Resume() {
 	g.Broadcaster.SendBroadcastMessage(PauseGame(false))
+	g.PausedByPlayer = conway.None
 	g.StartClock()
+}
+
+func (g *Game) IsPaused() bool {
+	return g.PausedByPlayer != conway.None
 }
 
 func (g *Game) StartClock() {

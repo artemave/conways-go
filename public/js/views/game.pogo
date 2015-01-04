@@ -1,18 +1,19 @@
-Cookies                 = require 'cookies-js'
-React                   = require 'react'
-WebSocket               = require 'ReconnectingWebSocket'
-when                    = require '../when'.when
-is                      = require '../when'.is
-otherwise               = require '../when'.otherwise
-WaitingForAnotherPlayer = require '../waiting_for_another_player'
-ButtonBar               = require '../button_bar'
-Grid                    = require '../grid'
-HelpPopup               = require '../help_popup'
-key                     = require 'keymaster'
-RR                      = require 'react-router'
+Cookies           = require 'cookies-js'
+React             = require 'react'
+WebSocket         = require 'ReconnectingWebSocket'
+when              = require '../when'.when
+is                = require '../when'.is
+otherwise         = require '../when'.otherwise
+GameIsPaused      = require '../game_is_paused'
+ShareInstructions = require '../share_instructions'
+ButtonBar         = require '../button_bar'
+Grid              = require '../grid'
+HelpPopup         = require '../help_popup'
+key               = require 'keymaster'
+RR                = require 'react-router'
 
 knowsHowToPlay = Cookies.get("knows-how-to-play")
-D = React.DOM
+D              = React.DOM
 
 wsSend(ws, callback) =
   setTimeout
@@ -27,10 +28,11 @@ Game = React.createClass {
 
   getInitialState() =
     {
-      waitingForAnotherPlayer  = true
       showShareInstructions    = true
-      showHelpPopup            = !knowsHowToPlay
-      withDontShowThisCheckbox = true
+      showGameIsPaused         = false
+      showGame                 = false
+      showHelpPopup            = false
+      withDontShowThisCheckbox = false
     }
 
   onWsMessage(event) =
@@ -39,26 +41,58 @@ Game = React.createClass {
 
     when (msg.Handshake) [
       is 'wait'
-        self.setState {waitingForAnotherPlayer = true}
+        self.setState {
+          showShareInstructions = true
+          showGameIsPaused      = false
+          showGame              = false
+        }
         ack := {"acknowledged" = "wait"}
 
       is 'ready'
         self.setState(
-          player                  = msg.Player
-          cols                    = msg.Cols
-          rows                    = msg.Rows
-          winSpots                = msg.WinSpots
-          waitingForAnotherPlayer = false
-          showShareInstructions   = false
+          player                = msg.Player
+          cols                  = msg.Cols
+          rows                  = msg.Rows
+          winSpots              = msg.WinSpots
+          showShareInstructions = false
+          showGameIsPaused      = false
+          showGame              = true
         )
+
+        if (!knowsHowToPlay)
+          self.setState {
+            showHelpPopup            = true
+            withDontShowThisCheckbox = true
+          }
+          self.ws.send(JSON.stringify { command = "pause" })
+
         ack := {"acknowledged" = "ready"}
 
       is 'pause'
-        self.setState {waitingForAnotherPlayer = true}
+        self.setState {
+          showShareInstructions = false
+          showGameIsPaused      = true
+          showGame              = false
+        }
+
+        if (msg.Player == msg.PausedByPlayer)
+          self.setState {
+            showHelpPopup            = true
+            withDontShowThisCheckbox = !knowsHowToPlay
+          }
+
         ack := {"acknowledged" = "pause"}
 
       is 'resume'
-        self.setState {waitingForAnotherPlayer = false}
+        self.setState {
+          player                = msg.Player
+          cols                  = msg.Cols
+          rows                  = msg.Rows
+          winSpots              = msg.WinSpots
+          showShareInstructions = false
+          showGameIsPaused      = false
+          showGame              = true
+        }
         ack := {"acknowledged" = "resume"}
 
       is 'finish'
@@ -113,16 +147,14 @@ Game = React.createClass {
 
   onHelpButtonClicked() =
     self.ws.send(JSON.stringify { command = "pause" })
-    self.setState { showHelpPopup            = true }
-    self.setState { withDontShowThisCheckbox = false }
+    self.setState {
+      showHelpPopup            = true
+      withDontShowThisCheckbox = false
+    }
 
   componentWillMount() =
     self.ws = @new WebSocket "ws://#(window.location.host)/games/play/#(self.props.params.gameId)"
     self.ws.onmessage = self.onWsMessage
-
-    wsSend(self.ws)
-      if (!knowsHowToPlay)
-        self.ws.send(JSON.stringify { command = "pause" })
 
     key('esc', self.helpPopupWantsToHide)
 
@@ -138,18 +170,20 @@ Game = React.createClass {
         wantsToHide              = self.helpPopupWantsToHide
         withDontShowThisCheckbox = self.state.withDontShowThisCheckbox
       }
-      WaitingForAnotherPlayer {
-        show                  = self.state.waitingForAnotherPlayer
-        showShareInstructions = self.state.showShareInstructions
+      ShareInstructions {
+        show = self.state.showShareInstructions
+      }
+      GameIsPaused {
+        show = self.state.showGameIsPaused
       }
       ButtonBar {
         player              = self.state.player
-        show                = !self.state.waitingForAnotherPlayer
+        show                = self.state.showGame
         onHelpButtonClicked = self.onHelpButtonClicked
       }
       Grid {
         ref        = "grid"
-        show       = !self.state.waitingForAnotherPlayer
+        show       = self.state.showGame
         generation = self.state.generation
         player     = self.state.player
         cols       = self.state.cols
