@@ -44,7 +44,7 @@ type Game struct {
 	currentGeneration *conway.Generation
 	startGeneration   *conway.Generation
 	stopClock         chan bool
-	players           []*Player
+	Players           []*Player
 	clientCells       chan []conway.Cell
 	PausedByPlayer    conway.Player
 }
@@ -72,7 +72,7 @@ func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 		Conway:               &conway.Game{Cols: cols, Rows: rows},
 		stopClock:            make(chan bool, 1),
 		clientCells:          make(chan []conway.Cell),
-		players:              []*Player{},
+		Players:              []*Player{},
 		startGeneration:      startGeneration,
 		PausedByPlayer:       conway.None,
 	}
@@ -92,7 +92,7 @@ func (g *Game) AddPlayer() (*Player, error) {
 		return &Player{}, errors.New("Game has already reached maximum number players")
 	}
 	p := NewPlayer(g)
-	g.players = append(g.players, p)
+	g.Players = append(g.Players, p)
 
 	g.Broadcaster.AddClient(p)
 
@@ -103,7 +103,7 @@ func (g *Game) AddPlayer() (*Player, error) {
 	if enoughPlayersToStart {
 		// TODO test player number assignment (when client reconnects)
 
-		for _, p := range g.players {
+		for _, p := range g.Players {
 			if p.PlayerIndex == conway.Player1 {
 				pNum = conway.Player2
 			}
@@ -170,14 +170,14 @@ func (g *Game) StartClock() {
 
 func (g *Game) playerIndexes() []*conway.Player {
 	playerIndexes := []*conway.Player{}
-	for _, v := range g.players {
+	for _, v := range g.Players {
 		playerIndexes = append(playerIndexes, &v.PlayerIndex)
 	}
 	return playerIndexes
 }
 
 func (self *Game) playerByIndex(idx *conway.Player) *Player {
-	for _, v := range self.players {
+	for _, v := range self.Players {
 		if v.PlayerIndex == *idx {
 			return v
 		}
@@ -211,12 +211,12 @@ func (g *Game) RemovePlayer(p *Player) error {
 	p.CleanUp()
 
 	newPlayers := []*Player{}
-	for _, pl := range g.players {
+	for _, pl := range g.Players {
 		if pl.id != p.id {
 			newPlayers = append(newPlayers, pl)
 		}
 	}
-	g.players = newPlayers
+	g.Players = newPlayers
 
 	enoughPlayersToStart := PlayersAreReady(len(g.Broadcaster.Clients()) >= 2)
 	g.Broadcaster.SendBroadcastMessage(enoughPlayersToStart)

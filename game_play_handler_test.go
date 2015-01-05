@@ -2,13 +2,14 @@ package main_test
 
 import (
 	"fmt"
+	"net/http/httptest"
+	"time"
+
 	. "github.com/artemave/conways-go"
 	"github.com/artemave/conways-go/conway"
 	"github.com/gorilla/websocket"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"net/http/httptest"
-	"time"
 )
 
 var server = httptest.NewServer(nil)
@@ -61,7 +62,33 @@ var _ = Describe("GamePlayHandler", func() {
 			firstWs.Close()
 		})
 
-		Context("second client connects", func() {
+		Context("game is paused", func() {
+			BeforeEach(func() {
+				game := TestGameRepo.FindGameById("123")
+				game.PauseBy(game.Players[0])
+				justReadHandshake(firstWs)
+				sendAckMessage(firstWs, "pause")
+
+				secondWs = wsRequest("/games/play/123")
+			})
+			AfterEach(func() {
+				secondWs.Close()
+			})
+
+			Describe("second client connects", func() {
+				It("tells second client that the game is paused", func() {
+					output := justReadHandshake(secondWs)
+					Expect(output.Handshake).To(Equal("pause"))
+				})
+
+				It("tells web client what player paused the game", func() {
+					output := justReadHandshake(secondWs)
+					Expect(output.PausedByPlayer).To(Equal(1))
+				})
+			})
+		})
+
+		Describe("second client connects", func() {
 			BeforeEach(func() {
 				secondWs = wsRequest("/games/play/123")
 			})
@@ -260,6 +287,16 @@ var _ = Describe("GamePlayHandler", func() {
 
 					output = justReadHandshake(secondWs)
 					Expect(output.Handshake).To(Equal("resume"))
+				})
+
+				It("includes game metadata in the message (in case we started paused)", func() {
+					game := TestGameRepo.FindGameById("123")
+					output := justReadHandshake(firstWs)
+
+					Expect(output.Player).To(Equal(1))
+					Expect(output.Cols).To(Equal(game.Cols()))
+					Expect(output.Rows).To(Equal(game.Rows()))
+					Expect(output.WinSpots).To(Equal(game.WinSpots()))
 				})
 			})
 		})
