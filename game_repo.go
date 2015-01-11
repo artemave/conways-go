@@ -37,3 +37,14 @@ func (gr *GamesRepo) CreateGameById(id string, gameSize string, startGeneration 
 	gr.Games = append(gr.Games, newGame)
 	return newGame, nil
 }
+
+func (gr *GamesRepo) CreatePracticeGameById(id string, startGeneration *conway.Generation) (*Game, error) {
+	newGame, err := gr.CreateGameById(id, "small", startGeneration)
+
+	if err != nil {
+		return nil, err
+	}
+
+	newGame.IsPractice = true
+	return newGame, nil
+}

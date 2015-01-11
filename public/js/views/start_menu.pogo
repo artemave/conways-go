@@ -28,6 +28,13 @@ StartMenu = React.createClass {
       Cookies.set("knows-how-to-play", "true")
       self.transitionTo("/games/#(gameId)")
 
+  practiceWall(e) =
+    e.preventDefault()
+    request.post '/practice'.end @(error) @(res)
+      gameId = res.text
+      Cookies.set("knows-how-to-play", "true")
+      self.transitionTo("/games/#(gameId)")
+
   showHelpPopup() =
     self.setState { showHelpPopup = true }
 
@@ -42,11 +49,15 @@ StartMenu = React.createClass {
         D.span { className = 'button_label' } 'new'
         D.select(
           { ref = "gameSize", onClick = @(e) @{ e.preventDefault(), false } }
-          D.option { value = "small" } "Small"
-          D.option { value = "medium" } "Medium"
-          D.option { value = "large" } "Large"
+          D.option { value = "small" } "SMALL"
+          D.option { value = "medium" } "MEDIUM"
+          D.option { value = "large" } "LARGE"
         )
         D.span { className = 'button_label' } 'game'
+      )
+      D.div(
+        { className = 'start_menu_button', onClick = self.practiceWall }
+        D.span { className = 'button_label' } 'practice wall'
       )
       D.div(
         { className = 'start_menu_button', onClick = self.showHelpPopup }

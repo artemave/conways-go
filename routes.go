@@ -6,10 +6,11 @@ import (
 	"code.google.com/p/go-uuid/uuid"
 
 	"fmt"
+	"os"
+
 	"github.com/artemave/conways-go/conway"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"os"
 )
 
 func RegisterRoutes() {
@@ -17,6 +18,7 @@ func RegisterRoutes() {
 
 	r.HandleFunc("/", RootHandler)
 	r.HandleFunc("/games", CreateGameHandler).Methods("POST")
+	r.HandleFunc("/practice", CreatePracticeGameHandler).Methods("POST")
 	r.HandleFunc("/games/{id}", ShowGameHandler)
 	r.HandleFunc("/games/play/{id}", GamePlayHandler)
 
@@ -63,6 +65,16 @@ func CreateGameHandler(w http.ResponseWriter, r *http.Request) {
 
 	u4 := uuid.New()
 	_, err := gamesRepo.CreateGameById(u4, gameSize, startGeneration[gameSize])
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+		return
+	}
+	fmt.Fprintf(w, u4)
+}
+
+func CreatePracticeGameHandler(w http.ResponseWriter, r *http.Request) {
+	u4 := uuid.New()
+	_, err := gamesRepo.CreatePracticeGameById(u4, startGeneration["small"])
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 		return

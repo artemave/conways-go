@@ -41,6 +41,11 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 		defer game.RemovePlayer(player)
 	}
 
+	if game.IsPractice {
+		practiceWall := NewPracticeWall(game)
+		defer practiceWall.RemoveDummyPlayer()
+	}
+
 	disconnected := make(chan bool)
 
 	go Listen(ws, game, player, disconnected)

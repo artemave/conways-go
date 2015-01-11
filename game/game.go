@@ -47,6 +47,7 @@ type Game struct {
 	Players           []*Player
 	clientCells       chan []conway.Cell
 	PausedByPlayer    conway.Player
+	IsPractice        bool
 }
 
 func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
@@ -75,6 +76,7 @@ func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 		Players:              []*Player{},
 		startGeneration:      startGeneration,
 		PausedByPlayer:       conway.None,
+		IsPractice:           false,
 	}
 	return game
 }
@@ -148,24 +150,31 @@ func (g *Game) IsPaused() bool {
 }
 
 func (g *Game) StartClock() {
-	go func() {
-		for {
-			select {
-			case <-g.stopClock:
-				return
-			case cells := <-g.clientCells:
-				g.currentGeneration.AddCells(cells)
-			default:
-				if winnerIndex := g.GameResultCalculator.Winner(g.currentGeneration, g); winnerIndex != nil {
-					g.Broadcaster.SendBroadcastMessage(GameResult{g.playerByIndex(winnerIndex)})
-					return
-				} else {
-					g.Broadcaster.SendBroadcastMessage(g.NextGeneration())
+	for {
+		select {
+		case <-g.stopClock:
+		default:
+			go func() {
+				for {
+					select {
+					case <-g.stopClock:
+						return
+					case cells := <-g.clientCells:
+						g.currentGeneration.AddCells(cells)
+					default:
+						if winnerIndex := g.GameResultCalculator.Winner(g.currentGeneration, g); winnerIndex != nil {
+							g.Broadcaster.SendBroadcastMessage(GameResult{g.playerByIndex(winnerIndex)})
+							return
+						} else {
+							g.Broadcaster.SendBroadcastMessage(g.NextGeneration())
+						}
+						time.Sleep(Delay * time.Millisecond)
+					}
 				}
-				time.Sleep(Delay * time.Millisecond)
-			}
+			}()
+			return
 		}
-	}()
+	}
 }
 
 func (g *Game) playerIndexes() []*conway.Player {

@@ -1,6 +1,7 @@
 package synchronized_broadcaster
 
 import "code.google.com/p/go-uuid/uuid"
+
 import "github.com/araddon/gou"
 import "log"
 import "os"
@@ -63,9 +64,9 @@ func NewSynchronizedBroadcaster() *SynchronizedBroadcaster {
 						go func() {
 							select {
 							case <-sb.clientInboxClosed[c.ClientId()]:
-								gou.Debug("Skipping message to client", c.ClientId())
+								gou.Debug("Skipping message to client ", c.ClientId())
 							default:
-								gou.Debug("Sending message to client", c.ClientId())
+								gou.Debug("Sending message to client ", c.ClientId())
 								c.Inbox() <- msg
 							}
 						}()
