@@ -153,6 +153,7 @@ func (g *Game) StartClock() {
 	for {
 		select {
 		case <-g.stopClock:
+			// first discarding all (possible) attempts to stop the clock
 		default:
 			go func() {
 				for {

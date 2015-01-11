@@ -46,10 +46,8 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 		defer practiceWall.RemoveDummyPlayer()
 	}
 
-	disconnected := make(chan bool)
-
-	go Listen(ws, game, player, disconnected)
-	Respond(ws, game, player, disconnected)
+	go Respond(ws, game, player)
+	Listen(ws, game, player)
 }
 
 type WsServerMessage struct {
@@ -61,44 +59,20 @@ type WsServerMessage struct {
 	PausedByPlayer int
 }
 
-func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan bool) {
+func Respond(ws *websocket.Conn, game *Game, player *Player) {
 	for {
-		select {
-		case msg := <-player.GameServerMessages:
+		msg, ok := <-player.GameServerMessages
 
-			switch messageData := msg.Data.(type) {
-			case PlayersAreReady:
-				if messageData {
-					var serverMessage WsServerMessage
+		if !ok {
+			return
+		}
 
-					if game.IsPaused() {
-						serverMessage = WsServerMessage{
-							Handshake:      "pause",
-							Player:         int(player.PlayerIndex),
-							PausedByPlayer: int(game.PausedByPlayer),
-						}
-					} else {
-						serverMessage = WsServerMessage{
-							Handshake: "ready",
-							Player:    int(player.PlayerIndex),
-							Cols:      game.Cols(),
-							Rows:      game.Rows(),
-							WinSpots:  game.WinSpots(),
-						}
-					}
-					if err := ws.WriteJSON(serverMessage); err != nil {
-						gou.Error("Send to user: ", err)
-						return
-					}
-				} else {
-					if err := ws.WriteJSON(WsServerMessage{Handshake: "wait"}); err != nil {
-						gou.Error("Send to user: ", err)
-						return
-					}
-				}
-			case PauseGame:
+		switch messageData := msg.Data.(type) {
+		case PlayersAreReady:
+			if messageData {
 				var serverMessage WsServerMessage
-				if messageData {
+
+				if game.IsPaused() {
 					serverMessage = WsServerMessage{
 						Handshake:      "pause",
 						Player:         int(player.PlayerIndex),
@@ -106,7 +80,7 @@ func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan b
 					}
 				} else {
 					serverMessage = WsServerMessage{
-						Handshake: "resume",
+						Handshake: "ready",
 						Player:    int(player.PlayerIndex),
 						Cols:      game.Cols(),
 						Rows:      game.Rows(),
@@ -117,28 +91,52 @@ func Respond(ws *websocket.Conn, game *Game, player *Player, disconnected chan b
 					gou.Error("Send to user: ", err)
 					return
 				}
-			case *conway.Generation:
-				if err := ws.WriteJSON(messageData); err != nil {
-					gou.Error("Send to user: ", err)
-					return
-				}
-			case GameResult:
-				var result string
-				switch messageData.Winner {
-				case player:
-					result = "won"
-				case &Player{}:
-					result = "draw"
-				default:
-					result = "lost"
-				}
-				if err := ws.WriteJSON(map[string]string{"Result": result, "Handshake": "finish"}); err != nil {
+			} else {
+				if err := ws.WriteJSON(WsServerMessage{Handshake: "wait"}); err != nil {
 					gou.Error("Send to user: ", err)
 					return
 				}
 			}
-		case <-disconnected:
-			return
+		case PauseGame:
+			var serverMessage WsServerMessage
+			if messageData {
+				serverMessage = WsServerMessage{
+					Handshake:      "pause",
+					Player:         int(player.PlayerIndex),
+					PausedByPlayer: int(game.PausedByPlayer),
+				}
+			} else {
+				serverMessage = WsServerMessage{
+					Handshake: "resume",
+					Player:    int(player.PlayerIndex),
+					Cols:      game.Cols(),
+					Rows:      game.Rows(),
+					WinSpots:  game.WinSpots(),
+				}
+			}
+			if err := ws.WriteJSON(serverMessage); err != nil {
+				gou.Error("Send to user: ", err)
+				return
+			}
+		case *conway.Generation:
+			if err := ws.WriteJSON(messageData); err != nil {
+				gou.Error("Send to user: ", err)
+				return
+			}
+		case GameResult:
+			var result string
+			switch messageData.Winner {
+			case player:
+				result = "won"
+			case &Player{}:
+				result = "draw"
+			default:
+				result = "lost"
+			}
+			if err := ws.WriteJSON(map[string]string{"Result": result, "Handshake": "finish"}); err != nil {
+				gou.Error("Send to user: ", err)
+				return
+			}
 		}
 	}
 }
@@ -149,11 +147,10 @@ type WsClientMessage struct {
 	Cells        []conway.Cell `json:cells,omitempty`
 }
 
-func Listen(ws *websocket.Conn, game *Game, player *Player, disconnected chan bool) {
+func Listen(ws *websocket.Conn, game *Game, player *Player) {
 	for {
 		var msg WsClientMessage
 		if err := ws.ReadJSON(&msg); err != nil {
-			disconnected <- true
 			return
 		} else {
 			if msg.Command != "" {
