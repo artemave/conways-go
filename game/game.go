@@ -95,6 +95,7 @@ func (g *Game) AddPlayer() (*Player, error) {
 	}
 	p := NewPlayer(g)
 	g.Players = append(g.Players, p)
+	gou.Debug("Started adding a player ", p.id)
 
 	g.Broadcaster.AddClient(p)
 
@@ -110,10 +111,12 @@ func (g *Game) AddPlayer() (*Player, error) {
 				pNum = conway.Player2
 			}
 		}
+
 		g.StartClock()
 	}
 	p.PlayerIndex = pNum
 
+	gou.Debug("Player added ", p.id)
 	return p, nil
 }
 
@@ -150,31 +153,37 @@ func (g *Game) IsPaused() bool {
 }
 
 func (g *Game) StartClock() {
-	for {
-		select {
-		case <-g.stopClock:
-			// first discarding all (possible) attempts to stop the clock
-		default:
-			go func() {
-				for {
-					select {
-					case <-g.stopClock:
-						return
-					case cells := <-g.clientCells:
-						g.currentGeneration.AddCells(cells)
-					default:
-						if winnerIndex := g.GameResultCalculator.Winner(g.currentGeneration, g); winnerIndex != nil {
-							g.Broadcaster.SendBroadcastMessage(GameResult{g.playerByIndex(winnerIndex)})
-							return
-						} else {
-							g.Broadcaster.SendBroadcastMessage(g.NextGeneration())
-						}
-						time.Sleep(Delay * time.Millisecond)
-					}
-				}
-			}()
-			return
+	select {
+	case <-g.stopClock:
+		// something wanted to stop clock at the same time?
+		// discard all those attempts and let the current clock running
+		for {
+			select {
+			case <-g.stopClock:
+			default:
+				return
+			}
 		}
+	default:
+		go func() {
+			for {
+				select {
+				case <-g.stopClock:
+					return
+				case cells := <-g.clientCells:
+					g.currentGeneration.AddCells(cells)
+				default:
+					if winnerIndex := g.GameResultCalculator.Winner(g.currentGeneration, g); winnerIndex != nil {
+						g.Broadcaster.SendBroadcastMessage(GameResult{g.playerByIndex(winnerIndex)})
+						return
+					} else {
+						g.Broadcaster.SendBroadcastMessage(g.NextGeneration())
+					}
+					time.Sleep(Delay * time.Millisecond)
+				}
+			}
+		}()
+		return
 	}
 }
 
