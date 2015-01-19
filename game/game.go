@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/araddon/gou"
+	"github.com/artemave/conways-go/clock"
 	"github.com/artemave/conways-go/conway"
 	grc "github.com/artemave/conways-go/game_result_calculator"
 	sb "github.com/artemave/conways-go/synchronized_broadcaster"
@@ -43,11 +44,11 @@ type Game struct {
 	}
 	currentGeneration *conway.Generation
 	startGeneration   *conway.Generation
-	stopClock         chan bool
 	Players           []*Player
 	clientCells       chan []conway.Cell
 	PausedByPlayer    conway.Player
 	IsPractice        bool
+	clock             *clock.Clock
 }
 
 func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
@@ -71,13 +72,34 @@ func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 		Broadcaster:          sb.NewSynchronizedBroadcaster(),
 		GameResultCalculator: grc.CaptureFlagCalculator,
 		Conway:               &conway.Game{Cols: cols, Rows: rows},
-		stopClock:            make(chan bool, 1),
 		clientCells:          make(chan []conway.Cell),
 		Players:              []*Player{},
 		startGeneration:      startGeneration,
 		PausedByPlayer:       conway.None,
 		IsPractice:           false,
+		clock:                clock.NewClock(Delay),
 	}
+
+	// TODO clean up clock when game is destroyed
+	// TODO clean this up when game is destroyed
+	go func() {
+		for {
+			select {
+			case cells := <-game.clientCells:
+				game.currentGeneration.AddCells(cells)
+			case <-game.clock.NextTick():
+				winnerIndex := game.GameResultCalculator.Winner(game.currentGeneration, game)
+
+				if winnerIndex != nil {
+					game.Broadcaster.SendBroadcastMessage(GameResult{game.playerByIndex(winnerIndex)})
+					game.StopClock()
+				} else {
+					game.Broadcaster.SendBroadcastMessage(game.NextGeneration())
+				}
+			}
+		}
+	}()
+
 	return game
 }
 
@@ -153,38 +175,7 @@ func (g *Game) IsPaused() bool {
 }
 
 func (g *Game) StartClock() {
-	select {
-	case <-g.stopClock:
-		// something wanted to stop clock at the same time?
-		// discard all those attempts and let the current clock running
-		for {
-			select {
-			case <-g.stopClock:
-			default:
-				return
-			}
-		}
-	default:
-		go func() {
-			for {
-				select {
-				case <-g.stopClock:
-					return
-				case cells := <-g.clientCells:
-					g.currentGeneration.AddCells(cells)
-				default:
-					if winnerIndex := g.GameResultCalculator.Winner(g.currentGeneration, g); winnerIndex != nil {
-						g.Broadcaster.SendBroadcastMessage(GameResult{g.playerByIndex(winnerIndex)})
-						return
-					} else {
-						g.Broadcaster.SendBroadcastMessage(g.NextGeneration())
-					}
-					time.Sleep(Delay * time.Millisecond)
-				}
-			}
-		}()
-		return
-	}
+	g.clock.StartClock()
 }
 
 func (g *Game) playerIndexes() []*conway.Player {
@@ -205,7 +196,7 @@ func (self *Game) playerByIndex(idx *conway.Player) *Player {
 }
 
 func (g *Game) StopClock() {
-	g.stopClock <- true
+	g.clock.StopClock()
 }
 
 func (g *Game) NextGeneration() *conway.Generation {
