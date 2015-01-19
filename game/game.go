@@ -43,7 +43,6 @@ type Game struct {
 		}) *conway.Player
 	}
 	currentGeneration *conway.Generation
-	startGeneration   *conway.Generation
 	Players           []*Player
 	clientCells       chan []conway.Cell
 	PausedByPlayer    conway.Player
@@ -74,7 +73,7 @@ func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 		Conway:               &conway.Game{Cols: cols, Rows: rows},
 		clientCells:          make(chan []conway.Cell),
 		Players:              []*Player{},
-		startGeneration:      startGeneration,
+		currentGeneration:    startGeneration,
 		PausedByPlayer:       conway.None,
 		IsPractice:           false,
 		clock:                clock.NewClock(Delay),
@@ -175,6 +174,9 @@ func (g *Game) IsPaused() bool {
 }
 
 func (g *Game) StartClock() {
+	// so that players get served initial game state immediately
+	// after game starts (without having to wait for next clock tick)
+	go g.Broadcaster.SendBroadcastMessage(g.currentGeneration)
 	g.clock.StartClock()
 }
 
@@ -200,11 +202,7 @@ func (g *Game) StopClock() {
 }
 
 func (g *Game) NextGeneration() *conway.Generation {
-	if g.currentGeneration == nil {
-		g.currentGeneration = g.startGeneration
-	} else {
-		g.currentGeneration = g.Conway.NextGeneration(g.currentGeneration)
-	}
+	g.currentGeneration = g.Conway.NextGeneration(g.currentGeneration)
 	return g.currentGeneration
 }
 
