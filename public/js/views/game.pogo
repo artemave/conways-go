@@ -15,14 +15,6 @@ RR                = require 'react-router'
 knowsHowToPlay = Cookies.get("knows-how-to-play")
 D              = React.DOM
 
-wsSend(ws, callback) =
-  setTimeout
-    if (ws.readyState == 1)
-      callback()
-    else
-      wsSend(ws, callback)
-  10
-
 Game = React.createClass {
   mixins = [RR.Navigation]
 
