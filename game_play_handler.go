@@ -57,6 +57,13 @@ type WsServerMessage struct {
 	Rows           int
 	WinSpots       []WinSpot
 	PausedByPlayer int
+	FreeCellsCount int
+}
+
+type WsServerGameDataMessage struct {
+	Handshake      string
+	Generation     *conway.Generation
+	FreeCellsCount int
 }
 
 func Respond(ws *websocket.Conn, game *Game, player *Player) {
@@ -80,11 +87,12 @@ func Respond(ws *websocket.Conn, game *Game, player *Player) {
 					}
 				} else {
 					serverMessage = WsServerMessage{
-						Handshake: "ready",
-						Player:    int(player.PlayerIndex),
-						Cols:      game.Cols(),
-						Rows:      game.Rows(),
-						WinSpots:  game.WinSpots(),
+						Handshake:      "ready",
+						Player:         int(player.PlayerIndex),
+						FreeCellsCount: int(player.FreeCellsCount()),
+						Cols:           game.Cols(),
+						Rows:           game.Rows(),
+						WinSpots:       game.WinSpots(),
 					}
 				}
 				if err := ws.WriteJSON(serverMessage); err != nil {
@@ -107,11 +115,12 @@ func Respond(ws *websocket.Conn, game *Game, player *Player) {
 				}
 			} else {
 				serverMessage = WsServerMessage{
-					Handshake: "resume",
-					Player:    int(player.PlayerIndex),
-					Cols:      game.Cols(),
-					Rows:      game.Rows(),
-					WinSpots:  game.WinSpots(),
+					Handshake:      "resume",
+					Player:         int(player.PlayerIndex),
+					FreeCellsCount: int(player.FreeCellsCount()),
+					Cols:           game.Cols(),
+					Rows:           game.Rows(),
+					WinSpots:       game.WinSpots(),
 				}
 			}
 			if err := ws.WriteJSON(serverMessage); err != nil {
@@ -119,7 +128,14 @@ func Respond(ws *websocket.Conn, game *Game, player *Player) {
 				return
 			}
 		case *conway.Generation:
-			if err := ws.WriteJSON(messageData); err != nil {
+			newFreeCellsCount := player.NextFreeCellsCount()
+
+			serverMessage := WsServerGameDataMessage{
+				Handshake:      "game_data",
+				Generation:     messageData,
+				FreeCellsCount: int(newFreeCellsCount),
+			}
+			if err := ws.WriteJSON(serverMessage); err != nil {
 				gou.Error("Send to user: ", err)
 				return
 			}
@@ -168,6 +184,7 @@ func Listen(ws *websocket.Conn, game *Game, player *Player) {
 					if msg.Cells != nil {
 						// TODO test
 						game.AddCells(msg.Cells)
+						player.DecreaseFreeCellsCountBy(len(msg.Cells))
 					}
 					player.MessageAcknowledged()
 				default:

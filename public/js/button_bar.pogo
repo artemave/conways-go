@@ -80,35 +80,10 @@ pointer(type) =
 
 CellCounter = React.createClass {
   propTypes = {
-    show                  = React.PropTypes.bool
-    player                = React.PropTypes.number
-    publishFreeCellsCount = React.PropTypes.func
-    freeCellsCount        = React.PropTypes.number
+    show           = React.PropTypes.bool
+    player         = React.PropTypes.number
+    freeCellsCount = React.PropTypes.number
   }
-
-  currentTimeout = null
-
-  componentDidMount() =
-    document.addEventListener('shape-placed', self.shapePlacedHandler)
-
-  componentWillUnmount() =
-    document.removeEventListener('shape-placed', self.shapePlacedHandler)
-
-  setFreeCellsCount(newCount) =
-    if (self.currentTimeout)
-      clearTimeout(self.currentTimeout)
-
-    self.props.publishFreeCellsCount(newCount)
-    self.replenishCellCount()
-
-  replenishCellCount() =
-    if (self.props.freeCellsCount < self.props.maxCells)
-      self.currentTimeout = setTimeout
-        self.setFreeCellsCount(self.props.freeCellsCount + 1)
-      2500
-
-  shapePlacedHandler(e) =
-    self.setFreeCellsCount(self.props.freeCellsCount - e.detail.shapeCellCount)
 
   render() =
     R.div(
@@ -136,10 +111,8 @@ ButtonBar = React.createClass {
     freeCellsCount = React.PropTypes.number
   }
 
-  maxCells = 10
-
   getInitialState ()=
-    { buttonClicked = 'none', show = false, freeCellsCount = self.maxCells }
+    { buttonClicked = 'none', show = false }
 
   componentDidMount () =
     key('esc', self.cancelPlaceShape)
@@ -162,26 +135,21 @@ ButtonBar = React.createClass {
     e = @new CustomEvent "about-to-place-shape" {detail = {shape = type}}
     document.dispatchEvent(e)
 
-  publishFreeCellsCount(count) =
-    self.setState {freeCellsCount = count}
-
   render () =
     if (self.props.show)
       R.div (
         {className = 'ButtonBar'}
-        buttonDot {handleClick = self.handleClick, freeCellsCount = self.state.freeCellsCount, player = self.props.player}
+        buttonDot {handleClick = self.handleClick, freeCellsCount = self.props.freeCellsCount, player = self.props.player}
         pointerDot {buttonClicked = self.state.buttonClicked, player = self.props.player}
-        buttonLine {handleClick = self.handleClick, freeCellsCount = self.state.freeCellsCount, player = self.props.player}
+        buttonLine {handleClick = self.handleClick, freeCellsCount = self.props.freeCellsCount, player = self.props.player}
         pointerLine {buttonClicked = self.state.buttonClicked, player = self.props.player}
-        buttonSquare {handleClick = self.handleClick, freeCellsCount = self.state.freeCellsCount, player = self.props.player}
+        buttonSquare {handleClick = self.handleClick, freeCellsCount = self.props.freeCellsCount, player = self.props.player}
         pointerSquare {buttonClicked = self.state.buttonClicked, player = self.props.player}
-        buttonGlider {handleClick = self.handleClick, freeCellsCount = self.state.freeCellsCount, player = self.props.player}
+        buttonGlider {handleClick = self.handleClick, freeCellsCount = self.props.freeCellsCount, player = self.props.player}
         pointerGlider {buttonClicked = self.state.buttonClicked, player = self.props.player}
         CellCounter {
-          maxCells              = self.maxCells
-          publishFreeCellsCount = self.publishFreeCellsCount
           player                = self.props.player
-          freeCellsCount        = self.state.freeCellsCount
+          freeCellsCount        = self.props.freeCellsCount
         }
         R.div { className = "button player#(self.props.player) icon-help help", onClick = self.props.onHelpButtonClicked }
       )

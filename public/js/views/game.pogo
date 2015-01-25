@@ -46,6 +46,7 @@ Game = React.createClass {
           cols                  = msg.Cols
           rows                  = msg.Rows
           winSpots              = msg.WinSpots
+          freeCellsCount        = msg.FreeCellsCount
           showShareInstructions = false
           showGameIsPaused      = false
           showGame              = true
@@ -113,21 +114,24 @@ Game = React.createClass {
         alert "This game does not exist :("
         self.transitionTo "start_menu"
 
+      is 'game_data'
+        ack := {"acknowledged" = "game"}
+        new cells = self.refs.grid.newCellsToSend()
+
+        self.setState(
+          generation     = msg.Generation
+          freeCellsCount = msg.FreeCellsCount
+        )
+
+        if (new cells.length)
+          new cells.for each @(cell)
+            cell.State = 1
+            cell.Player = self.state.player
+
+          ack.cells = new cells
+
       otherwise
-        if (msg :: Array)
-          ack := {"acknowledged" = "game"}
-          new cells = self.refs.grid.newCellsToSend()
-
-          self.setState(generation = msg)
-
-          if (new cells.length)
-            new cells.for each @(cell)
-              cell.State = 1
-              cell.Player = self.state.player
-
-            ack.cells = new cells
-        else
-          console.log("Bad ws response:", msg)
+        console.log("Bad ws response:", msg)
     ]
 
     if (ack)
@@ -144,15 +148,22 @@ Game = React.createClass {
       withDontShowThisCheckbox = false
     }
 
+  updateFreeCellsCount(e) =
+    self.setState {
+      freeCellsCount = self.state.freeCellsCount - e.detail.shapeCellCount
+    }
+
   componentWillMount() =
     self.ws = @new WebSocket "ws://#(window.location.host)/games/play/#(self.props.params.gameId)"
     self.ws.onmessage = self.onWsMessage
 
     key('esc', self.helpPopupWantsToHide)
+    document.addEventListener('shape-placed', self.updateFreeCellsCount)
 
   componentWillUnmount() =
     self.ws.close(1000)
     key.unbind('esc')
+    document.removeEventListener('shape-placed', self.updateFreeCellsCount)
 
   render() =
     D.div(
@@ -171,6 +182,7 @@ Game = React.createClass {
       ButtonBar {
         player              = self.state.player
         show                = self.state.showGame
+        freeCellsCount      = self.state.freeCellsCount
         onHelpButtonClicked = self.onHelpButtonClicked
       }
       Grid {

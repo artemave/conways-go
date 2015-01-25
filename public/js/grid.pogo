@@ -19,7 +19,10 @@ Grid = React.createClass {
 
   shouldComponentUpdate(nextProps, nextState) =
     if (nextProps.show && self.grid && self.props.generation)
-      self.grid.renderNext(self.props.generation)
+
+      if (self.props.generation != nextProps.generation)
+        self.grid.renderNext(self.props.generation)
+
       false
     else
       true
