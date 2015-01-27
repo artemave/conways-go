@@ -116,19 +116,11 @@ Game = React.createClass {
 
       is 'game_data'
         ack := {"acknowledged" = "game"}
-        new cells = self.refs.grid.newCellsToSend()
 
         self.setState(
           generation     = msg.Generation
           freeCellsCount = msg.FreeCellsCount
         )
-
-        if (new cells.length)
-          new cells.for each @(cell)
-            cell.State = 1
-            cell.Player = self.state.player
-
-          ack.cells = new cells
 
       otherwise
         console.log("Bad ws response:", msg)
@@ -148,9 +140,17 @@ Game = React.createClass {
       withDontShowThisCheckbox = false
     }
 
-  updateFreeCellsCount(e) =
+  placeShape(e) =
+    new cells = e.detail.cells
+
+    new cells.for each @(cell)
+      cell.State = 1
+      cell.Player = self.state.player
+
+    self.ws.send(JSON.stringify { NewCells = (new cells) })
+
     self.setState {
-      freeCellsCount = self.state.freeCellsCount - e.detail.shapeCellCount
+      freeCellsCount = self.state.freeCellsCount - new cells.length
     }
 
   componentWillMount() =
@@ -158,12 +158,12 @@ Game = React.createClass {
     self.ws.onmessage = self.onWsMessage
 
     key('esc', self.helpPopupWantsToHide)
-    document.addEventListener('shape-placed', self.updateFreeCellsCount)
+    document.addEventListener('shape-placed', self.placeShape)
 
   componentWillUnmount() =
     self.ws.close(1000)
     key.unbind('esc')
-    document.removeEventListener('shape-placed', self.updateFreeCellsCount)
+    document.removeEventListener('shape-placed', self.placeShape)
 
   render() =
     D.div(

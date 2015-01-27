@@ -11,12 +11,6 @@ Grid = React.createClass {
     generation = React.PropTypes.arrayOf(React.PropTypes.object)
   }
 
-  newCellsToSend() =
-    if (self.grid)
-      self.grid.newCellsToSend()
-    else
-      []
-
   shouldComponentUpdate(nextProps, nextState) =
     if (nextProps.show && self.grid && self.props.generation)
 

@@ -160,7 +160,7 @@ func Respond(ws *websocket.Conn, game *Game, player *Player) {
 type WsClientMessage struct {
 	Acknowledged string        `json:acknowledged,omitempty`
 	Command      string        `json:command,omitempty`
-	Cells        []conway.Cell `json:cells,omitempty`
+	NewCells     []conway.Cell `json:cells,omitempty`
 }
 
 func Listen(ws *websocket.Conn, game *Game, player *Player) {
@@ -178,14 +178,12 @@ func Listen(ws *websocket.Conn, game *Game, player *Player) {
 				default:
 					fmt.Printf("Unknown command %s\n", msg.Command)
 				}
+			} else if msg.NewCells != nil {
+				game.AddCells(msg.NewCells)
+				player.DecreaseFreeCellsCountBy(len(msg.NewCells))
 			} else {
 				switch msg.Acknowledged {
 				case "ready", "wait", "game", "finish", "pause", "resume":
-					if msg.Cells != nil {
-						// TODO test
-						game.AddCells(msg.Cells)
-						player.DecreaseFreeCellsCountBy(len(msg.Cells))
-					}
 					player.MessageAcknowledged()
 				default:
 					fmt.Printf("Unknown client message\n")

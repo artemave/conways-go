@@ -23,9 +23,6 @@ D3Grid (el, opts) =
     self.x = d3.scale.linear().domain([0, opts.cols]).rangeRound([0, el width()])
     self.y = d3.scale.linear().domain([0, el height() / self.x(1)]).rangeRound([0, el height()])
 
-  self.newCellsToSend() =
-    s = svg.selectAll 'rect.new'.data()
-
   self.add class (class) to (data) =
     svg.selectAll 'rect'.data(data) @(d) @{ "#(d.Row)_#(d.Col)" }.
     classed(class, true).
@@ -86,11 +83,9 @@ D3Grid (el, opts) =
 
   mark hovered cells new() =
     s = svg.selectAll('rect.hover')
-    cellCount = s.size()
-
     s.classed('new', true).classed('hover', false)
 
-    e = @new CustomEvent "shape-placed" {detail = {shapeCellCount = cellCount}}
+    e = @new CustomEvent "shape-placed" {detail = {cells = (s.data())}}
     document.dispatchEvent(e)
 
   self.unbindResize() =
