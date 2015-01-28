@@ -12,11 +12,13 @@ type Player struct {
 	Broadcaster
 	PlayerIndex    conway.Player
 	freeCellsCount *CellCount
+	numberOfCalls  *int
 }
 
 type CellCount int
 
 const maxFreeCells = 10
+const incrementOnceEveryNCalls = 2
 
 func NewPlayer(g *Game) *Player {
 	initMaxFreeCells := CellCount(maxFreeCells)
@@ -27,6 +29,7 @@ func NewPlayer(g *Game) *Player {
 		Broadcaster:        g.Broadcaster,
 		GameServerMessages: make(chan sb.BroadcastMessage),
 		freeCellsCount:     &initMaxFreeCells,
+		numberOfCalls:      new(int),
 	}
 	return player
 }
@@ -56,8 +59,14 @@ func (p Player) DecreaseFreeCellsCountBy(count int) {
 }
 
 func (p Player) NextFreeCellsCount() CellCount {
-	if *p.freeCellsCount < maxFreeCells {
-		*p.freeCellsCount = *p.freeCellsCount + 1
+	*p.numberOfCalls += 1
+
+	if *p.numberOfCalls >= incrementOnceEveryNCalls {
+		*p.numberOfCalls = 0
+
+		if *p.freeCellsCount < maxFreeCells {
+			*p.freeCellsCount = *p.freeCellsCount + 1
+		}
 	}
 	return *p.freeCellsCount
 }
