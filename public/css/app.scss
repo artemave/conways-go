@@ -121,6 +121,7 @@ body {
 }
 
 rect {
+  transition: fill 0.2s ease;
   &.live {
     fill: slategrey;
     &.player1 {
