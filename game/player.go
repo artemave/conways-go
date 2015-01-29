@@ -10,26 +10,16 @@ type Player struct {
 	GameServerMessages chan sb.BroadcastMessage
 	id                 string
 	Broadcaster
-	PlayerIndex    conway.Player
-	freeCellsCount *CellCount
-	numberOfCalls  *int
+	PlayerIndex conway.Player
 }
 
-type CellCount int
-
-const maxFreeCells = 10
-const incrementOnceEveryNCalls = 2
-
-func NewPlayer(g *Game) *Player {
-	initMaxFreeCells := CellCount(maxFreeCells)
-
+func NewPlayer(b Broadcaster, pi conway.Player) *Player {
 	u4 := uuid.New()
 	player := &Player{
+		Broadcaster:        b,
+		PlayerIndex:        pi,
 		id:                 u4,
-		Broadcaster:        g.Broadcaster,
 		GameServerMessages: make(chan sb.BroadcastMessage),
-		freeCellsCount:     &initMaxFreeCells,
-		numberOfCalls:      new(int),
 	}
 	return player
 }
@@ -48,25 +38,4 @@ func (p Player) MessageAcknowledged() {
 
 func (p Player) CleanUp() {
 	close(p.GameServerMessages)
-}
-
-func (p Player) FreeCellsCount() CellCount {
-	return *p.freeCellsCount
-}
-
-func (p Player) DecreaseFreeCellsCountBy(count int) {
-	*p.freeCellsCount = CellCount(int(*p.freeCellsCount) - count)
-}
-
-func (p Player) NextFreeCellsCount() CellCount {
-	*p.numberOfCalls += 1
-
-	if *p.numberOfCalls >= incrementOnceEveryNCalls {
-		*p.numberOfCalls = 0
-
-		if *p.freeCellsCount < maxFreeCells {
-			*p.freeCellsCount = *p.freeCellsCount + 1
-		}
-	}
-	return *p.freeCellsCount
 }

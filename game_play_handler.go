@@ -89,7 +89,7 @@ func Respond(ws *websocket.Conn, game *Game, player *Player) {
 					serverMessage = WsServerMessage{
 						Handshake:      "ready",
 						Player:         int(player.PlayerIndex),
-						FreeCellsCount: int(player.FreeCellsCount()),
+						FreeCellsCount: int(game.FreeCellsCountOf(player)),
 						Cols:           game.Cols(),
 						Rows:           game.Rows(),
 						WinSpots:       game.WinSpots(),
@@ -117,7 +117,7 @@ func Respond(ws *websocket.Conn, game *Game, player *Player) {
 				serverMessage = WsServerMessage{
 					Handshake:      "resume",
 					Player:         int(player.PlayerIndex),
-					FreeCellsCount: int(player.FreeCellsCount()),
+					FreeCellsCount: int(game.FreeCellsCountOf(player)),
 					Cols:           game.Cols(),
 					Rows:           game.Rows(),
 					WinSpots:       game.WinSpots(),
@@ -128,12 +128,10 @@ func Respond(ws *websocket.Conn, game *Game, player *Player) {
 				return
 			}
 		case *conway.Generation:
-			newFreeCellsCount := player.NextFreeCellsCount()
-
 			serverMessage := WsServerGameDataMessage{
 				Handshake:      "game_data",
 				Generation:     messageData,
-				FreeCellsCount: int(newFreeCellsCount),
+				FreeCellsCount: int(game.FreeCellsCountOf(player)),
 			}
 			if err := ws.WriteJSON(serverMessage); err != nil {
 				gou.Error("Send to user: ", err)
@@ -180,7 +178,6 @@ func Listen(ws *websocket.Conn, game *Game, player *Player) {
 				}
 			} else if msg.NewCells != nil {
 				game.AddCells(msg.NewCells)
-				player.DecreaseFreeCellsCountBy(len(msg.NewCells))
 			} else {
 				switch msg.Acknowledged {
 				case "ready", "wait", "game", "finish", "pause", "resume":

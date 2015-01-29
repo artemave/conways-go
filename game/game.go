@@ -13,8 +13,12 @@ import (
 
 var Delay = time.Duration(1000)
 
+const maxFreeCells = 10
+const restoreFreeCellsEveryNTicks = 2
+
 type PauseGame bool
 type PlayersAreReady bool
+type CellCount int
 
 type GameResult struct {
 	Winner *Player
@@ -48,6 +52,7 @@ type Game struct {
 	PausedByPlayer    conway.Player
 	IsPractice        bool
 	clock             *clock.Clock
+	freeCells         map[conway.Player]CellCount
 }
 
 func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
@@ -77,6 +82,9 @@ func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 		PausedByPlayer:       conway.None,
 		IsPractice:           false,
 		clock:                clock.NewClock(Delay),
+		freeCells: map[conway.Player]CellCount{
+			conway.Player1: CellCount(restoreFreeCellsEveryNTicks * maxFreeCells),
+			conway.Player2: CellCount(restoreFreeCellsEveryNTicks * maxFreeCells)},
 	}
 
 	// TODO clean up clock when game is destroyed
@@ -85,7 +93,10 @@ func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 		for {
 			select {
 			case cells := <-game.clientCells:
-				game.currentGeneration.AddCells(cells)
+				if len(cells) > 0 {
+					game.freeCells[cells[0].Player] -= CellCount(restoreFreeCellsEveryNTicks * len(cells))
+					game.currentGeneration.AddCells(cells)
+				}
 			case <-game.clock.NextTick():
 				winnerIndex := game.GameResultCalculator.Winner(game.currentGeneration, game)
 
@@ -93,6 +104,11 @@ func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 					game.Broadcaster.SendBroadcastMessage(GameResult{game.playerByIndex(winnerIndex)})
 					game.StopClock()
 				} else {
+					for pi, _ := range game.freeCells {
+						if game.freeCells[pi]/restoreFreeCellsEveryNTicks < maxFreeCells {
+							game.freeCells[pi] += 1
+						}
+					}
 					game.Broadcaster.SendBroadcastMessage(game.NextGeneration())
 				}
 			}
@@ -114,7 +130,16 @@ func (g *Game) AddPlayer() (*Player, error) {
 	if len(g.Broadcaster.Clients()) >= 2 {
 		return &Player{}, errors.New("Game has already reached maximum number players")
 	}
-	p := NewPlayer(g)
+
+	// TODO test player number assignment (when client reconnects)
+	pNum := conway.Player1
+	for _, p := range g.Players {
+		if p.PlayerIndex == conway.Player1 {
+			pNum = conway.Player2
+		}
+	}
+
+	p := NewPlayer(g.Broadcaster, pNum)
 	g.Players = append(g.Players, p)
 	gou.Debug("Started adding a player ", p.id)
 
@@ -123,19 +148,9 @@ func (g *Game) AddPlayer() (*Player, error) {
 	enoughPlayersToStart := PlayersAreReady(len(g.Broadcaster.Clients()) >= 2)
 	g.Broadcaster.SendBroadcastMessage(enoughPlayersToStart)
 
-	pNum := conway.Player1
 	if enoughPlayersToStart {
-		// TODO test player number assignment (when client reconnects)
-
-		for _, p := range g.Players {
-			if p.PlayerIndex == conway.Player1 {
-				pNum = conway.Player2
-			}
-		}
-
 		g.StartClock()
 	}
-	p.PlayerIndex = pNum
 
 	gou.Debug("Player added ", p.id)
 	return p, nil
@@ -235,4 +250,8 @@ func (g *Game) RemovePlayer(p *Player) error {
 
 	gou.Debug("Player removed ", p.id)
 	return nil
+}
+
+func (g *Game) FreeCellsCountOf(player *Player) CellCount {
+	return g.freeCells[player.PlayerIndex] / restoreFreeCellsEveryNTicks
 }
