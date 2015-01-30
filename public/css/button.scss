@@ -1,17 +1,8 @@
 .button {
   border: 1px solid #CCCCCC;
   background: #EEEEEE;
-  background: -webkit-gradient(linear, left top, left bottom, from(#FFFFFF), to(#EEEEEE));
-  background: -webkit-linear-gradient(top, #FFFFFF, #EEEEEE);
-  background: -moz-linear-gradient(top, #FFFFFF, #EEEEEE);
-  background: -ms-linear-gradient(top, #FFFFFF, #EEEEEE);
-  background: -o-linear-gradient(top, #FFFFFF, #EEEEEE);
-  background-image: -ms-linear-gradient(top, #FFFFFF 0%, #EEEEEE 100%);
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
+  background: linear-gradient(top, #FFFFFF, #EEEEEE);
   border-radius: 3px;
-  -webkit-box-shadow: rgba(255,255,255,0.4) 0 0px 0, inset rgba(255,255,255,0.4) 0 1px 0;
-  -moz-box-shadow: rgba(255,255,255,0.4) 0 0px 0, inset rgba(255,255,255,0.4) 0 1px 0;
   box-shadow: rgba(255,255,255,0.4) 0 0px 0, inset rgba(255,255,255,0.4) 0 1px 0;
   text-shadow: #FFFFFF 0 1px 0;
   color: #333333;
@@ -25,12 +16,7 @@
   border: 1px solid #CCCCCC;
   text-shadow: #FFFFFF 0 1px 0;
   background: #EEEEEE;
-  background: -webkit-gradient(linear, left top, left bottom, from(#FFFFFF), to(#EEEEEE));
-  background: -webkit-linear-gradient(top, #FFFFFF, #EEEEEE);
-  background: -moz-linear-gradient(top, #FFFFFF, #EEEEEE);
-  background: -ms-linear-gradient(top, #FFFFFF, #EEEEEE);
-  background: -o-linear-gradient(top, #FFFFFF, #EEEEEE);
-  background-image: -ms-linear-gradient(top, #FFFFFF 0%, #EEEEEE 100%);
+  background: linear-gradient(top, #FFFFFF, #EEEEEE);
   color: #333333;
   text-decoration: none;
 }
@@ -38,12 +24,7 @@
   text-shadow: #FFFFFF 0 1px 0;
   border: 1px solid #CCCCCC;
   background: #FFFFFF;
-  background: -webkit-gradient(linear, left top, left bottom, from(#EEEEEE), to(#EEEEEE));
-  background: -webkit-linear-gradient(top, #EEEEEE, #FFFFFF);
-  background: -moz-linear-gradient(top, #EEEEEE, #FFFFFF);
-  background: -ms-linear-gradient(top, #EEEEEE, #FFFFFF);
-  background: -o-linear-gradient(top, #EEEEEE, #FFFFFF);
-  background-image: -ms-linear-gradient(top, #EEEEEE 0%, #FFFFFF 100%);
+  background: linear-gradient(top, #EEEEEE, #FFFFFF);
   color: #333333;
 }
 
