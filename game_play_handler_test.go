@@ -35,8 +35,8 @@ var _ = Describe("GamePlayHandler", func() {
 	}
 
 	BeforeEach(func() {
-		TestGameRepo.Empty()
-		TestGameRepo.CreateGameById("123", "small", startGeneration)
+		(*TestGameRepo).Empty()
+		(*TestGameRepo).CreateGameById("123", "small", startGeneration)
 	})
 
 	Context("New game", func() {
@@ -64,7 +64,7 @@ var _ = Describe("GamePlayHandler", func() {
 
 		Context("game is paused", func() {
 			BeforeEach(func() {
-				game := TestGameRepo.FindGameById("123")
+				game := (*TestGameRepo).FindGameById("123")
 				game.PauseBy(game.Players[0])
 				justReadHandshake(firstWs)
 				sendAckMessage(firstWs, "pause")
@@ -290,7 +290,7 @@ var _ = Describe("GamePlayHandler", func() {
 				})
 
 				It("includes game metadata in the message (in case we started paused)", func() {
-					game := TestGameRepo.FindGameById("123")
+					game := (*TestGameRepo).FindGameById("123")
 					output := justReadHandshake(firstWs)
 
 					Expect(output.Player).To(Equal(1))
@@ -305,33 +305,26 @@ var _ = Describe("GamePlayHandler", func() {
 
 func justReadHandshake(ws *websocket.Conn) WsServerMessage {
 	var output WsServerMessage
-	err := ws.ReadJSON(&output)
-	if err != nil {
+	if err := ws.ReadJSON(&output); err != nil {
 		panic(err)
 	}
 	return output
 }
 
 func justReadGameOutput(ws *websocket.Conn) *conway.Generation {
-	var output *conway.Generation
+	var output WsServerGameDataMessage
 	if err := ws.ReadJSON(&output); err != nil {
 		panic(err)
 	}
-	return output
+	return output.Generation
 }
 
 func assertGenerationOutput(ws *websocket.Conn) {
-	var output *conway.Generation
-	if err := ws.ReadJSON(&output); err != nil {
-		Fail("Expected generation output")
-	}
+	justReadGameOutput(ws)
 }
 
 func assertGenerationTwo(ws *websocket.Conn) {
-	var output *conway.Generation
-	if err := ws.ReadJSON(&output); err != nil {
-		Fail("Expected generation output")
-	}
+	output := justReadGameOutput(ws)
 
 	secondGeneration := &conway.Generation{
 		{Point: conway.Point{Row: 2, Col: 3}, State: conway.Live, Player: conway.Player1},
@@ -344,19 +337,19 @@ func assertGenerationTwo(ws *websocket.Conn) {
 
 func sendAckMessage(ws *websocket.Conn, msg string) {
 	if err := ws.WriteJSON(map[string]string{"acknowledged": msg}); err != nil {
-		panic(err)
+		Fail(err.Error())
 	}
 }
 
 func sendPause(ws *websocket.Conn) {
 	if err := ws.WriteJSON(map[string]string{"command": "pause"}); err != nil {
-		panic(err)
+		Fail(err.Error())
 	}
 }
 
 func sendResume(ws *websocket.Conn) {
 	if err := ws.WriteJSON(map[string]string{"command": "resume"}); err != nil {
-		panic(err)
+		Fail(err.Error())
 	}
 }
 
