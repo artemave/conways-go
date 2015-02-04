@@ -183,51 +183,36 @@ var _ = Describe("GamePlayHandler", func() {
 					})
 				})
 			})
-		})
 
-		Context("clients acknowledged game message", func() {
-			BeforeEach(func() {
-				secondWs = wsRequest("/games/play/123")
+			Context("clients acknowledged game message", func() {
+				BeforeEach(func() {
+					justReadHandshake(firstWs)
+					justReadHandshake(secondWs)
 
-				justReadHandshake(firstWs)
-				justReadHandshake(secondWs)
+					sendAckMessage(firstWs, "ready")
+					sendAckMessage(secondWs, "ready")
 
-				sendAckMessage(firstWs, "ready")
-				sendAckMessage(secondWs, "ready")
+					justReadGameOutput(firstWs)
+					justReadGameOutput(secondWs)
 
-				justReadGameOutput(firstWs)
-				justReadGameOutput(secondWs)
+					sendAckMessage(firstWs, "game")
+					sendAckMessage(secondWs, "game")
+				})
 
-				sendAckMessage(firstWs, "game")
-				sendAckMessage(secondWs, "game")
+				It("sends next generation to all clients", func() {
+					assertGenerationTwo(firstWs)
+					assertGenerationTwo(secondWs)
+				})
 			})
 
-			AfterEach(func() {
-				secondWs.Close()
-			})
+			Context("third client", func() {
+				It("tells web client that the game has already started", func() {
+					ws := wsRequest("/games/play/123")
+					defer ws.Close()
 
-			It("sends next generation to all clients", func() {
-				assertGenerationTwo(firstWs)
-				assertGenerationTwo(secondWs)
-			})
-		})
-
-		Context("third client", func() {
-			var secondWs *websocket.Conn
-
-			BeforeEach(func() {
-				secondWs = wsRequest("/games/play/123")
-			})
-			AfterEach(func() {
-				secondWs.Close()
-			})
-
-			It("tells web client that the game has already started", func() {
-				ws := wsRequest("/games/play/123")
-				defer ws.Close()
-
-				output := justReadHandshake(ws)
-				Expect(output.Handshake).To(Equal("game_taken"))
+					output := justReadHandshake(ws)
+					Expect(output.Handshake).To(Equal("game_taken"))
+				})
 			})
 		})
 
