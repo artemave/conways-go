@@ -64,18 +64,14 @@ var _ = Describe("GamePlayHandler", func() {
 
 		Context("game is paused", func() {
 			BeforeEach(func() {
-				game := (*TestGameRepo).FindGameById("123")
-				game.PauseBy(game.Players[0])
+				sendPause(firstWs)
 				justReadHandshake(firstWs)
 				sendAckMessage(firstWs, "pause")
-
-				secondWs = wsRequest("/games/play/123")
 			})
-			AfterEach(func() {
-				secondWs.Close()
-			})
-
 			Describe("second client connects", func() {
+				BeforeEach(func() { secondWs = wsRequest("/games/play/123") })
+				AfterEach(func() { secondWs.Close() })
+
 				It("tells second client that the game is paused", func() {
 					output := justReadHandshake(secondWs)
 					Expect(output.Handshake).To(Equal("pause"))
@@ -89,12 +85,8 @@ var _ = Describe("GamePlayHandler", func() {
 		})
 
 		Describe("second client connects", func() {
-			BeforeEach(func() {
-				secondWs = wsRequest("/games/play/123")
-			})
-			AfterEach(func() {
-				secondWs.Close()
-			})
+			BeforeEach(func() { secondWs = wsRequest("/games/play/123") })
+			AfterEach(func() { secondWs.Close() })
 
 			It("tells all web clients to join the game", func() {
 				output := justReadHandshake(secondWs)
