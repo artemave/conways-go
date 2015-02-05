@@ -20,6 +20,11 @@ type PauseGame bool
 type PlayersAreReady bool
 type CellCount int
 
+type NewCellsCache struct {
+	Cells          []conway.Cell
+	FreeCellsCount CellCount
+}
+
 type GameResult struct {
 	Winner *Player
 }
@@ -52,7 +57,7 @@ type Game struct {
 	PausedByPlayer    conway.Player
 	IsPractice        bool
 	clock             *clock.Clock
-	freeCells         map[conway.Player]CellCount
+	newCellsCache     map[conway.Player]*NewCellsCache
 }
 
 func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
@@ -82,9 +87,16 @@ func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 		PausedByPlayer:       conway.None,
 		IsPractice:           false,
 		clock:                clock.NewClock(Delay),
-		freeCells: map[conway.Player]CellCount{
-			conway.Player1: CellCount(restoreFreeCellsEveryNTicks * maxFreeCells),
-			conway.Player2: CellCount(restoreFreeCellsEveryNTicks * maxFreeCells)},
+		newCellsCache: map[conway.Player]*NewCellsCache{
+			conway.Player1: &NewCellsCache{
+				FreeCellsCount: CellCount(restoreFreeCellsEveryNTicks * maxFreeCells),
+				Cells:          []conway.Cell{},
+			},
+			conway.Player2: &NewCellsCache{
+				FreeCellsCount: CellCount(restoreFreeCellsEveryNTicks * maxFreeCells),
+				Cells:          []conway.Cell{},
+			},
+		},
 	}
 
 	// TODO clean up clock when game is destroyed
@@ -94,8 +106,10 @@ func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 			select {
 			case cells := <-game.clientCells:
 				if len(cells) > 0 {
-					game.freeCells[cells[0].Player] -= CellCount(restoreFreeCellsEveryNTicks * len(cells))
-					game.currentGeneration.AddCells(cells)
+					c := game.newCellsCache[cells[0].Player]
+
+					c.FreeCellsCount -= CellCount(restoreFreeCellsEveryNTicks * len(cells))
+					c.Cells = append(c.Cells, cells...)
 				}
 			case <-game.clock.NextTick():
 				winnerIndex := game.GameResultCalculator.Winner(game.currentGeneration, game)
@@ -104,12 +118,21 @@ func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 					game.Broadcaster.SendBroadcastMessage(GameResult{game.playerByIndex(winnerIndex)})
 					game.StopClock()
 				} else {
-					for pi, _ := range game.freeCells {
-						if game.freeCells[pi]/restoreFreeCellsEveryNTicks < maxFreeCells {
-							game.freeCells[pi] += 1
+					nextGeneration := game.NextGeneration()
+
+					for pi, _ := range game.newCellsCache {
+						c := game.newCellsCache[pi]
+						if c.FreeCellsCount/restoreFreeCellsEveryNTicks < maxFreeCells {
+							c.FreeCellsCount += 1
+						}
+
+						if len(c.Cells) > 0 {
+							nextGeneration.AddCells(c.Cells)
+							c.Cells = []conway.Cell{}
 						}
 					}
-					game.Broadcaster.SendBroadcastMessage(game.NextGeneration())
+
+					game.Broadcaster.SendBroadcastMessage(nextGeneration)
 				}
 			}
 		}
@@ -253,5 +276,5 @@ func (g *Game) RemovePlayer(p *Player) error {
 }
 
 func (g *Game) FreeCellsCountOf(player *Player) CellCount {
-	return g.freeCells[player.PlayerIndex] / restoreFreeCellsEveryNTicks
+	return g.newCellsCache[player.PlayerIndex].FreeCellsCount / restoreFreeCellsEveryNTicks
 }

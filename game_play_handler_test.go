@@ -14,12 +14,10 @@ import (
 
 var server = httptest.NewServer(nil)
 
-func wsRequest(path string) *websocket.Conn {
-	ws, _, err := websocket.DefaultDialer.Dial(httpToWs(server.URL+path), nil)
-	if err != nil {
-		panic("Dial() returned error " + err.Error())
-	}
-	return ws
+var line = []conway.Cell{
+	{Point: conway.Point{Row: 22, Col: 23}, State: conway.Live, Player: conway.Player2},
+	{Point: conway.Point{Row: 24, Col: 23}, State: conway.Live, Player: conway.Player2},
+	{Point: conway.Point{Row: 23, Col: 23}, State: conway.Live, Player: conway.Player2},
 }
 
 var _ = Describe("GamePlayHandler", func() {
@@ -58,9 +56,7 @@ var _ = Describe("GamePlayHandler", func() {
 			justReadHandshake(firstWs)
 			sendAckMessage(firstWs, "wait")
 		})
-		AfterEach(func() {
-			firstWs.Close()
-		})
+		AfterEach(func() { firstWs.Close() })
 
 		Context("game is paused", func() {
 			BeforeEach(func() {
@@ -138,7 +134,7 @@ var _ = Describe("GamePlayHandler", func() {
 
 					BeforeEach(func() {
 						secondWs.Close()
-						justReadGameOutput(firstWs)
+						justReadGameOutputGeneration(firstWs)
 						sendAckMessage(firstWs, "game")
 					})
 
@@ -166,7 +162,7 @@ var _ = Describe("GamePlayHandler", func() {
 									// reading closed ws after test finish should not fail the test
 								}
 							}()
-							o := justReadGameOutput(firstWs)
+							o := justReadGameOutputGeneration(firstWs)
 							c <- o
 						}(msgSent)
 
@@ -192,8 +188,8 @@ var _ = Describe("GamePlayHandler", func() {
 					sendAckMessage(firstWs, "ready")
 					sendAckMessage(secondWs, "ready")
 
-					justReadGameOutput(firstWs)
-					justReadGameOutput(secondWs)
+					justReadGameOutputGeneration(firstWs)
+					justReadGameOutputGeneration(secondWs)
 
 					sendAckMessage(firstWs, "game")
 					sendAckMessage(secondWs, "game")
@@ -227,8 +223,8 @@ var _ = Describe("GamePlayHandler", func() {
 				sendAckMessage(firstWs, "ready")
 				sendAckMessage(secondWs, "ready")
 
-				justReadGameOutput(firstWs)
-				justReadGameOutput(secondWs)
+				justReadGameOutputGeneration(firstWs)
+				justReadGameOutputGeneration(secondWs)
 
 				sendPause(secondWs)
 				sendAckMessage(firstWs, "game")
@@ -277,8 +273,53 @@ var _ = Describe("GamePlayHandler", func() {
 				})
 			})
 		})
+
+		Describe("new cells from client", func() {
+			BeforeEach(func() {
+				secondWs = wsRequest("/games/play/123")
+
+				justReadHandshake(firstWs)
+				justReadHandshake(secondWs)
+
+				sendAckMessage(firstWs, "ready")
+				sendAckMessage(secondWs, "ready")
+
+				justReadGameOutputGeneration(firstWs)
+				justReadGameOutputGeneration(secondWs)
+
+				sendLineShape(secondWs)
+
+				sendAckMessage(firstWs, "game")
+				sendAckMessage(secondWs, "game")
+			})
+			AfterEach(func() { secondWs.Close() })
+
+			It("includes them into the next generation", func() {
+				output := []conway.Cell(*justReadGameOutputGeneration(firstWs))
+
+				Expect(output).To(ContainElement(line[0]))
+				Expect(output).To(ContainElement(line[1]))
+				Expect(output).To(ContainElement(line[2]))
+			})
+
+			It("tells player the amount of free cells left", func() {
+				output := justReadGameOutput(firstWs).FreeCellsCount
+				Expect(output).To(Equal(10))
+
+				output = justReadGameOutput(secondWs).FreeCellsCount
+				Expect(output).To(Equal(7))
+			})
+		})
 	})
 })
+
+func wsRequest(path string) *websocket.Conn {
+	ws, _, err := websocket.DefaultDialer.Dial(httpToWs(server.URL+path), nil)
+	if err != nil {
+		panic("Dial() returned error " + err.Error())
+	}
+	return ws
+}
 
 func justReadHandshake(ws *websocket.Conn) WsServerMessage {
 	var output WsServerMessage
@@ -288,20 +329,24 @@ func justReadHandshake(ws *websocket.Conn) WsServerMessage {
 	return output
 }
 
-func justReadGameOutput(ws *websocket.Conn) *conway.Generation {
+func justReadGameOutput(ws *websocket.Conn) WsServerGameDataMessage {
 	var output WsServerGameDataMessage
 	if err := ws.ReadJSON(&output); err != nil {
 		panic(err)
 	}
-	return output.Generation
+	return output
+}
+
+func justReadGameOutputGeneration(ws *websocket.Conn) *conway.Generation {
+	return justReadGameOutput(ws).Generation
 }
 
 func assertGenerationOutput(ws *websocket.Conn) {
-	justReadGameOutput(ws)
+	justReadGameOutputGeneration(ws)
 }
 
 func assertGenerationTwo(ws *websocket.Conn) {
-	output := justReadGameOutput(ws)
+	output := justReadGameOutputGeneration(ws)
 
 	secondGeneration := &conway.Generation{
 		{Point: conway.Point{Row: 2, Col: 3}, State: conway.Live, Player: conway.Player1},
@@ -314,6 +359,14 @@ func assertGenerationTwo(ws *websocket.Conn) {
 
 func sendAckMessage(ws *websocket.Conn, msg string) {
 	if err := ws.WriteJSON(map[string]string{"acknowledged": msg}); err != nil {
+		Fail(err.Error())
+	}
+}
+
+func sendLineShape(ws *websocket.Conn) {
+	msg := WsClientMessage{NewCells: line}
+
+	if err := ws.WriteJSON(msg); err != nil {
 		Fail(err.Error())
 	}
 }
