@@ -62,6 +62,9 @@ D3Grid (el, opts) =
     classed('dead', true).
     classed('fog', maybeFog)
 
+    if (self.cellUnderCursor)
+      self.hover.maybeDrawShape(self.cellUnderCursor)
+
   resize() =
     scale xy()
 
@@ -105,10 +108,13 @@ D3Grid (el, opts) =
 
     setGridHeight()
 
-    hover = @new Hover(self, opts.player)
+    self.hover = @new Hover(self, opts.player)
 
     svg.select 'rect' all.data(grid).enter().append 'rect'.
-    on 'mousemove' @(d) @{ hover.maybeDrawShape(d) }.
+    on 'mousemove' @(d)
+      self.cellUnderCursor = d
+      self.hover.maybeDrawShape(d)
+    .
     on 'click' (mark hovered cells new).
     attr 'width' @{ self.x(0.8) }.
     attr 'height' @{ self.y(0.8) }.
