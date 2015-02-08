@@ -24,12 +24,7 @@ func NewClock(delay time.Duration) *Clock {
 			case clockIsOn = <-clock.toggleClock:
 			default:
 				if clockIsOn {
-					select {
-					case clock.nextTick <- Tick{}:
-					default:
-						// client didn't read previous tick yet?
-						// do nothing
-					}
+					clock.nonBlockingTick()
 					time.Sleep(clock.Delay * time.Millisecond)
 				} else {
 					// throttle `default:` to run only 5x per second
@@ -56,4 +51,11 @@ func (c *Clock) StopClock() {
 
 func (c *Clock) NextTick() chan Tick {
 	return c.nextTick
+}
+
+func (c *Clock) nonBlockingTick() {
+	select {
+	case c.nextTick <- Tick{}:
+	default:
+	}
 }
