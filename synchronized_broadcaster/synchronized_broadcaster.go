@@ -16,26 +16,24 @@ type SynchronizedBroadcasterClient interface {
 }
 
 type SynchronizedBroadcaster struct {
-	clients           []SynchronizedBroadcasterClient
-	addClient         chan SynchronizedBroadcasterClient
-	clientAdded       chan bool
-	removeClient      chan SynchronizedBroadcasterClient
-	clientRemoved     chan bool
-	clientInboxClosed map[string]chan bool
-	messageQueue      chan BroadcastMessage
-	messageAck        chan SynchronizedBroadcasterClient
+	clients       []SynchronizedBroadcasterClient
+	addClient     chan SynchronizedBroadcasterClient
+	clientAdded   chan bool
+	removeClient  chan SynchronizedBroadcasterClient
+	clientRemoved chan bool
+	messageQueue  chan BroadcastMessage
+	messageAck    chan SynchronizedBroadcasterClient
 }
 
 func NewSynchronizedBroadcaster() *SynchronizedBroadcaster {
 	sb := &SynchronizedBroadcaster{
-		clients:           []SynchronizedBroadcasterClient{},
-		addClient:         make(chan SynchronizedBroadcasterClient),
-		clientAdded:       make(chan bool),
-		removeClient:      make(chan SynchronizedBroadcasterClient),
-		clientRemoved:     make(chan bool),
-		clientInboxClosed: make(map[string]chan bool),
-		messageQueue:      make(chan BroadcastMessage),
-		messageAck:        make(chan SynchronizedBroadcasterClient),
+		clients:       []SynchronizedBroadcasterClient{},
+		addClient:     make(chan SynchronizedBroadcasterClient),
+		clientAdded:   make(chan bool),
+		removeClient:  make(chan SynchronizedBroadcasterClient),
+		clientRemoved: make(chan bool),
+		messageQueue:  make(chan BroadcastMessage),
+		messageAck:    make(chan SynchronizedBroadcasterClient),
 	}
 
 	go func() {
@@ -62,13 +60,9 @@ func NewSynchronizedBroadcaster() *SynchronizedBroadcaster {
 						c := c
 						gou.Debug("Message to client", c.ClientId())
 						go func() {
-							select {
-							case <-sb.clientInboxClosed[c.ClientId()]:
-								gou.Debug("Skipping message to client ", c.ClientId())
-							default:
-								gou.Debug("Sending message to client ", c.ClientId())
-								c.Inbox() <- msg
-							}
+							// don't fail if Inbox is closed
+							defer func() { recover() }()
+							c.Inbox() <- msg
 						}()
 					}
 
@@ -103,7 +97,6 @@ func NewSynchronizedBroadcaster() *SynchronizedBroadcaster {
 }
 
 func (sb *SynchronizedBroadcaster) AddClient(client SynchronizedBroadcasterClient) {
-	sb.clientInboxClosed[client.ClientId()] = make(chan bool, 1)
 	sb.addClient <- client
 	<-sb.clientAdded
 }
@@ -114,21 +107,8 @@ func (sb *SynchronizedBroadcaster) Clients() []SynchronizedBroadcasterClient {
 
 func (sb *SynchronizedBroadcaster) RemoveClient(client SynchronizedBroadcasterClient) {
 	gou.Debug("RemoveClient start ", client.ClientId())
-	sb.clientInboxClosed[client.ClientId()] <- true
 	sb.removeClient <- client
-EMPTY_CLIENT_INBOX:
-	for {
-		select {
-		case <-client.Inbox():
-			gou.Debug("Draining inbox of client ", client.ClientId())
-		default:
-			gou.Debug("Send client removed ", client.ClientId())
-			<-sb.clientRemoved
-			close(sb.clientInboxClosed[client.ClientId()])
-			delete(sb.clientInboxClosed, client.ClientId())
-			break EMPTY_CLIENT_INBOX
-		}
-	}
+	<-sb.clientRemoved
 	gou.Debug("Client removed", client.ClientId())
 }
 
