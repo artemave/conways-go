@@ -86,7 +86,7 @@ func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 		currentGeneration:    startGeneration,
 		PausedByPlayer:       conway.None,
 		IsPractice:           false,
-		clock:                clock.NewClock(Delay, time.Sleep),
+		clock:                clock.NewClock(Delay, time.NewTicker),
 		newCellsCache: map[conway.Player]*NewCellsCache{
 			conway.Player1: &NewCellsCache{
 				FreeCellsCount: CellCount(restoreFreeCellsEveryNTicks * maxFreeCells),

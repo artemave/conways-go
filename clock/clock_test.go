@@ -9,35 +9,41 @@ import (
 )
 
 var clock *Clock
-var sleepArgument chan (time.Duration)
+var delayArg chan time.Duration
+var tickerC chan time.Time
 
-func sleep(delay time.Duration) {
+func tickerFactory(delay time.Duration) *time.Ticker {
 	go func() {
 		defer func() { recover() }()
-		sleepArgument <- delay
+		delayArg <- delay
 	}()
+	return &time.Ticker{C: tickerC}
 }
 
 var _ = Describe("Clock", func() {
 	Context("When clock is on", func() {
 		BeforeEach(func() {
-			sleepArgument = make(chan time.Duration, 1)
-			clock = NewClock(time.Duration(123), sleep)
+			tickerC = make(chan time.Time)
+			delayArg = make(chan time.Duration, 1)
+			clock = NewClock(time.Duration(12), tickerFactory)
 			clock.StartClock()
 		})
 		AfterEach(func() {
-			close(sleepArgument)
+			clock.Cleanup()
+			close(delayArg)
+			close(tickerC)
 		})
 
 		It("Emits tick every _delay_", func() {
+			tickerC <- time.Time{}
 			Eventually(func() bool {
 				<-clock.NextTick()
 				return true
 			}).Should(BeTrue())
 
 			Eventually(func() time.Duration {
-				return <-sleepArgument
-			}).Should(Equal(time.Duration(123) * time.Millisecond))
+				return <-delayArg
+			}).Should(Equal(time.Duration(12) * time.Millisecond))
 		})
 	})
 })
