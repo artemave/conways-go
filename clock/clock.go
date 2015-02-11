@@ -3,16 +3,16 @@ package clock
 import "time"
 
 type Clock struct {
-	Delay       time.Duration
+	delay       time.Duration
 	toggleClock chan bool
 	nextTick    chan Tick
 }
 
 type Tick struct{}
 
-func NewClock(delay time.Duration) *Clock {
+func NewClock(delay time.Duration, sleep func(time.Duration)) *Clock {
 	clock := &Clock{
-		Delay:       delay,
+		delay:       delay,
 		nextTick:    make(chan Tick),
 		toggleClock: make(chan bool),
 	}
@@ -25,10 +25,10 @@ func NewClock(delay time.Duration) *Clock {
 			default:
 				if clockIsOn {
 					clock.nonBlockingTick()
-					time.Sleep(clock.Delay * time.Millisecond)
+					sleep(clock.delay * time.Millisecond)
 				} else {
 					// throttle `default:` to run only 5x per second
-					time.Sleep(200 * time.Millisecond)
+					sleep(200 * time.Millisecond)
 				}
 			}
 		}
