@@ -9,14 +9,19 @@ type Clock struct {
 
 type Tick struct{}
 
-func NewClock(delay time.Duration, tickerFactory func(time.Duration) *time.Ticker) *Clock {
+type Ticker interface {
+	C() <-chan time.Time
+	Stop()
+}
+
+func NewClock(delay time.Duration, tickerFactory func(time.Duration) Ticker) *Clock {
 	clock := &Clock{
 		nextTick:    make(chan Tick),
 		toggleClock: make(chan bool),
 	}
 
 	go func() {
-		var ticker *time.Ticker
+		var ticker Ticker
 		stopTicker := make(chan struct{})
 		clockIsOn := false
 
@@ -37,7 +42,7 @@ func NewClock(delay time.Duration, tickerFactory func(time.Duration) *time.Ticke
 					go func() {
 						for {
 							select {
-							case <-ticker.C:
+							case <-ticker.C():
 								go func() {
 									defer func() { recover() }()
 									clock.nextTick <- Tick{}

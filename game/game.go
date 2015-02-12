@@ -60,6 +60,22 @@ type Game struct {
 	newCellsCache     map[conway.Player]*NewCellsCache
 }
 
+type GameTicker struct {
+	ticker time.Ticker
+}
+
+func (gt GameTicker) C() <-chan time.Time {
+	return gt.ticker.C
+}
+
+func (gt GameTicker) Stop() {
+	gt.ticker.Stop()
+}
+
+func tickerFactory(delay time.Duration) clock.Ticker {
+	return GameTicker{ticker: *time.NewTicker(delay)}
+}
+
 func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 	var cols int
 	var rows int
@@ -86,7 +102,7 @@ func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 		currentGeneration:    startGeneration,
 		PausedByPlayer:       conway.None,
 		IsPractice:           false,
-		clock:                clock.NewClock(Delay, time.NewTicker),
+		clock:                clock.NewClock(Delay, tickerFactory),
 		newCellsCache: map[conway.Player]*NewCellsCache{
 			conway.Player1: &NewCellsCache{
 				FreeCellsCount: CellCount(restoreFreeCellsEveryNTicks * maxFreeCells),
