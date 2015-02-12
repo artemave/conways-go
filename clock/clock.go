@@ -17,45 +17,43 @@ func NewClock(delay time.Duration, tickerFactory func(time.Duration) *time.Ticke
 
 	go func() {
 		var ticker *time.Ticker
-		var stopTicker chan struct{}
+		stopTicker := make(chan struct{})
+		clockIsOn := false
 
 		for {
 			startClock, ok := <-clock.toggleClock
 
-			clockIsOn := stopTicker != nil
-
 			if !ok {
 				clock.toggleClock = nil
-				go func() {
-					defer func() { recover() }()
-					close(stopTicker)
-				}()
+				close(stopTicker)
 				return
 			}
 
-			if startClock && !clockIsOn {
-				ticker = tickerFactory(delay * time.Millisecond)
-				stopTicker = make(chan struct{})
+			if startClock {
+				if !clockIsOn {
+					clockIsOn = true
+					ticker = tickerFactory(delay * time.Millisecond)
 
-				go func() {
-					for {
-						select {
-						case <-ticker.C:
-							go func() {
-								defer func() { recover() }()
-								clock.nextTick <- Tick{}
-							}()
-						case <-stopTicker:
-							stopTicker = nil
-							return
+					go func() {
+						for {
+							select {
+							case <-ticker.C:
+								go func() {
+									defer func() { recover() }()
+									clock.nextTick <- Tick{}
+								}()
+							case <-stopTicker:
+								return
+							}
 						}
-					}
-				}()
-			}
-
-			if !startClock && clockIsOn {
-				ticker.Stop()
-				close(stopTicker)
+					}()
+				}
+			} else {
+				if clockIsOn {
+					clockIsOn = false
+					ticker.Stop()
+					stopTicker <- struct{}{}
+				}
 			}
 		}
 	}()
