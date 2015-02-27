@@ -6,14 +6,12 @@ import (
 	"code.google.com/p/go-uuid/uuid"
 
 	"fmt"
-	"os"
 
 	"github.com/artemave/conways-go/conway"
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
-func RegisterRoutes() {
+func RegisterRoutes() *mux.Router {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/", RootHandler)
@@ -22,8 +20,7 @@ func RegisterRoutes() {
 	r.HandleFunc("/games/{id}", ShowGameHandler)
 	r.HandleFunc("/games/play/{id}", GamePlayHandler)
 
-	http.Handle("/", handlers.LoggingHandler(os.Stdout, r))
-	http.Handle("/public/", http.FileServer(http.Dir("./")))
+	return r
 }
 
 func RootHandler(w http.ResponseWriter, req *http.Request) {

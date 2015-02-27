@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var server = httptest.NewServer(nil)
+var server = httptest.NewServer(RegisterRoutes())
 
 var line = []conway.Cell{
 	{Point: conway.Point{Row: 22, Col: 23}, State: conway.Live, Player: conway.Player2},

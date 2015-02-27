@@ -2,33 +2,23 @@ package main
 
 import (
 	"log"
-	"net/http"
 	"os"
-	"runtime"
 
 	"github.com/araddon/gou"
+	"github.com/codegangsta/negroni"
 )
 
 func main() {
-	defer RecoverAndLogError()
-
 	gou.SetLogger(log.New(os.Stderr, "", log.LstdFlags), "debug")
-
-	RegisterRoutes()
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "9999"
 	}
 
-	gou.Debug("listening at " + port)
-	http.ListenAndServe(":"+port, nil)
-}
+	n := negroni.Classic()
+	mux := RegisterRoutes()
 
-func RecoverAndLogError() {
-	if err := recover(); err != nil {
-		out := []byte{}
-		runtime.Stack(out, true)
-		gou.Error(string(out))
-	}
+	n.UseHandler(mux)
+	n.Run(":" + port)
 }

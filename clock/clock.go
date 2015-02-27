@@ -78,7 +78,7 @@ func (c *Clock) StopClock() {
 	}
 }
 
-func (c *Clock) NextTick() chan Tick {
+func (c *Clock) NextTick() <-chan Tick {
 	return c.nextTick
 }
 

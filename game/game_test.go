@@ -42,18 +42,14 @@ var testGeneration = &conway.Generation{
 
 var _ = Describe("Game", func() {
 	*testDelay = time.Duration(30)
-	var (
-		game    *Game
-		player1 *Player
-		player2 *Player
-	)
+	var game *Game
 
 	Describe("StartClock", func() {
 		BeforeEach(func() {
 			game = NewGame("id", "small", testGeneration)
 			game.Broadcaster = &StubBroadcaster{}
-			player1, _ = game.AddPlayer()
-			player2, _ = game.AddPlayer()
+			game.AddPlayer()
+			game.AddPlayer()
 		})
 		AfterEach(func() {
 			game.StopClock()
