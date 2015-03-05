@@ -43,7 +43,6 @@ func NewSynchronizedBroadcaster() *SynchronizedBroadcaster {
 				sb.clients = append(sb.clients, client)
 				sb.clientAdded <- true
 			case client := <-sb.removeClient:
-				gou.Debug("Rm client (1)", client.ClientId())
 				for i, c := range sb.clients {
 					if c.ClientId() == client.ClientId() {
 						sb.clients = append(sb.clients[:i], sb.clients[i+1:]...)
@@ -58,11 +57,12 @@ func NewSynchronizedBroadcaster() *SynchronizedBroadcaster {
 					for _, c := range sb.clients {
 						clientAcks[c.ClientId()] = true
 						c := c
-						gou.Debug("Message to client", c.ClientId())
 						go func() {
 							// don't fail if Inbox is closed
 							defer func() { recover() }()
+							gou.Debug("Sending message to client ", c.ClientId())
 							c.Inbox() <- msg
+							gou.Debug("Message sent to client ", c.ClientId())
 						}()
 					}
 
@@ -70,7 +70,6 @@ func NewSynchronizedBroadcaster() *SynchronizedBroadcaster {
 					for {
 						select {
 						case client := <-sb.removeClient:
-							gou.Debug("Rm client (2)", client.ClientId())
 							for i, c := range sb.clients {
 								if c.ClientId() == client.ClientId() {
 									sb.clients = append(sb.clients[:i], sb.clients[i+1:]...)
@@ -106,10 +105,8 @@ func (sb *SynchronizedBroadcaster) Clients() []SynchronizedBroadcasterClient {
 }
 
 func (sb *SynchronizedBroadcaster) RemoveClient(client SynchronizedBroadcasterClient) {
-	gou.Debug("RemoveClient start ", client.ClientId())
 	sb.removeClient <- client
 	<-sb.clientRemoved
-	gou.Debug("Client removed", client.ClientId())
 }
 
 func (sb *SynchronizedBroadcaster) MessageAcknowledged(client SynchronizedBroadcasterClient) {

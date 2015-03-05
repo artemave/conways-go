@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/araddon/gou"
@@ -174,7 +173,7 @@ func Listen(ws *websocket.Conn, game *Game, player *Player) {
 				case "resume":
 					go func() { game.Resume() }()
 				default:
-					fmt.Printf("Unknown command %s\n", msg.Command)
+					gou.Errorf("Unknown command %s\n", msg.Command)
 				}
 			} else if msg.NewCells != nil {
 				game.AddCells(msg.NewCells)
@@ -183,7 +182,7 @@ func Listen(ws *websocket.Conn, game *Game, player *Player) {
 				case "ready", "wait", "game", "finish", "pause", "resume":
 					player.MessageAcknowledged()
 				default:
-					fmt.Printf("Unknown client message\n")
+					gou.Error("Unknown client message")
 				}
 			}
 		}

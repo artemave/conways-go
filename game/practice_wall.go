@@ -1,8 +1,6 @@
 package game
 
 import (
-	"fmt"
-
 	"github.com/araddon/gou"
 )
 
@@ -25,14 +23,11 @@ func NewPracticeWall(game *Game) *PracticeWall {
 
 		go func() {
 			for {
-				msg, ok := <-player.GameServerMessages
+				_, ok := <-player.GameServerMessages
 
 				if !ok {
-					fmt.Printf("NOT OK\n")
 					return
 				}
-
-				fmt.Printf("DUMMY PLAYER ACK %#v\n", msg)
 
 				player.MessageAcknowledged()
 			}
