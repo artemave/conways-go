@@ -92,11 +92,12 @@ func CreateGameHandler(w http.ResponseWriter, r *http.Request) {
 
 func CreatePracticeGameHandler(w http.ResponseWriter, r *http.Request) {
 	u4 := uuid.New()
-	_, err := gamesRepo.CreatePracticeGameById(u4, practiceGameStartGeneration)
+	newGame, err := gamesRepo.CreateGameById(u4, "small", practiceGameStartGeneration)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 		return
 	}
+	newGame.IsPractice = true
 	fmt.Fprintf(w, u4)
 }
 

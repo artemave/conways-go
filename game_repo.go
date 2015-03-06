@@ -7,18 +7,23 @@ import (
 	. "github.com/artemave/conways-go/game"
 )
 
-type GamesRepo struct {
+type GamesRepo interface {
+	FindGameById(id string) *Game
+	CreateGameById(id string, gameSize string, startGeneration *conway.Generation) (*Game, error)
+}
+
+type InMemoryGamesRepo struct {
 	Games []*Game
 }
 
-func NewGamesRepo() *GamesRepo {
-	gr := &GamesRepo{
+func NewGamesRepo() GamesRepo {
+	gr := &InMemoryGamesRepo{
 		Games: []*Game{},
 	}
 	return gr
 }
 
-func (gr *GamesRepo) FindGameById(id string) *Game {
+func (gr *InMemoryGamesRepo) FindGameById(id string) *Game {
 	for _, game := range gr.Games {
 		if game.Id == id {
 			return game
@@ -27,7 +32,7 @@ func (gr *GamesRepo) FindGameById(id string) *Game {
 	return nil
 }
 
-func (gr *GamesRepo) CreateGameById(id string, gameSize string, startGeneration *conway.Generation) (*Game, error) {
+func (gr *InMemoryGamesRepo) CreateGameById(id string, gameSize string, startGeneration *conway.Generation) (*Game, error) {
 	for _, game := range gr.Games {
 		if game.Id == id {
 			return nil, errors.New("Game with id '" + id + "' is already created.")
@@ -35,16 +40,5 @@ func (gr *GamesRepo) CreateGameById(id string, gameSize string, startGeneration 
 	}
 	newGame := NewGame(id, gameSize, startGeneration)
 	gr.Games = append(gr.Games, newGame)
-	return newGame, nil
-}
-
-func (gr *GamesRepo) CreatePracticeGameById(id string, startGeneration *conway.Generation) (*Game, error) {
-	newGame, err := gr.CreateGameById(id, "small", startGeneration)
-
-	if err != nil {
-		return nil, err
-	}
-
-	newGame.IsPractice = true
 	return newGame, nil
 }
