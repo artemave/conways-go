@@ -12,7 +12,7 @@
 		},
 		{
 			"ImportPath": "github.com/araddon/gou",
-			"Rev": "d88ffbf6bbf42f05e3021ba707c3eb08c37126e8"
+			"Rev": "83835b52401515352c9234fecfa61e55aaab793b"
 		},
 		{
 			"ImportPath": "github.com/codegangsta/negroni",
@@ -25,11 +25,11 @@
 		},
 		{
 			"ImportPath": "github.com/gorilla/mux",
-			"Rev": "e444e69cbd2e2e3e0749a2f3c717cec491552bbf"
+			"Rev": "8a875a034c69b940914d83ea03d3f1299b4d094b"
 		},
 		{
 			"ImportPath": "github.com/gorilla/websocket",
-			"Rev": "ab5b3a61f5b6aa323d66ece457334396c4ccdd03"
+			"Rev": "2dbddebb8266b93c5e6b119efb54e89043186f3f"
 		},
 		{
 			"ImportPath": "github.com/onsi/ginkgo",
