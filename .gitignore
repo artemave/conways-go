@@ -4,3 +4,4 @@ node_modules/
 public/**/*.js
 public/bundle.css
 bin/
+.envrc
