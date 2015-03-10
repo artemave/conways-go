@@ -3,4 +3,4 @@ conways-go
 node_modules/
 public/**/*.js
 public/bundle.css
-bower_components/
+bin/
