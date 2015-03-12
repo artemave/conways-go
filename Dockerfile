@@ -10,6 +10,7 @@ ADD ./package.json /gopath/src/github.com/artemave/conways-go/
 ADD ./gulpfile.js /gopath/src/github.com/artemave/conways-go/
 ADD ./public /gopath/src/github.com/artemave/conways-go/
 RUN npm install --production
+RUN ./node_modules/gulp/bin/gulp.js --production
 
 ADD . /gopath/src/github.com/artemave/conways-go/
 RUN go get github.com/tools/godep
