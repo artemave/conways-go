@@ -7,12 +7,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends nodejs-legacy
 RUN curl -L --insecure https://www.npmjs.org/install.sh | bash
 
 ADD ./package.json /gopath/src/github.com/artemave/conways-go/
-ADD ./gulpfile.js /gopath/src/github.com/artemave/conways-go/
-ADD ./public /gopath/src/github.com/artemave/conways-go/
 RUN npm install --production
-RUN ./node_modules/gulp/bin/gulp.js --production
 
 ADD . /gopath/src/github.com/artemave/conways-go/
+
+RUN ./node_modules/gulp/bin/gulp.js --production
+
 RUN go get github.com/tools/godep
 RUN godep restore
 RUN godep go build
