@@ -14,8 +14,7 @@ RUN npm install --production
 ADD . /gopath/src/github.com/artemave/conways-go/
 RUN go get github.com/tools/godep
 RUN godep restore
-RUN godep go install
+RUN godep go build
 
-CMD []
 ENV PORT 9999
-ENTRYPOINT ["/gopath/bin/conways-go"]
+CMD ["./conways-go"]

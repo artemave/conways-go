@@ -4,6 +4,9 @@ After=docker.service
 Requires=docker.service
 
 [Service]
+# Let the process take awhile to start up (for first run Docker containers)
+TimeoutStartSec=0
+
 EnvironmentFile=/etc/environment
 ExecStartPre=-/usr/bin/docker kill game-server-%i
 ExecStartPre=-/usr/bin/docker rm game-server-%i

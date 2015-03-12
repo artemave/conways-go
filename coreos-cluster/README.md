@@ -1,4 +1,4 @@
-CoreOs based game servers cluster
+CoreOs based game server cluster
 =========
 
 ## To run in Vagrant ##

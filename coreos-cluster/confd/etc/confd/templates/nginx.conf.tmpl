@@ -30,13 +30,14 @@ http {
     #gzip  on;
 
     upstream backend {
+        ip_hash;
         {{range getvs "/game-servers/*"}}
             server {{.}};
         {{end}}
     }
 
     server {
-        server_name _;
+        listen 80 default_server;
 
         location / {
             proxy_pass http://backend;
@@ -49,7 +50,4 @@ http {
             add_header  X-Handler  $upstream_addr;
         }
     }
-
-
-    include /etc/nginx/conf.d/*.conf;
 }
