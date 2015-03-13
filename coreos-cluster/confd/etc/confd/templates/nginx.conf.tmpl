@@ -49,5 +49,13 @@ http {
 
             add_header  X-Handler  $upstream_addr;
         }
+
+        location /games/play/ {
+            proxy_pass http://backend;
+            proxy_next_upstream error timeout invalid_header http_404;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+        }
     }
 }
