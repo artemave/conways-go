@@ -19,3 +19,4 @@ Restart=on-failure
 
 [X-Fleet]
 Conflicts=game-server@*.service
+Conflicts=confdata.service

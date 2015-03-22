@@ -15,4 +15,4 @@ ExecStartPre=-/usr/bin/docker rm conf-data
 ExecStart=/usr/bin/docker run -v /etc/nginx --name conf-data nginx echo "created new data container"
 
 [X-Fleet]
-Conflicts=game-server@*.service
+MachineMetadata=role=load-balancer
