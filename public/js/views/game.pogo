@@ -173,12 +173,8 @@ Game = React.createClass {
         wantsToHide              = self.helpPopupWantsToHide
         withDontShowThisCheckbox = self.state.withDontShowThisCheckbox
       }
-      ShareInstructions {
-        show = self.state.showShareInstructions
-      }
-      GameIsPaused {
-        show = self.state.showGameIsPaused
-      }
+      (if (self.state.showShareInstructions) @{ ShareInstructions() } else @{ null })
+      (if (self.state.showGameIsPaused) @{ GameIsPaused() } else @{ null })
       ButtonBar {
         player              = self.state.player
         show                = self.state.showGame
