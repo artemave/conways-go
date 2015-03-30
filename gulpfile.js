@@ -1,5 +1,6 @@
 var gulp         = require('gulp');
 var pogo         = require('gulp-pogo');
+var pogoify      = require('pogoify');
 var browserify   = require('browserify');
 var sass         = require('gulp-sass');
 var concat       = require('gulp-concat');
@@ -15,7 +16,6 @@ var argv         = require('yargs').argv;
 var uglify       = require('gulp-uglify');
 var gulpif       = require('gulp-if');
 var buffer       = require('vinyl-buffer');
-var size         = require('gulp-size');
 var autoprefixer = require('gulp-autoprefixer');
 
 var onError = function (err) {
@@ -58,23 +58,17 @@ gulp.task("watchify", function() {
     browserifyAndMaybeWatchify(true)
 })
 
-gulp.task("browserify", ["compile-pogo"], function() {
+gulp.task("browserify", function() {
     browserifyAndMaybeWatchify(false)
-})
-
-gulp.task('compile-pogo', function(callback){
-    return gulp.src('./public/{js,test}/**/*.pogo')
-      .pipe(plumber({errorHandler: onError}))
-      .pipe(pogo())
-      .pipe(gulp.dest('./public/'));
 })
 
 function browserifyAndMaybeWatchify(watch) {
   args = watchify.args;
-  args.extensions = ['.md'];
+  args.extensions = ['.pogo', '.md'];
 
-  var bundler = browserify("./public/js/app.js", args);
+  var bundler = browserify("./public/js/app.pogo", args);
 
+  bundler.transform(pogoify);
   bundler.transform(markdownify);
 
   var bundle = function() {
@@ -84,24 +78,19 @@ function browserifyAndMaybeWatchify(watch) {
       .pipe(source('bundle.js'))
       .pipe(buffer())
       .pipe(gulpif(argv.production, uglify()))
-      .pipe(size())
       .pipe(gulp.dest('./public/'));
   };
 
   if (watch) {
     bundler = watchify(bundler);
     bundler.on("update", bundle);
+    bundler.on("log", gutil.log);
   }
 
   bundle()
 }
 
 gulp.task("watch", ["watchify"], function() {
-  watch('./public/{js,test}/**/*.pogo')
-    .pipe(plumber({errorHandler: onError}))
-    .pipe(pogo())
-    .pipe(gulp.dest('./public/'));
-
   gulp.watch('./public/css/**', ['styles']);
 })
 

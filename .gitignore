@@ -1,7 +1,7 @@
 conways-go
 *.test
 node_modules/
-public/**/*.js
 public/bundle.css
+public/bundle.js
 bin/
 .envrc
