@@ -1,6 +1,7 @@
 React    = require 'react'
 Cookies  = require 'cookies-js'
 helpText = require './help-text'
+_        = require 'lodash'
 
 D = React.DOM
 
@@ -12,8 +13,10 @@ DoNotAutoShowCheckbox = React.createClass {
       Cookies.expire "knows-how-to-play"
 
   render() =
-    self.transferPropsTo(
-      D.input { type = 'checkbox', onChange = self.onChange, ref = 'checkbox' }
+    D.input(_.assign(
+        { type = 'checkbox', onChange = self.onChange, ref = 'checkbox' }
+        self.props
+      )
     )
 }
 
