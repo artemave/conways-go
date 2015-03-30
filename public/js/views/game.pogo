@@ -9,6 +9,7 @@ ShareInstructions = require '../share_instructions'
 ButtonBar         = require '../button_bar'
 Grid              = require '../grid'
 HelpPopup         = require '../help_popup'
+SubmitScorePopup  = require '../submit_score_popup'
 key               = require 'keymaster'
 RR                = require 'react-router'
 
@@ -24,6 +25,7 @@ Game = React.createClass {
       showGameIsPaused         = false
       showGame                 = false
       showHelpPopup            = false
+      showSubmitScore          = false
       withDontShowThisCheckbox = false
     }
 
@@ -92,19 +94,18 @@ Game = React.createClass {
         self.ws.send(JSON.stringify({"acknowledged" = "finish"}))
         self.ws.close(1000)
 
-        m = when (msg.Result) [
+        when (msg.Result) [
           is 'won'
-            "You won"
+            self.setState { showSubmitScore = true }
 
           is 'lost'
-            "You lost"
+            alert "You lost"
+            self.transitionTo "start_menu"
 
           is 'draw'
-            "Draw"
+            alert "Draw"
+            self.transitionTo "start_menu"
         ]
-
-        alert(m)
-        self.transitionTo "start_menu"
 
       is 'game_taken'
         alert "This game has already got enough players :("
@@ -132,6 +133,11 @@ Game = React.createClass {
   helpPopupWantsToHide() =
     self.ws.send(JSON.stringify { command = "resume" })
     self.setState { showHelpPopup = false }
+
+  showSubmitScoreWantsToHide() =
+    self.transitionTo "start_menu"
+
+  SubmitScorePopup
 
   onHelpButtonClicked() =
     self.ws.send(JSON.stringify { command = "pause" })
@@ -190,6 +196,9 @@ Game = React.createClass {
         rows       = self.state.rows
         winSpots   = self.state.winSpots
       }
+      (if (self.state.showSubmitScore)
+        SubmitScorePopup { wantsToHide = self.showSubmitScoreWantsToHide }
+      else @{ null })
     )
 }
 
