@@ -8,7 +8,7 @@ coreos:
     peer-addr: $public_ipv4:7001
   fleet:
     public-ip: $public_ipv4
-    metadata: role=loadbalancer
+    metadata: role=load-balancer
   units:
   - name: etcd.service
     command: start
