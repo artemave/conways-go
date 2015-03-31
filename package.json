@@ -1,6 +1,9 @@
 {
   "name": "conways-go",
   "repository": "https://github.com/artemave/conways-go",
+  "engines": {
+    "node": "0.10.x"
+  },
   "dependencies": {
     "ReconnectingWebSocket": "git+https://github.com/joewalnes/reconnecting-websocket.git",
     "bluebird": "^2.3.4",
