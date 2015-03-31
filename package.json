@@ -4,6 +4,9 @@
   "engines": {
     "node": "0.10.x"
   },
+  "scripts": {
+    "postinstall": "gulp --production"
+  },
   "dependencies": {
     "ReconnectingWebSocket": "git+https://github.com/joewalnes/reconnecting-websocket.git",
     "bluebird": "^2.3.4",

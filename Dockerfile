@@ -11,8 +11,6 @@ RUN npm install --production
 
 ADD . /gopath/src/github.com/artemave/conways-go/
 
-RUN ./node_modules/gulp/bin/gulp.js --production
-
 RUN go get github.com/tools/godep
 RUN godep restore
 RUN godep go build
