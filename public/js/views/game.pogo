@@ -160,7 +160,8 @@ Game = React.createClass {
     }
 
   componentWillMount() =
-    self.ws = @new WebSocket "ws://#(window.location.host)/games/play/#(self.props.params.gameId)"
+    protocol = if (window.location.protocol == 'http:') @{ 'ws:' } else @ { 'wss:' }
+    self.ws = @new WebSocket "#(protocol)//#(window.location.host)/games/play/#(self.props.params.gameId)"
     self.ws.onmessage = self.onWsMessage
 
     key('esc', self.helpPopupWantsToHide)
