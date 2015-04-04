@@ -42,8 +42,11 @@ type Broadcaster interface {
 	MessageAcknowledged(sb.SynchronizedBroadcasterClient)
 }
 
+type GooglePlayer string
+
 type Game struct {
 	Id     string
+	Size   string
 	Conway *conway.Game
 	Broadcaster
 	GameResultCalculator interface {
@@ -56,6 +59,8 @@ type Game struct {
 	clientCells       chan []conway.Cell
 	PausedByPlayer    conway.Player
 	IsPractice        bool
+	IsFinished        bool
+	scoredBy          *GooglePlayer
 	clock             *clock.Clock
 	newCellsCache     map[conway.Player]*NewCellsCache
 }
@@ -94,6 +99,7 @@ func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 
 	game := &Game{
 		Id:                   id,
+		Size:                 size,
 		Broadcaster:          sb.NewSynchronizedBroadcaster(),
 		GameResultCalculator: grc.CaptureFlagCalculator,
 		Conway:               &conway.Game{Cols: cols, Rows: rows},
@@ -132,6 +138,7 @@ func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 
 				if winnerIndex != nil {
 					game.Broadcaster.SendBroadcastMessage(GameResult{game.playerByIndex(winnerIndex)})
+					game.IsFinished = true
 					game.StopClock()
 				} else {
 					nextGeneration := game.NextGeneration()
@@ -293,4 +300,17 @@ func (g *Game) RemovePlayer(p *Player) error {
 
 func (g *Game) FreeCellsCountOf(player *Player) CellCount {
 	return g.newCellsCache[player.PlayerIndex].FreeCellsCount / restoreFreeCellsEveryNTicks
+}
+
+// SetScoredBy : mark game scored, so that no more scores can be submitted for this game
+func (g *Game) SetScoredBy(googlePlayerID string) {
+	if g.GetScoredBy() == nil {
+		gp := GooglePlayer(googlePlayerID)
+		g.scoredBy = &gp
+	}
+}
+
+// GetScoredBy : check if the game score was already submitted
+func (g *Game) GetScoredBy() *GooglePlayer {
+	return g.scoredBy
 }

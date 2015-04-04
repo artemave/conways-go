@@ -10,8 +10,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var gamesRepo = NewGamesRepo()
-
 func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 	ws, err := websocket.Upgrade(w, r, nil, 1024, 1024)
 	if _, ok := err.(websocket.HandshakeError); ok {

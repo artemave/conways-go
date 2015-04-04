@@ -198,7 +198,7 @@ Game = React.createClass {
         winSpots   = self.state.winSpots
       }
       (if (self.state.showSubmitScore)
-        SubmitScorePopup { wantsToHide = self.showSubmitScoreWantsToHide }
+        SubmitScorePopup { wantsToHide = self.showSubmitScoreWantsToHide, gameId = self.props.params.gameId }
       else @{ null })
     )
 }
