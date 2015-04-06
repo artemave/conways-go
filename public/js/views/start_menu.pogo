@@ -1,9 +1,9 @@
 Cookies   = require 'cookies-js'
 React     = require 'react'
 request   = require 'superagent'
-RR        = require 'react-router'
-HelpPopup = require '../help_popup'
+HelpPopup = React.createFactory(require '../help_popup')
 key       = require 'keymaster'
+RR        = require 'react-router'
 
 D = React.DOM
 
@@ -26,14 +26,13 @@ StartMenu = React.createClass {
     request.post '/games'.type 'form'.send {gameSize = gameSize}.end @(error) @(res)
       gameId = res.text
       Cookies.set("knows-how-to-play", "true")
-      self.transitionTo("/games/#(gameId)")
+      self.context.router.transitionTo("/games/#(gameId)")
 
   practiceWall(e) =
-    e.preventDefault()
     request.post '/practice'.end @(error) @(res)
       gameId = res.text
       Cookies.set("knows-how-to-play", "true")
-      self.transitionTo("/games/#(gameId)")
+      self.context.router.transitionTo "/games/#(gameId)"
 
   showHelpPopup() =
     self.setState { showHelpPopup = true }

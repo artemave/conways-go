@@ -5,7 +5,7 @@ shapeOf = require './shape_for_cell'
 R = React.DOM
 
 button(type, shortcut) =
-  React.createClass {
+  b = React.createClass {
     propTypes = {
       player         = React.PropTypes.number
       freeCellsCount = React.PropTypes.number
@@ -48,9 +48,10 @@ button(type, shortcut) =
         R.div.apply(null, [{className = "null-coordinate"}].concat(points))
       )
   }
+  React.createFactory(b)
 
 pointer(type) =
-  React.createClass {
+  p = React.createClass {
     getInitialState() =
       { top = 0, left = 0 }
 
@@ -77,21 +78,24 @@ pointer(type) =
       else
         null
   }
+  React.createFactory(p)
 
-CellCounter = React.createClass {
-  propTypes = {
-    show           = React.PropTypes.bool
-    player         = React.PropTypes.number
-    freeCellsCount = React.PropTypes.number
+CellCounter = React.createFactory(
+  React.createClass {
+    propTypes = {
+      show           = React.PropTypes.bool
+      player         = React.PropTypes.number
+      freeCellsCount = React.PropTypes.number
+    }
+
+    render() =
+      R.div(
+        {className = "cellCounter player#(self.props.player)"}
+        "cells left: "
+        R.span({className = "counter"}, self.props.freeCellsCount)
+      )
   }
-
-  render() =
-    R.div(
-      {className = "cellCounter player#(self.props.player)"}
-      "cells left: "
-      R.span({className = "counter"}, self.props.freeCellsCount)
-    )
-}
+)
 
 buttonDot = button('dot', 'p')
 pointerDot = pointer('dot')

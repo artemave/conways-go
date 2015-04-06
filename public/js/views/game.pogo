@@ -4,12 +4,12 @@ WebSocket         = require 'ReconnectingWebSocket'
 when              = require '../when'.when
 is                = require '../when'.is
 otherwise         = require '../when'.otherwise
-GameIsPaused      = require '../game_is_paused'
-ShareInstructions = require '../share_instructions'
-ButtonBar         = require '../button_bar'
-Grid              = require '../grid'
-HelpPopup         = require '../help_popup'
-SubmitScorePopup  = require '../submit_score_popup'
+GameIsPaused      = React.createFactory(require '../game_is_paused')
+ShareInstructions = React.createFactory(require '../share_instructions')
+ButtonBar         = React.createFactory(require '../button_bar')
+Grid              = React.createFactory(require '../grid')
+HelpPopup         = React.createFactory(require '../help_popup')
+SubmitScorePopup  = React.createFactory(require '../submit_score_popup')
 key               = require 'keymaster'
 RR                = require 'react-router'
 
@@ -100,20 +100,20 @@ Game = React.createClass {
 
           is 'lost'
             alert "You lost"
-            self.transitionTo "start_menu"
+            self.context.router.transitionTo "start_menu"
 
           is 'draw'
             alert "Draw"
-            self.transitionTo "start_menu"
+            self.context.router.transitionTo "start_menu"
         ]
 
       is 'game_taken'
         alert "This game has already got enough players :("
-        self.transitionTo "start_menu"
+        self.context.router.transitionTo "start_menu"
 
       is 'game_not_found'
         alert "This game does not exist :("
-        self.transitionTo "start_menu"
+        self.context.router.transitionTo "start_menu"
 
       is 'game_data'
         ack := {"acknowledged" = "game"}
@@ -135,9 +135,7 @@ Game = React.createClass {
     self.setState { showHelpPopup = false }
 
   showSubmitScoreWantsToHide() =
-    self.transitionTo "start_menu"
-
-  SubmitScorePopup
+    self.context.router.transitionTo "start_menu"
 
   onHelpButtonClicked() =
     self.ws.send(JSON.stringify { command = "pause" })
@@ -161,7 +159,7 @@ Game = React.createClass {
 
   componentWillMount() =
     protocol = if (window.location.protocol == 'http:') @{ 'ws:' } else @ { 'wss:' }
-    self.ws = @new WebSocket "#(protocol)//#(window.location.host)/games/play/#(self.props.params.gameId)"
+    self.ws = @new WebSocket "#(protocol)//#(window.location.host)/games/play/#(self.context.router.getCurrentParams().gameId)"
     self.ws.onmessage = self.onWsMessage
 
     key('esc', self.helpPopupWantsToHide)
@@ -198,7 +196,7 @@ Game = React.createClass {
         winSpots   = self.state.winSpots
       }
       (if (self.state.showSubmitScore)
-        SubmitScorePopup { wantsToHide = self.showSubmitScoreWantsToHide, gameId = self.props.params.gameId }
+        SubmitScorePopup { wantsToHide = self.showSubmitScoreWantsToHide, gameId = self.context.router.getCurrentParams().gameId }
       else @{ null })
     )
 }

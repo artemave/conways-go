@@ -5,20 +5,22 @@ _        = require 'lodash'
 
 D = React.DOM
 
-DoNotAutoShowCheckbox = React.createClass {
-  onChange() =
-    if (self.refs.checkbox.getDOMNode().checked)
-      Cookies.set "knows-how-to-play" "true"
-    else
-      Cookies.expire "knows-how-to-play"
+DoNotAutoShowCheckbox = React.createFactory(
+  React.createClass {
+    onChange() =
+      if (self.refs.checkbox.getDOMNode().checked)
+        Cookies.set "knows-how-to-play" "true"
+      else
+        Cookies.expire "knows-how-to-play"
 
-  render() =
-    D.input(_.assign(
-        { type = 'checkbox', onChange = self.onChange, ref = 'checkbox' }
-        self.props
+    render() =
+      D.input(_.assign(
+          { type = 'checkbox', onChange = self.onChange, ref = 'checkbox' }
+          self.props
+        )
       )
-    )
-}
+  }
+)
 
 HelpPopup = React.createClass {
   propTypes = {

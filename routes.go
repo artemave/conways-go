@@ -157,7 +157,7 @@ func oauthCallbackHander(w http.ResponseWriter, req *http.Request) {
 	}
 
 	client := conf.Client(oauth2.NoContext, tok)
-	api, err := googleGames.New(client)
+	gapi, err := googleGames.New(client)
 	if err != nil {
 		gou.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -165,7 +165,7 @@ func oauthCallbackHander(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	leaderboards, err := api.Leaderboards.List().Do()
+	leaderboards, err := gapi.Leaderboards.List().Do()
 	if err != nil {
 		gou.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -176,7 +176,7 @@ func oauthCallbackHander(w http.ResponseWriter, req *http.Request) {
 	//TODO test
 	for _, board := range leaderboards.Items {
 		if board.Name == game.Size {
-			score, err := api.Scores.Get("me", board.Id, "ALL_TIME").Do()
+			score, err := gapi.Scores.Get("me", board.Id, "ALL_TIME").Do()
 			if err != nil {
 				gou.Error(err)
 				w.WriteHeader(http.StatusInternalServerError)
@@ -192,7 +192,7 @@ func oauthCallbackHander(w http.ResponseWriter, req *http.Request) {
 				newScore = int64(currentScore) + 3
 			}
 
-			res, err := api.Scores.Submit(board.Id, newScore).Do()
+			res, err := gapi.Scores.Submit(board.Id, newScore).Do()
 			if err != nil {
 				gou.Error(err)
 				w.WriteHeader(http.StatusInternalServerError)
