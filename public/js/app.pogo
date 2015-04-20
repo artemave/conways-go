@@ -1,12 +1,9 @@
-when      = require './when'.when
-is        = require './when'.is
-otherwise = require './when'.otherwise
 React     = require 'react'
 RR        = require 'react-router'
 
-RouteHandler = RR.RouteHandler
-Route        = React.createFactory(RR.Route)
-DefaultRoute = React.createFactory(RR.DefaultRoute)
+RouteHandler  = RR.RouteHandler
+Route         = React.createFactory(RR.Route)
+DefaultRoute  = React.createFactory(RR.DefaultRoute)
 
 App = React.createClass {
   render() =
@@ -20,6 +17,11 @@ routes = Route (
     name = 'game'
     handler = require './views/game'
     path = '/games/:gameId'
+  }
+  Route {
+    name    = 'leaderboards'
+    handler = require './views/leaderboards'
+    path    = '/leaderboards'
   }
 )
 

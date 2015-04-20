@@ -37,6 +37,9 @@ StartMenu = React.createClass {
   showHelpPopup() =
     self.setState { showHelpPopup = true }
 
+  showLeaderboards() =
+    self.context.router.transitionTo '/leaderboards'
+
   hideHelpPopup() =
     self.setState { showHelpPopup = false }
 
@@ -61,6 +64,10 @@ StartMenu = React.createClass {
       D.div(
         { className = 'start_menu_button', onClick = self.showHelpPopup }
         D.span { className = 'button_label' } 'how to play'
+      )
+      D.div(
+        { className = 'start_menu_button', onClick = self.showLeaderboards }
+        D.span { className = 'button_label' } 'leaderboards'
       )
       HelpPopup {
         show        = self.state.showHelpPopup

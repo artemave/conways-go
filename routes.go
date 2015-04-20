@@ -14,6 +14,7 @@ import (
 	"github.com/artemave/conways-go/conway"
 	"github.com/artemave/conways-go/game"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	googleGames "google.golang.org/api/games/v1"
@@ -22,19 +23,35 @@ import (
 func RegisterRoutes() *mux.Router {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/", RootHandler)
+	r.HandleFunc("/", rootHandler)
 	r.HandleFunc("/games", CreateGameHandler).Methods("POST")
 	r.HandleFunc("/practice", CreatePracticeGameHandler).Methods("POST")
 	r.HandleFunc("/submit_score", submitScoreHandler)
 	r.HandleFunc("/oauth2callback", oauthCallbackHander)
-	r.HandleFunc("/games/{id}", ShowGameHandler)
+	r.HandleFunc("/games/{id}", rootHandler)
 	r.HandleFunc("/games/play/{id}", GamePlayHandler)
+	r.HandleFunc("/fetch_leaderboards", fetchLeaderboardsHandler)
+	r.HandleFunc("/scores", scoresIndexHandler)
+	r.HandleFunc("/leaderboards", rootHandler)
 
 	return r
 }
 
-func RootHandler(w http.ResponseWriter, req *http.Request) {
+func rootHandler(w http.ResponseWriter, req *http.Request) {
 	http.ServeFile(w, req, "./public/index.html")
+}
+
+func scoresIndexHandler(w http.ResponseWriter, req *http.Request) {
+	session, err := sessionCache.Get(req, "sessionCache")
+	if err != nil {
+		gou.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if scores := session.Values["scores"]; scores != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(scores.(string)))
+	}
 }
 
 var startGeneration = map[string]*conway.Generation{
@@ -111,16 +128,19 @@ func CreatePracticeGameHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, u4)
 }
 
-func ShowGameHandler(w http.ResponseWriter, req *http.Request) {
-	http.ServeFile(w, req, "./public/index.html")
-}
-
 func submitScoreHandler(w http.ResponseWriter, req *http.Request) {
 	// TODO implement real CSRF protection instead of "state"
 	gameID := req.URL.Query().Get("gameID")
-	state := map[string]string{"gameID": gameID}
+	state := map[string]string{"gameID": gameID, "callbackFor": "submit_score"}
 	stateJSON, _ := json.Marshal(state)
-	url := conf.AuthCodeURL(string(stateJSON))
+	url := oauthConf.AuthCodeURL(string(stateJSON))
+	http.Redirect(w, req, url, 302)
+}
+
+func fetchLeaderboardsHandler(w http.ResponseWriter, req *http.Request) {
+	state := map[string]string{"callbackFor": "fetch_leaderboards"}
+	stateJSON, _ := json.Marshal(state)
+	url := oauthConf.AuthCodeURL(string(stateJSON))
 	http.Redirect(w, req, url, 302)
 }
 
@@ -135,42 +155,90 @@ func oauthCallbackHander(w http.ResponseWriter, req *http.Request) {
 
 		gou.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	game, err := validateGameSubmitScore(state["gameID"])
-	if err != nil {
-		gou.Error(err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
 		return
 	}
 
 	code := req.URL.Query().Get("code")
-	tok, err := conf.Exchange(oauth2.NoContext, code)
+	tok, err := oauthConf.Exchange(oauth2.NoContext, code)
 	if err != nil {
 		gou.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
 		return
 	}
 
-	client := conf.Client(oauth2.NoContext, tok)
+	client := oauthConf.Client(oauth2.NoContext, tok)
 	gapi, err := googleGames.New(client)
 	if err != nil {
-		gou.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+		gou.Error(err)
 		return
+	}
+
+	session, err := sessionCache.Get(req, "sessionCache")
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		gou.Error(err)
+		return
+	}
+
+	switch state["callbackFor"] {
+	case "submit_score":
+		if err := processSubmitScore(gapi, state); err != nil {
+			gou.Error(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	case "fetch_leaderboards":
+		if err := processFetchLeaderboards(session, gapi); err != nil {
+			gou.Error(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		session.Save(req, w)
+	default:
+		gou.Error(fmt.Printf("callbackFrom is not set: %#v", state))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, req, "/leaderboards", 302)
+}
+
+func processFetchLeaderboards(session *sessions.Session, gapi *googleGames.Service) error {
+
+	leaderboards, err := gapi.Leaderboards.List().Do()
+	if err != nil {
+		return err
+	}
+
+	boardsScores := make(map[string]*googleGames.LeaderboardScores)
+
+	for _, board := range leaderboards.Items {
+		scores, err := gapi.Scores.List(board.Id, "PUBLIC", "ALL_TIME").MaxResults(10).Do()
+		if err != nil {
+			return err
+		}
+		boardsScores[board.Name] = scores
+	}
+
+	session.Options = &sessions.Options{
+		MaxAge: 1800,
+	}
+	cache, _ := json.Marshal(boardsScores)
+	session.Values["scores"] = string(cache)
+
+	return nil
+}
+
+func processSubmitScore(gapi *googleGames.Service, state map[string]string) error {
+	game, err := validateGameSubmitScore(state["gameID"])
+	if err != nil {
+		return err
 	}
 
 	leaderboards, err := gapi.Leaderboards.List().Do()
 	if err != nil {
-		gou.Error(err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
-		return
+		return err
 	}
 
 	//TODO test
@@ -178,10 +246,7 @@ func oauthCallbackHander(w http.ResponseWriter, req *http.Request) {
 		if board.Name == game.Size {
 			score, err := gapi.Scores.Get("me", board.Id, "ALL_TIME").Do()
 			if err != nil {
-				gou.Error(err)
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(err.Error()))
-				return
+				return err
 			}
 
 			var newScore int64
@@ -194,10 +259,7 @@ func oauthCallbackHander(w http.ResponseWriter, req *http.Request) {
 
 			res, err := gapi.Scores.Submit(board.Id, newScore).Do()
 			if err != nil {
-				gou.Error(err)
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(err.Error()))
-				return
+				return err
 			}
 			game.SetScoredBy(score.Player.PlayerId)
 
@@ -206,10 +268,10 @@ func oauthCallbackHander(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	http.Redirect(w, req, "/", 302)
+	return nil
 }
 
-var conf = &oauth2.Config{
+var oauthConf = &oauth2.Config{
 	ClientID:     config.GoogleClientID(),
 	ClientSecret: config.GoogleClientSecret(),
 	RedirectURL:  config.OauthRedirectURL(),

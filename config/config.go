@@ -23,11 +23,20 @@ func GoogleClientSecret() string {
 	return secret
 }
 
-// OauthRedirectPath - returns oauth redirect path
+// OauthRedirectURL - returns oauth redirect url
 func OauthRedirectURL() string {
 	url := os.Getenv("OAUTH_REDIRECT_URL")
 	if url == "" {
 		panic("OAUTH_REDIRECT_URL is not set")
+	}
+	return url
+}
+
+// RedisURL - returns redis address url
+func RedisURL() string {
+	url := os.Getenv("REDIS_URL")
+	if url == "" {
+		panic("REDIS_URL is not set")
 	}
 	return url
 }

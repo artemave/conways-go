@@ -2,6 +2,7 @@ React = require 'react'
 D     = React.DOM
 
 SubmitScorePopup = React.createClass {
+
   onYes() =
     window.location.href = "#(window.location.protocol)//#(window.location.hostname)/submit_score?gameID=#(self.props.gameId)"
 
