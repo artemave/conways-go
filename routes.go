@@ -20,39 +20,17 @@ import (
 	googleGames "google.golang.org/api/games/v1"
 )
 
-func RegisterRoutes() *mux.Router {
-	r := mux.NewRouter()
-
-	r.HandleFunc("/", rootHandler)
-	r.HandleFunc("/games", CreateGameHandler).Methods("POST")
-	r.HandleFunc("/practice", CreatePracticeGameHandler).Methods("POST")
-	r.HandleFunc("/submit_score", submitScoreHandler)
-	r.HandleFunc("/oauth2callback", oauthCallbackHander)
-	r.HandleFunc("/games/{id}", rootHandler)
-	r.HandleFunc("/games/play/{id}", GamePlayHandler)
-	r.HandleFunc("/fetch_leaderboards", fetchLeaderboardsHandler)
-	r.HandleFunc("/scores", scoresIndexHandler)
-	r.HandleFunc("/leaderboards", rootHandler)
-
-	return r
+var oauthConf = &oauth2.Config{
+	ClientID:     config.GoogleClientID(),
+	ClientSecret: config.GoogleClientSecret(),
+	RedirectURL:  config.OauthRedirectURL(),
+	Scopes: []string{
+		googleGames.GamesScope,
+	},
+	Endpoint: google.Endpoint,
 }
 
-func rootHandler(w http.ResponseWriter, req *http.Request) {
-	http.ServeFile(w, req, "./public/index.html")
-}
-
-func scoresIndexHandler(w http.ResponseWriter, req *http.Request) {
-	session, err := sessionCache.Get(req, "sessionCache")
-	if err != nil {
-		gou.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	if scores := session.Values["scores"]; scores != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(scores.(string)))
-	}
-}
+var gamesRepo = NewGamesRepo()
 
 var startGeneration = map[string]*conway.Generation{
 	"large": &conway.Generation{
@@ -105,7 +83,42 @@ var practiceGameStartGeneration = &conway.Generation{
 	{Point: conway.Point{Row: 23, Col: 25}, State: conway.Live, Player: conway.Player2},
 }
 
-func CreateGameHandler(w http.ResponseWriter, r *http.Request) {
+// RegisterRoutes : registers routes
+func RegisterRoutes() *mux.Router {
+	r := mux.NewRouter()
+
+	r.HandleFunc("/", rootHandler)
+	r.HandleFunc("/games", createGameHandler).Methods("POST")
+	r.HandleFunc("/practice", createPracticeGameHandler).Methods("POST")
+	r.HandleFunc("/submit_score", submitScoreHandler)
+	r.HandleFunc("/oauth2callback", oauthCallbackHander)
+	r.HandleFunc("/games/{id}", rootHandler)
+	r.HandleFunc("/games/play/{id}", GamePlayHandler)
+	r.HandleFunc("/fetch_leaderboards", fetchLeaderboardsHandler)
+	r.HandleFunc("/scores", scoresIndexHandler)
+	r.HandleFunc("/leaderboards", rootHandler)
+
+	return r
+}
+
+func rootHandler(w http.ResponseWriter, req *http.Request) {
+	http.ServeFile(w, req, "./public/index.html")
+}
+
+func scoresIndexHandler(w http.ResponseWriter, req *http.Request) {
+	session, err := sessionCache.Get(req, "sessionCache")
+	if err != nil {
+		gou.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if scores := session.Values["scores"]; scores != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(scores.(string)))
+	}
+}
+
+func createGameHandler(w http.ResponseWriter, r *http.Request) {
 	gameSize := r.PostFormValue("gameSize")
 
 	u4 := uuid.New()
@@ -117,7 +130,7 @@ func CreateGameHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, u4)
 }
 
-func CreatePracticeGameHandler(w http.ResponseWriter, r *http.Request) {
+func createPracticeGameHandler(w http.ResponseWriter, r *http.Request) {
 	u4 := uuid.New()
 	newGame, err := gamesRepo.CreateGameById(u4, "small", practiceGameStartGeneration)
 	if err != nil {
@@ -143,8 +156,6 @@ func fetchLeaderboardsHandler(w http.ResponseWriter, req *http.Request) {
 	url := oauthConf.AuthCodeURL(string(stateJSON))
 	http.Redirect(w, req, url, 302)
 }
-
-var gamesRepo = NewGamesRepo()
 
 func oauthCallbackHander(w http.ResponseWriter, req *http.Request) {
 	stateJSON := req.URL.Query().Get("state")
@@ -176,7 +187,7 @@ func oauthCallbackHander(w http.ResponseWriter, req *http.Request) {
 
 	session, err := sessionCache.Get(req, "sessionCache")
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		gou.Error(err)
 		return
 	}
@@ -269,16 +280,6 @@ func processSubmitScore(gapi *googleGames.Service, state map[string]string) erro
 	}
 
 	return nil
-}
-
-var oauthConf = &oauth2.Config{
-	ClientID:     config.GoogleClientID(),
-	ClientSecret: config.GoogleClientSecret(),
-	RedirectURL:  config.OauthRedirectURL(),
-	Scopes: []string{
-		googleGames.GamesScope,
-	},
-	Endpoint: google.Endpoint,
 }
 
 //TODO test
