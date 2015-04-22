@@ -11,7 +11,6 @@ Leaderboards = React.createClass {
 
   componentWillMount() =
     scores = request.get "/scores".end(^)!.body
-    console.log('scores ', scores)
 
     if (scores)
       self.setState { scores = scores }
@@ -19,7 +18,7 @@ Leaderboards = React.createClass {
       window.location.href = "#(window.location.protocol)//#(window.location.hostname)/fetch_leaderboards"
 
   render() =
-    boardsDivs = _(self.state.scores).reduce @(acc, board, boardName)
+    boardsDivs = _.map(self.state.scores) @(board)
       playerScore = if (board.playerScore)
         "Your rank: #(board.playerScore.formattedScoreRank), score: #(board.playerScore.formattedScore)"
       else
@@ -49,16 +48,12 @@ Leaderboards = React.createClass {
         D.tbody.apply(D, scoresRows)
       )
 
-      acc.push(
-        D.div(
-          { className = "board" }
-          D.h2(null, boardName)
-          D.div({ className = "playerScore" }, playerScore)
-          D.div({ className = "scoreTableContainer" }, scoresTable)
-        )
+      D.div(
+        { className = "board" }
+        D.h2(null, board.name)
+        D.div({ className = "playerScore" }, playerScore)
+        D.div({ className = "scoreTableContainer" }, scoresTable)
       )
-      acc
-    []
 
     boardsDivs.unshift { className = "boardsContainer" }
 

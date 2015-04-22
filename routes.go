@@ -13,11 +13,11 @@ import (
 	"github.com/artemave/conways-go/config"
 	"github.com/artemave/conways-go/conway"
 	"github.com/artemave/conways-go/game"
+	gga "github.com/artemave/conways-go/google_games_adapter"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
-	googleGames "google.golang.org/api/games/v1"
 )
 
 var oauthConf = &oauth2.Config{
@@ -25,7 +25,7 @@ var oauthConf = &oauth2.Config{
 	ClientSecret: config.GoogleClientSecret(),
 	RedirectURL:  config.OauthRedirectURL(),
 	Scopes: []string{
-		googleGames.GamesScope,
+		gga.GamesScope,
 	},
 	Endpoint: google.Endpoint,
 }
@@ -178,7 +178,8 @@ func oauthCallbackHander(w http.ResponseWriter, req *http.Request) {
 	}
 
 	client := oauthConf.Client(oauth2.NoContext, tok)
-	gapi, err := googleGames.New(client)
+
+	gapi, err := gga.New(client)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		gou.Error(err)
@@ -215,21 +216,24 @@ func oauthCallbackHander(w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, "/leaderboards", 302)
 }
 
-func processFetchLeaderboards(session *sessions.Session, gapi *googleGames.Service) error {
+func processFetchLeaderboards(session *sessions.Session, gapi interface {
+	Leaderboards() ([]gga.Leaderboard, error)
+	Scores(gga.Leaderboard) (*gga.LeaderboardScores, error)
+}) error {
 
-	leaderboards, err := gapi.Leaderboards.List().Do()
+	leaderboards, err := gapi.Leaderboards()
 	if err != nil {
 		return err
 	}
 
-	boardsScores := make(map[string]*googleGames.LeaderboardScores)
+	var boardsScores []*gga.LeaderboardScores
 
-	for _, board := range leaderboards.Items {
-		scores, err := gapi.Scores.List(board.Id, "PUBLIC", "ALL_TIME").MaxResults(10).Do()
+	for _, board := range leaderboards {
+		scores, err := gapi.Scores(board)
 		if err != nil {
 			return err
 		}
-		boardsScores[board.Name] = scores
+		boardsScores = append(boardsScores, scores)
 	}
 
 	session.Options = &sessions.Options{
@@ -241,40 +245,33 @@ func processFetchLeaderboards(session *sessions.Session, gapi *googleGames.Servi
 	return nil
 }
 
-func processSubmitScore(gapi *googleGames.Service, state map[string]string) error {
+func processSubmitScore(gapi interface {
+	Leaderboards() ([]gga.Leaderboard, error)
+	CurrentPlayerScore(gga.Leaderboard) (*gga.PlayerScore, error)
+	SubmitScore(gga.Leaderboard, int64) error
+}, state map[string]string) error {
 	game, err := validateGameSubmitScore(state["gameID"])
 	if err != nil {
 		return err
 	}
 
-	leaderboards, err := gapi.Leaderboards.List().Do()
+	leaderboards, err := gapi.Leaderboards()
 	if err != nil {
 		return err
 	}
 
-	//TODO test
-	for _, board := range leaderboards.Items {
+	for _, board := range leaderboards {
 		if board.Name == game.Size {
-			score, err := gapi.Scores.Get("me", board.Id, "ALL_TIME").Do()
+			score, err := gapi.CurrentPlayerScore(board)
 			if err != nil {
 				return err
 			}
 
-			var newScore int64
-			if len(score.Items) == 0 {
-				newScore = 3
-			} else {
-				currentScore := score.Items[0].ScoreValue
-				newScore = int64(currentScore) + 3
-			}
-
-			res, err := gapi.Scores.Submit(board.Id, newScore).Do()
+			err = gapi.SubmitScore(board, score.ScoreValue+3)
 			if err != nil {
 				return err
 			}
-			game.SetScoredBy(score.Player.PlayerId)
-
-			gou.Info(fmt.Sprintf("Score submitted: %#v", res))
+			game.SetScoredBy(score.PlayerId)
 			break
 		}
 	}
