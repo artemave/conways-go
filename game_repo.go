@@ -9,7 +9,7 @@ import (
 
 type GamesRepo interface {
 	FindGameById(id string) *Game
-	CreateGameById(id string, gameSize string, startGeneration *conway.Generation) (*Game, error)
+	CreateGameById(id string, gameSize string, startGeneration *conway.Generation, isPractice bool) (*Game, error)
 }
 
 type InMemoryGamesRepo struct {
@@ -32,13 +32,14 @@ func (gr *InMemoryGamesRepo) FindGameById(id string) *Game {
 	return nil
 }
 
-func (gr *InMemoryGamesRepo) CreateGameById(id string, gameSize string, startGeneration *conway.Generation) (*Game, error) {
+func (gr *InMemoryGamesRepo) CreateGameById(id string, gameSize string, startGeneration *conway.Generation, isPractice bool) (*Game, error) {
 	for _, game := range gr.Games {
 		if game.Id == id {
 			return nil, errors.New("Game with id '" + id + "' is already created.")
 		}
 	}
-	newGame := NewGame(id, gameSize, startGeneration)
+
+	newGame := NewGame(id, gameSize, startGeneration, isPractice)
 	gr.Games = append(gr.Games, newGame)
 	return newGame, nil
 }

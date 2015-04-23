@@ -38,7 +38,7 @@ func GamePlayHandler(w http.ResponseWriter, r *http.Request) {
 		defer game.RemovePlayer(player)
 	}
 
-	if game.IsPractice {
+	if game.IsPractice() {
 		practiceWall := NewPracticeWall(game)
 		defer practiceWall.RemoveDummyPlayer()
 	}

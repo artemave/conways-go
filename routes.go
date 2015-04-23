@@ -2,9 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
-	"sync"
 
 	"code.google.com/p/go-uuid/uuid"
 
@@ -13,8 +11,8 @@ import (
 	"github.com/araddon/gou"
 	"github.com/artemave/conways-go/config"
 	"github.com/artemave/conways-go/conway"
-	"github.com/artemave/conways-go/game"
 	gga "github.com/artemave/conways-go/google_games_adapter"
+	s "github.com/artemave/conways-go/scores"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"golang.org/x/oauth2"
@@ -123,7 +121,7 @@ func createGameHandler(w http.ResponseWriter, r *http.Request) {
 	gameSize := r.PostFormValue("gameSize")
 
 	u4 := uuid.New()
-	_, err := gamesRepo.CreateGameById(u4, gameSize, startGeneration[gameSize])
+	_, err := gamesRepo.CreateGameById(u4, gameSize, startGeneration[gameSize], false)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 		return
@@ -133,12 +131,11 @@ func createGameHandler(w http.ResponseWriter, r *http.Request) {
 
 func createPracticeGameHandler(w http.ResponseWriter, r *http.Request) {
 	u4 := uuid.New()
-	newGame, err := gamesRepo.CreateGameById(u4, "small", practiceGameStartGeneration)
+	_, err := gamesRepo.CreateGameById(u4, "small", practiceGameStartGeneration, true)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	newGame.IsPractice = true
 	fmt.Fprintf(w, u4)
 }
 
@@ -196,13 +193,20 @@ func oauthCallbackHander(w http.ResponseWriter, req *http.Request) {
 
 	switch state["callbackFor"] {
 	case "submit_score":
-		if err := submitScore(gapi, state); err != nil {
+		game := gamesRepo.FindGameById(state["gameID"])
+		if game == nil {
+			gou.Error(fmt.Printf("Game with id '%s' not found", state["gameID"]))
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		if err := s.SubmitScore(gapi, game); err != nil {
 			gou.Error(err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 	case "fetch_leaderboards":
-		boardsScores, err := fetchLeaderboards(gapi)
+		boardsScores, err := s.FetchLeaderboards(gapi)
 		if err != nil {
 			gou.Error(err)
 			w.WriteHeader(http.StatusBadRequest)
@@ -223,110 +227,4 @@ func oauthCallbackHander(w http.ResponseWriter, req *http.Request) {
 	}
 
 	http.Redirect(w, req, "/leaderboards", 302)
-}
-
-func fetchLeaderboards(gapi interface {
-	Leaderboards() ([]gga.Leaderboard, error)
-	Scores(gga.Leaderboard) (*gga.LeaderboardScores, error)
-}) ([]*gga.LeaderboardScores, error) {
-
-	leaderboards, err := gapi.Leaderboards()
-	if err != nil {
-		return nil, err
-	}
-
-	var boardsScores []*gga.LeaderboardScores
-
-	var wg sync.WaitGroup
-	res := make(chan *gga.LeaderboardScores, len(leaderboards))
-	errs := make(chan error, len(leaderboards))
-
-	defer close(errs)
-	defer close(res)
-
-	wg.Add(len(leaderboards))
-
-	for _, board := range leaderboards {
-		go func(b gga.Leaderboard) {
-			defer wg.Done()
-
-			scores, err := gapi.Scores(b)
-			if err != nil {
-				errs <- err
-			}
-			res <- scores
-		}(board)
-	}
-	wg.Wait()
-
-FORZ:
-	for {
-		select {
-		case err := <-errs:
-			return nil, err
-		case scores := <-res:
-			boardsScores = append(boardsScores, scores)
-		default:
-			break FORZ
-		}
-	}
-
-	return boardsScores, nil
-}
-
-func submitScore(gapi interface {
-	Leaderboards() ([]gga.Leaderboard, error)
-	CurrentPlayerScore(gga.Leaderboard) (*gga.PlayerScore, error)
-	SubmitScore(gga.Leaderboard, int64) error
-}, state map[string]string) error {
-	game, err := validateGameSubmitScore(state["gameID"])
-	if err != nil {
-		return err
-	}
-
-	leaderboards, err := gapi.Leaderboards()
-	if err != nil {
-		return err
-	}
-
-	for _, board := range leaderboards {
-		if board.Name == game.Size {
-			score, err := gapi.CurrentPlayerScore(board)
-			if err != nil {
-				return err
-			}
-
-			err = gapi.SubmitScore(board, score.ScoreValue+3)
-			if err != nil {
-				return err
-			}
-			game.SetScoredBy(score.PlayerId)
-			break
-		}
-	}
-
-	return nil
-}
-
-//TODO test
-func validateGameSubmitScore(gameID string) (*game.Game, error) {
-	game := gamesRepo.FindGameById(gameID)
-
-	if game == nil {
-		return nil, errors.New("Game not found: " + gameID)
-	}
-
-	if game.IsPractice {
-		return nil, errors.New("Score can not be submitted for practice game.")
-	}
-
-	if !game.IsFinished {
-		return nil, errors.New("Can't submit score for a game that has not yet finished.")
-	}
-
-	if game.GetScoredBy() != nil {
-		return nil, errors.New("Score has already been submitted.")
-	}
-
-	return game, nil
 }

@@ -46,7 +46,7 @@ var _ = Describe("Game", func() {
 
 	Describe("StartClock", func() {
 		BeforeEach(func() {
-			game = NewGame("id", "small", testGeneration)
+			game = NewGame("id", "small", testGeneration, false)
 			game.Broadcaster = &StubBroadcaster{}
 			game.AddPlayer()
 			game.AddPlayer()

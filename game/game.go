@@ -42,11 +42,9 @@ type Broadcaster interface {
 	MessageAcknowledged(sb.SynchronizedBroadcasterClient)
 }
 
-type GooglePlayer string
-
 type Game struct {
 	Id     string
-	Size   string
+	size   string
 	Conway *conway.Game
 	Broadcaster
 	GameResultCalculator interface {
@@ -58,9 +56,9 @@ type Game struct {
 	Players           []*Player
 	clientCells       chan []conway.Cell
 	PausedByPlayer    conway.Player
-	IsPractice        bool
-	IsFinished        bool
-	scoredBy          *GooglePlayer
+	isPractice        bool
+	isFinished        bool
+	scoredBy          *string
 	clock             *clock.Clock
 	newCellsCache     map[conway.Player]*NewCellsCache
 }
@@ -81,7 +79,7 @@ func tickerFactory(delay time.Duration) clock.Ticker {
 	return GameTicker{ticker: *time.NewTicker(delay)}
 }
 
-func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
+func NewGame(id string, size string, startGeneration *conway.Generation, isPractice bool) *Game {
 	var cols int
 	var rows int
 
@@ -99,7 +97,7 @@ func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 
 	game := &Game{
 		Id:                   id,
-		Size:                 size,
+		size:                 size,
 		Broadcaster:          sb.NewSynchronizedBroadcaster(),
 		GameResultCalculator: grc.CaptureFlagCalculator,
 		Conway:               &conway.Game{Cols: cols, Rows: rows},
@@ -107,7 +105,7 @@ func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 		Players:              []*Player{},
 		currentGeneration:    startGeneration,
 		PausedByPlayer:       conway.None,
-		IsPractice:           false,
+		isPractice:           isPractice,
 		clock:                clock.NewClock(Delay, tickerFactory),
 		newCellsCache: map[conway.Player]*NewCellsCache{
 			conway.Player1: &NewCellsCache{
@@ -138,7 +136,7 @@ func NewGame(id string, size string, startGeneration *conway.Generation) *Game {
 
 				if winnerIndex != nil {
 					game.Broadcaster.SendBroadcastMessage(GameResult{game.playerByIndex(winnerIndex)})
-					game.IsFinished = true
+					game.isFinished = true
 					game.StopClock()
 				} else {
 					nextGeneration := game.NextGeneration()
@@ -305,12 +303,26 @@ func (g *Game) FreeCellsCountOf(player *Player) CellCount {
 // SetScoredBy : mark game scored, so that no more scores can be submitted for this game
 func (g *Game) SetScoredBy(googlePlayerID string) {
 	if g.GetScoredBy() == nil {
-		gp := GooglePlayer(googlePlayerID)
-		g.scoredBy = &gp
+		g.scoredBy = &googlePlayerID
 	}
 }
 
 // GetScoredBy : check if the game score was already submitted
-func (g *Game) GetScoredBy() *GooglePlayer {
+func (g *Game) GetScoredBy() *string {
 	return g.scoredBy
+}
+
+// Size : game size ("small", "medium", "large")
+func (g *Game) Size() string {
+	return g.size
+}
+
+// IsPractice : is this a practice wall or a duel between humans?
+func (g *Game) IsPractice() bool {
+	return g.isPractice
+}
+
+// IsFinished : has this game already finished?
+func (g *Game) IsFinished() bool {
+	return g.isFinished
 }

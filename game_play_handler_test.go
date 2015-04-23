@@ -35,7 +35,7 @@ var _ = Describe("GamePlayHandler", func() {
 	BeforeEach(func() {
 		gr := (*TestGameRepo).(*InMemoryGamesRepo)
 		gr.Empty()
-		gr.CreateGameById("123", "small", startGeneration)
+		gr.CreateGameById("123", "small", startGeneration, false)
 	})
 
 	Context("New game", func() {
