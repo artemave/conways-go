@@ -196,17 +196,25 @@ func oauthCallbackHander(w http.ResponseWriter, req *http.Request) {
 
 	switch state["callbackFor"] {
 	case "submit_score":
-		if err := processSubmitScore(gapi, state); err != nil {
+		if err := submitScore(gapi, state); err != nil {
 			gou.Error(err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 	case "fetch_leaderboards":
-		if err := processFetchLeaderboards(session, gapi); err != nil {
+		boardsScores, err := fetchLeaderboards(gapi)
+		if err != nil {
 			gou.Error(err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
+
+		session.Options = &sessions.Options{
+			MaxAge: 1800,
+		}
+		cache, _ := json.Marshal(boardsScores)
+		session.Values["scores"] = string(cache)
+
 		session.Save(req, w)
 	default:
 		gou.Error(fmt.Printf("callbackFrom is not set: %#v", state))
@@ -217,14 +225,14 @@ func oauthCallbackHander(w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, "/leaderboards", 302)
 }
 
-func processFetchLeaderboards(session *sessions.Session, gapi interface {
+func fetchLeaderboards(gapi interface {
 	Leaderboards() ([]gga.Leaderboard, error)
 	Scores(gga.Leaderboard) (*gga.LeaderboardScores, error)
-}) error {
+}) ([]*gga.LeaderboardScores, error) {
 
 	leaderboards, err := gapi.Leaderboards()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var boardsScores []*gga.LeaderboardScores
@@ -255,7 +263,7 @@ FORZ:
 	for {
 		select {
 		case err := <-errs:
-			return err
+			return nil, err
 		case scores := <-res:
 			boardsScores = append(boardsScores, scores)
 		default:
@@ -263,16 +271,10 @@ FORZ:
 		}
 	}
 
-	session.Options = &sessions.Options{
-		MaxAge: 1800,
-	}
-	cache, _ := json.Marshal(boardsScores)
-	session.Values["scores"] = string(cache)
-
-	return nil
+	return boardsScores, nil
 }
 
-func processSubmitScore(gapi interface {
+func submitScore(gapi interface {
 	Leaderboards() ([]gga.Leaderboard, error)
 	CurrentPlayerScore(gga.Leaderboard) (*gga.PlayerScore, error)
 	SubmitScore(gga.Leaderboard, int64) error
