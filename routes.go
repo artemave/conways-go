@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"sync"
 
 	"code.google.com/p/go-uuid/uuid"
 
@@ -228,12 +229,38 @@ func processFetchLeaderboards(session *sessions.Session, gapi interface {
 
 	var boardsScores []*gga.LeaderboardScores
 
+	var wg sync.WaitGroup
+	res := make(chan *gga.LeaderboardScores, len(leaderboards))
+	errs := make(chan error, len(leaderboards))
+
+	defer close(errs)
+	defer close(res)
+
+	wg.Add(len(leaderboards))
+
 	for _, board := range leaderboards {
-		scores, err := gapi.Scores(board)
-		if err != nil {
+		go func(b gga.Leaderboard) {
+			defer wg.Done()
+
+			scores, err := gapi.Scores(b)
+			if err != nil {
+				errs <- err
+			}
+			res <- scores
+		}(board)
+	}
+	wg.Wait()
+
+FORZ:
+	for {
+		select {
+		case err := <-errs:
 			return err
+		case scores := <-res:
+			boardsScores = append(boardsScores, scores)
+		default:
+			break FORZ
 		}
-		boardsScores = append(boardsScores, scores)
 	}
 
 	session.Options = &sessions.Options{
