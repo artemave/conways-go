@@ -2,11 +2,12 @@ package scores
 
 import (
 	"errors"
+	"sync"
 
 	gga "github.com/artemave/conways-go/google_games_adapter"
 )
-import "sync"
 
+// FetchLeaderboards : from Google Games API
 func FetchLeaderboards(gapi interface {
 	Leaderboards() ([]gga.Leaderboard, error)
 	Scores(gga.Leaderboard) (*gga.LeaderboardScores, error)
@@ -64,6 +65,7 @@ type game interface {
 	GetScoredBy() *string
 }
 
+// SubmitScore : to Google Games API
 func SubmitScore(gapi interface {
 	Leaderboards() ([]gga.Leaderboard, error)
 	CurrentPlayerScore(gga.Leaderboard) (*gga.PlayerScore, error)
@@ -98,7 +100,6 @@ func SubmitScore(gapi interface {
 	return nil
 }
 
-//TODO test
 func validateGameSubmitScore(game game) error {
 	if game.IsPractice() {
 		return errors.New("Score can not be submitted for practice game.")
