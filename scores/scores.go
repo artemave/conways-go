@@ -62,7 +62,7 @@ type game interface {
 	SetScoredBy(string)
 	IsPractice() bool
 	IsFinished() bool
-	GetScoredBy() *string
+	GetScoredBy() string
 }
 
 // SubmitScore : to Google Games API
@@ -109,7 +109,7 @@ func validateGameSubmitScore(game game) error {
 		return errors.New("Can't submit score for a game that has not yet finished.")
 	}
 
-	if game.GetScoredBy() != nil {
+	if game.GetScoredBy() != "" {
 		return errors.New("Score has already been submitted.")
 	}
 

@@ -58,7 +58,7 @@ type Game struct {
 	PausedByPlayer    conway.Player
 	isPractice        bool
 	isFinished        bool
-	scoredBy          *string
+	scoredBy          string
 	clock             *clock.Clock
 	newCellsCache     map[conway.Player]*NewCellsCache
 }
@@ -302,13 +302,11 @@ func (g *Game) FreeCellsCountOf(player *Player) CellCount {
 
 // SetScoredBy : mark game scored, so that no more scores can be submitted for this game
 func (g *Game) SetScoredBy(googlePlayerID string) {
-	if g.GetScoredBy() == nil {
-		g.scoredBy = &googlePlayerID
-	}
+	g.scoredBy = googlePlayerID
 }
 
 // GetScoredBy : check if the game score was already submitted
-func (g *Game) GetScoredBy() *string {
+func (g *Game) GetScoredBy() string {
 	return g.scoredBy
 }
 
