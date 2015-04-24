@@ -23,16 +23,14 @@ StartMenu = React.createClass {
     e.preventDefault()
     gameSize = self.refs.gameSize.getDOMNode().value
 
-    request.post '/games'.type 'form'.send {gameSize = gameSize}.end @(error) @(res)
-      gameId = res.text
-      Cookies.set("knows-how-to-play", "true")
-      self.context.router.transitionTo("/games/#(gameId)")
+    gameId = request.post '/games'.type 'form'.send {gameSize = gameSize}.end(^)!.text
+    Cookies.set("knows-how-to-play", "true")
+    self.context.router.transitionTo("/games/#(gameId)")
 
   practiceWall(e) =
-    request.post '/practice'.end @(error) @(res)
-      gameId = res.text
-      Cookies.set("knows-how-to-play", "true")
-      self.context.router.transitionTo "/games/#(gameId)"
+    gameId = request.post '/practice'.end(^)!.text
+    Cookies.set("knows-how-to-play", "true")
+    self.context.router.transitionTo "/games/#(gameId)"
 
   showHelpPopup() =
     self.setState { showHelpPopup = true }
