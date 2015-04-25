@@ -158,7 +158,7 @@ Game = React.createClass {
     }
 
   componentWillMount() =
-    protocol = if (window.location.protocol == 'http:') @{ 'ws:' } else @ { 'wss:' }
+    protocol = if (window.location.protocol == 'http:') @{ 'ws:' } else @{ 'wss:' }
     self.ws = @new WebSocket "#(protocol)//#(window.location.host)/games/play/#(self.context.router.getCurrentParams().gameId)"
     self.ws.onmessage = self.onWsMessage
 
@@ -196,7 +196,10 @@ Game = React.createClass {
         winSpots   = self.state.winSpots
       }
       (if (self.state.showSubmitScore)
-        SubmitScorePopup { wantsToHide = self.showSubmitScoreWantsToHide, gameId = self.context.router.getCurrentParams().gameId }
+        SubmitScorePopup {
+          wantsToHide = self.showSubmitScoreWantsToHide
+          gameId      = self.context.router.getCurrentParams().gameId
+        }
       else @{ null })
     )
 }

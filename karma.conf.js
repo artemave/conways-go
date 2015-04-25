@@ -15,7 +15,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'public/test/**/*spec.js'
+      'public/test/**/*spec.pogo'
     ],
 
 
@@ -27,11 +27,13 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-      'public/test/**/*spec.js': [ 'browserify' ]
+      'public/test/**/*.pogo': [ 'browserify' ]
     },
 
     browserify: {
-      debug: true
+      transform: ['pogoify'],
+      extensions: ['.pogo'],
+      watch: true
     },
     // test results reporter to use
     // possible values: 'dots', 'progress'
@@ -58,7 +60,7 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    // browsers: ['PhantomJS'],
+    //browsers: ['PhantomJS'],
     browsers: ['Chrome'],
 
 

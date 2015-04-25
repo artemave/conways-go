@@ -1,7 +1,7 @@
 require 'es5-shim'
 emitEscape = require '../js/emit_escape'
-ButtonBar  = require '../js/button_bar'
 React      = require 'react/addons'
+ButtonBar  = React.createFactory(require '../js/button_bar')
 TestUtils  = React.addons.TestUtils
 
 describe "ButtonBar"
@@ -12,8 +12,8 @@ describe "ButtonBar"
       document.removeEventListener('about-to-place-shape', cb)
 
     it "triggers event (to grid) about which button is clicked" @(done)
-      bb = TestUtils.renderIntoDocument(ButtonBar {show = true})
-      buttonLine = TestUtils.findRenderedDOMComponentWithClass(bb, 'button line')
+      bb = TestUtils.renderIntoDocument(ButtonBar {show = true, player = 1})
+      buttonLine = TestUtils.findRenderedDOMComponentWithClass(bb, 'button shape line player1')
 
       cb(e) :=
         expect(e.detail.shape).to.eq 'line'
