@@ -1,6 +1,7 @@
 React   = require 'react'
 key     = require 'keymaster'
 shapeOf = require './shape_for_cell'
+require './custom_event_shim'
 
 R = React.DOM
 
