@@ -1,20 +1,20 @@
+require '../wrap_websocket'
 Cookies           = require 'cookies-js'
 React             = require 'react'
 WebSocket         = require 'ReconnectingWebSocket'
 when              = require '../when'.when
 is                = require '../when'.is
 otherwise         = require '../when'.otherwise
+key               = require 'keymaster'
+RR                = require 'react-router'
 GameIsPaused      = React.createFactory(require '../game_is_paused')
 ShareInstructions = React.createFactory(require '../share_instructions')
 ButtonBar         = React.createFactory(require '../button_bar')
 Grid              = React.createFactory(require '../grid')
 HelpPopup         = React.createFactory(require '../help_popup')
 SubmitScorePopup  = React.createFactory(require '../submit_score_popup')
-key               = require 'keymaster'
-RR                = require 'react-router'
 
-knowsHowToPlay = Cookies.get("knows-how-to-play")
-D              = React.DOM
+D = React.DOM
 
 Game = React.createClass {
   mixins = [RR.Navigation]
@@ -27,6 +27,7 @@ Game = React.createClass {
       showHelpPopup            = false
       showSubmitScore          = false
       withDontShowThisCheckbox = false
+      knowsHowToPlay           = Cookies.get("knows-how-to-play")
     }
 
   onWsMessage(event) =
@@ -54,7 +55,7 @@ Game = React.createClass {
           showGame              = true
         )
 
-        if (!knowsHowToPlay)
+        if (!self.state.knowsHowToPlay)
           self.setState {
             showHelpPopup            = true
             withDontShowThisCheckbox = true
@@ -73,7 +74,7 @@ Game = React.createClass {
         if (msg.Player == msg.PausedByPlayer)
           self.setState {
             showHelpPopup            = true
-            withDontShowThisCheckbox = !knowsHowToPlay
+            withDontShowThisCheckbox = !self.state.knowsHowToPlay
           }
 
         ack := {"acknowledged" = "pause"}
@@ -158,16 +159,18 @@ Game = React.createClass {
     }
 
   componentWillMount() =
-    protocol = if (window.location.protocol == 'http:') @{ 'ws:' } else @{ 'wss:' }
-    self.ws = @new WebSocket "#(protocol)//#(window.location.host)/games/play/#(self.context.router.getCurrentParams().gameId)"
+    WS = window.WrapWebSocket()
+    self.ws = @new WS "#(self.props.wsHost)/games/play/#(self.context.router.getCurrentParams().gameId)"
     self.ws.onmessage = self.onWsMessage
 
-    key('esc', self.helpPopupWantsToHide)
+    key.setScope 'game_view'
+
+    key('esc', 'game_view', self.helpPopupWantsToHide)
     document.addEventListener('shape-placed', self.placeShape)
 
   componentWillUnmount() =
     self.ws.close(1000)
-    key.unbind('esc')
+    key.unbind('esc', 'game_view')
     document.removeEventListener('shape-placed', self.placeShape)
 
   render() =

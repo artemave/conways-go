@@ -1,9 +1,17 @@
 React     = require 'react'
 RR        = require 'react-router'
+Game = require './views/game'
 
 RouteHandler  = RR.RouteHandler
 Route         = React.createFactory(RR.Route)
 DefaultRoute  = React.createFactory(RR.DefaultRoute)
+
+GameWithProps = React.createClass {
+  wsHost = if (window.location.protocol == 'http:') @{ 'ws:' } else @{ 'wss:' } + "//#(window.location.host)"
+
+  render() =
+    React.createElement(Game, { wsHost = self.wsHost })
+}
 
 App = React.createClass {
   render() =
@@ -14,9 +22,9 @@ routes = Route (
   { handler = App, name = "start_menu", path = "/" }
   DefaultRoute { handler = require './views/start_menu' }
   Route {
-    name = 'game'
-    handler = require './views/game'
-    path = '/games/:gameId'
+    name    = 'game'
+    handler = GameWithProps
+    path    = '/games/:gameId'
   }
   Route {
     name    = 'leaderboards'

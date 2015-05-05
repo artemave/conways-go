@@ -4,7 +4,6 @@ _     = require 'lodash'
 require 'd3-tip'
 
 D3Grid (el, opts) =
-  self = this
   grid = []
   svg  = null
 

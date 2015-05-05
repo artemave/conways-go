@@ -1,0 +1,1 @@
+window.WrapWebSocket() = @{ window.WebSocket }
