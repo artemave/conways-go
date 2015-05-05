@@ -48,7 +48,7 @@ StartMenu = React.createClass {
         { className = 'start_menu_button', onClick = self.newGame }
         D.span { className = 'button_label' } 'new'
         D.select(
-          { ref = "gameSize", onClick = @(e) @{ e.preventDefault(), false } }
+          { ref = "gameSize", onClick = @(e) @{ e.stopPropagation() } }
           D.option { value = "small" } "SMALL"
           D.option { value = "medium" } "MEDIUM"
           D.option { value = "large" } "LARGE"
