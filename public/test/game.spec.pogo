@@ -1,14 +1,15 @@
 require 'es5-shim'
 React             = require 'react/addons'
+Game              = require '../js/views/game'
 StubRouterContext = require './stub_router_context'
-Game              = React.createFactory(require '../js/views/game')
 TestUtils         = React.addons.TestUtils
 
 describe 'Game'
   wsSpy   = null
   sandbox = null
+
   gameComponent = StubRouterContext(
-    Game
+    React.createFactory(Game)
     { wsHost = 'ws://host' }
     { getCurrentParams() = { gameId = '123' } }
   )
@@ -30,14 +31,22 @@ describe 'Game'
       expect(wsSpy).to.have.been.calledWith 'ws://host/games/play/123'
 
   describe 'responding to ws messages'
-    ws = null
+    ws                = null
+    componentInstance = null
 
     beforeEach
       ws := { send = sandbox.spy() }
       wsSpy := @() @{ ws }
-      TestUtils.renderIntoDocument(React.createElement(gameComponent))
+      componentInstance := TestUtils.renderIntoDocument(React.createElement(gameComponent))
 
     context 'server sent "wait"'
-      it 'acknowlekdges the message'
+      beforeEach
         ws.onmessage({ data = JSON.stringify { Handshake = 'wait' }})
+
+      it 'acknowlekdges the message'
         expect(ws.send).to.have.been.calledWith(JSON.stringify { "acknowledged" = "wait" })
+
+      it 'shows share instructions'
+
+      it 'hides game grid (in case "wait" was the result of other player disconnect whilst playing)'
+      it 'hides "game is paused" (in case "wait" was the result of other player disconnect whilst game was paused by them)'

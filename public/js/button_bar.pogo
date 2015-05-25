@@ -20,7 +20,7 @@ button(type, shortcut) =
         self.props.handleClick(type)
 
     componentDidMount() =
-      key(shortcut, self.onClick, 'button_bar')
+      key(shortcut, 'button_bar', self.onClick)
 
     componentWillUnmount() =
       key.unbind(shortcut, 'button_bar')
@@ -120,26 +120,23 @@ ButtonBar = React.createClass {
     { buttonClicked = 'none', show = false }
 
   componentDidMount () =
-    key.setScope 'button_bar'
     key('esc', 'button_bar', self.cancelPlaceShape)
-    document.addEventListener('shape-placed', self.cancelPlaceShape)
+    window.eventServer.on('shape-placed', self.cancelPlaceShape)
 
   componentWillUnmount()=
     key.unbind('esc', 'button_bar')
-    document.removeEventListener('shape-placed', self.cancelPlaceShape)
+    window.eventServer.off('shape-placed', self.cancelPlaceShape)
 
   cancelPlaceShape ()=
     self.setState {buttonClicked = 'none'}
 
-    e = @new CustomEvent "no-shape-wants-to-be-placed"
-    document.dispatchEvent(e)
+    window.eventServer.emit "no-shape-wants-to-be-placed"
 
   handleClick (type) =
     self.cancelPlaceShape()
     self.setState {buttonClicked = type}
 
-    e = @new CustomEvent "about-to-place-shape" {detail = {shape = type}}
-    document.dispatchEvent(e)
+    window.eventServer.emit "about-to-place-shape" {detail = {shape = type}}
 
   render () =
     if (self.props.show)

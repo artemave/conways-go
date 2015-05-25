@@ -5,7 +5,6 @@ WebSocket         = require 'ReconnectingWebSocket'
 when              = require '../when'.when
 is                = require '../when'.is
 otherwise         = require '../when'.otherwise
-key               = require 'keymaster'
 RR                = require 'react-router'
 GameIsPaused      = React.createFactory(require '../game_is_paused')
 ShareInstructions = React.createFactory(require '../share_instructions')
@@ -163,15 +162,11 @@ Game = React.createClass {
     self.ws = @new WS "#(self.props.wsHost)/games/play/#(self.context.router.getCurrentParams().gameId)"
     self.ws.onmessage = self.onWsMessage
 
-    key.setScope 'game_view'
-
-    key('esc', 'game_view', self.helpPopupWantsToHide)
-    document.addEventListener('shape-placed', self.placeShape)
+    window.eventServer.on('shape-placed', self.placeShape)
 
   componentWillUnmount() =
     self.ws.close(1000)
-    key.unbind('esc', 'game_view')
-    document.removeEventListener('shape-placed', self.placeShape)
+    window.eventServer.off('shape-placed', self.placeShape)
 
   render() =
     D.div(

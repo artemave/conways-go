@@ -1,4 +1,5 @@
 React    = require 'react'
+key      = require 'keymaster'
 Cookies  = require 'cookies-js'
 helpText = require './help-text'
 _        = require 'lodash'
@@ -29,11 +30,19 @@ HelpPopup = React.createClass {
     withDontShowThisCheckbox = React.PropTypes.bool
   }
 
+  componentWillMount() =
+    key('esc', 'help_popup', self.props.wantsToHide)
+
+  componentWillUnmount() =
+    key.unbind('esc', 'help_popup')
+
   getDefaultProps() =
     { withDontShowThisCheckbox = false }
 
   render() =
     if (self.props.show)
+      key.setScope 'help_popup'
+
       D.div(
         { className = 'helpPopup' }
         D.div { className = 'icon-cancel', onClick = self.props.wantsToHide }

@@ -33,7 +33,8 @@ module.exports = function(config) {
     browserify: {
       transform: ['pogoify', 'markdownify'],
       extensions: ['.pogo', '.md'],
-      watch: true
+      watch: true,
+      debug: true
     },
     // test results reporter to use
     // possible values: 'dots', 'progress'

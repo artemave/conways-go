@@ -87,8 +87,7 @@ D3Grid (el, opts) =
     s = svg.selectAll('rect.hover')
     s.classed('new', true).classed('hover', false)
 
-    e = @new CustomEvent "shape-placed" {detail = {cells = (s.data())}}
-    document.dispatchEvent(e)
+    window.eventServer.emit "shape-placed" {detail = {cells = (s.data())}}
 
   self.unbindResize() =
     window.removeEventListener('resize', resize)

@@ -14,9 +14,7 @@ describe "Hover"
           false
 
         hover := @new Hover(grid)
-
-        e = @new CustomEvent "about-to-place-shape" {detail = {shape = s}}
-        document.dispatchEvent(e)
+        window.eventServer.emit "about-to-place-shape" {detail = {shape = s}}
 
       it "casts a hover (of #(s)) onto the grid"
         cell = {Row = 2, Col = 2}

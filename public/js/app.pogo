@@ -1,10 +1,13 @@
 React     = require 'react'
 RR        = require 'react-router'
 Game = require './views/game'
+EventEmitter = require 'eventemitter2'.EventEmitter2
 
 RouteHandler  = RR.RouteHandler
 Route         = React.createFactory(RR.Route)
 DefaultRoute  = React.createFactory(RR.DefaultRoute)
+
+window.eventServer = @new EventEmitter()
 
 GameWithProps = React.createClass {
   wsHost = if (window.location.protocol == 'http:') @{ 'ws:' } else @{ 'wss:' } + "//#(window.location.host)"

@@ -3,10 +3,10 @@ shapeOf = require './shape_for_cell'
 Hover(grid, player) =
   currently pressed button = nil
 
-  document.addEventListener 'about-to-place-shape' @(e)
+  window.eventServer.on 'about-to-place-shape' @(e)
     currently pressed button := e.detail.shape
 
-  document.addEventListener 'no-shape-wants-to-be-placed'
+  window.eventServer.on 'no-shape-wants-to-be-placed'
     grid.clearClass 'hover'
     currently pressed button := nil
 
