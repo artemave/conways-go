@@ -1,3 +1,4 @@
+eventServer = require './event_server'
 React   = require 'react'
 key     = require 'keymaster'
 shapeOf = require './shape_for_cell'
@@ -121,22 +122,21 @@ ButtonBar = React.createClass {
 
   componentDidMount () =
     key('esc', 'button_bar', self.cancelPlaceShape)
-    window.eventServer.on('shape-placed', self.cancelPlaceShape)
+    eventServer.on('shape-placed', self.cancelPlaceShape)
 
   componentWillUnmount()=
     key.unbind('esc', 'button_bar')
-    window.eventServer.off('shape-placed', self.cancelPlaceShape)
+    eventServer.off('shape-placed', self.cancelPlaceShape)
 
   cancelPlaceShape ()=
     self.setState {buttonClicked = 'none'}
-
-    window.eventServer.emit "no-shape-wants-to-be-placed"
+    eventServer.emit "no-shape-wants-to-be-placed"
 
   handleClick (type) =
     self.cancelPlaceShape()
     self.setState {buttonClicked = type}
 
-    window.eventServer.emit "about-to-place-shape" {detail = {shape = type}}
+    eventServer.emit "about-to-place-shape" {detail = {shape = type}}
 
   render () =
     if (self.props.show)

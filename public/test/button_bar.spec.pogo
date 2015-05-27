@@ -1,8 +1,9 @@
 require 'es5-shim'
-emitEscape = require '../js/emit_escape'
-React      = require 'react/addons'
-ButtonBar  = React.createFactory(require '../js/button_bar')
-TestUtils  = React.addons.TestUtils
+emitEscape  = require '../js/emit_escape'
+eventServer = require '../js/event_server'
+React       = require 'react/addons'
+ButtonBar   = React.createFactory(require '../js/button_bar')
+TestUtils   = React.addons.TestUtils
 
 describe "ButtonBar"
   describe "when button clicked"
@@ -11,11 +12,10 @@ describe "ButtonBar"
       buttonLine = TestUtils.findRenderedDOMComponentWithClass(bb, 'button shape line player1')
 
       cb(e) =
-        e.stopPropagation()
         expect(e.detail.shape).to.eq 'line'
         done()
 
-      window.eventServer.once('about-to-place-shape', cb)
+      eventServer.once('about-to-place-shape', cb)
 
       TestUtils.Simulate.click(buttonLine)
 
@@ -27,6 +27,6 @@ describe "ButtonBar"
       cb(e) =
         done()
 
-      window.eventServer.once('no-shape-wants-to-be-placed', cb)
+      eventServer.on('no-shape-wants-to-be-placed', cb)
 
       emitEscape()

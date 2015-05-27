@@ -1,4 +1,5 @@
 require '../wrap_websocket'
+eventServer       = require '../event_server'
 Cookies           = require 'cookies-js'
 React             = require 'react'
 WebSocket         = require 'ReconnectingWebSocket'
@@ -162,11 +163,11 @@ Game = React.createClass {
     self.ws = @new WS "#(self.props.wsHost)/games/play/#(self.context.router.getCurrentParams().gameId)"
     self.ws.onmessage = self.onWsMessage
 
-    window.eventServer.on('shape-placed', self.placeShape)
+    eventServer.on('shape-placed', self.placeShape)
 
   componentWillUnmount() =
     self.ws.close(1000)
-    window.eventServer.off('shape-placed', self.placeShape)
+    eventServer.off('shape-placed', self.placeShape)
 
   render() =
     D.div(

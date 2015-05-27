@@ -1,6 +1,7 @@
-d3    = require 'd3'
-Hover = require './hover'
-_     = require 'lodash'
+eventServer = require './event_server'
+d3          = require 'd3'
+Hover       = require './hover'
+_           = require 'lodash'
 require 'd3-tip'
 
 D3Grid (el, opts) =
@@ -87,7 +88,7 @@ D3Grid (el, opts) =
     s = svg.selectAll('rect.hover')
     s.classed('new', true).classed('hover', false)
 
-    window.eventServer.emit "shape-placed" {detail = {cells = (s.data())}}
+    eventServer.emit "shape-placed" {detail = {cells = (s.data())}}
 
   self.unbindResize() =
     window.removeEventListener('resize', resize)

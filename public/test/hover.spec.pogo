@@ -1,5 +1,6 @@
-Hover = require '../js/hover'
-shapeOf = require '../js/shape_for_cell'
+Hover       = require '../js/hover'
+eventServer = require '../js/event_server'
+shapeOf     = require '../js/shape_for_cell'
 
 describe "Hover"
 
@@ -14,7 +15,7 @@ describe "Hover"
           false
 
         hover := @new Hover(grid)
-        window.eventServer.emit "about-to-place-shape" {detail = {shape = s}}
+        eventServer.emit "about-to-place-shape" {detail = {shape = s}}
 
       it "casts a hover (of #(s)) onto the grid"
         cell = {Row = 2, Col = 2}

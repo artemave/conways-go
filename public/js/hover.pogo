@@ -1,12 +1,13 @@
-shapeOf = require './shape_for_cell'
+shapeOf     = require './shape_for_cell'
+eventServer = require './event_server'
 
 Hover(grid, player) =
   currently pressed button = nil
 
-  window.eventServer.on 'about-to-place-shape' @(e)
+  eventServer.on 'about-to-place-shape' @(e)
     currently pressed button := e.detail.shape
 
-  window.eventServer.on 'no-shape-wants-to-be-placed'
+  eventServer.on 'no-shape-wants-to-be-placed'
     grid.clearClass 'hover'
     currently pressed button := nil
 
