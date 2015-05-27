@@ -140,6 +140,7 @@ ButtonBar = React.createClass {
 
   render () =
     if (self.props.show)
+      key.setScope 'button_bar'
       R.div (
         {className = 'ButtonBar'}
         buttonDot {handleClick = self.handleClick, freeCellsCount = self.props.freeCellsCount, player = self.props.player}

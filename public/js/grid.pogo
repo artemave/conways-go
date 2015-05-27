@@ -33,7 +33,6 @@ Grid = React.createClass {
 
   render() =
     if (self.props.show)
-      key.setScope 'button_bar'
       React.DOM.div {className = 'D3Grid'}
     else
       null

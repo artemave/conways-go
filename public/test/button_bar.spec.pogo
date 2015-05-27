@@ -21,10 +21,19 @@ describe "ButtonBar"
 
 
   describe "when escape is pressed"
+    original listeners = []
+
+    beforeEach
+      original listeners := eventServer.listeners('no-shape-wants-to-be-placed').slice 0
+      eventServer.removeAllListeners('no-shape-wants-to-be-placed')
+
+    afterEach
+      [l <- original listeners, eventServer.addListener('no-shape-wants-to-be-placed', l)]
+
     it "triggers event (to grid) that no button is currently clicked" @(done)
       bb = TestUtils.renderIntoDocument(ButtonBar {show = true})
 
-      cb(e) =
+      cb() =
         done()
 
       eventServer.on('no-shape-wants-to-be-placed', cb)
