@@ -2,6 +2,12 @@ require 'es5-shim'
 React             = require 'react/addons'
 Game              = require '../js/views/game'
 StubRouterContext = require './stub_router_context'
+ShareInstructions = require '../js/share_instructions'
+GameIsPaused      = require '../js/game_is_paused'
+ButtonBar         = require '../js/button_bar'
+Grid              = require '../js/grid'
+HelpPopup         = require '../js/help_popup'
+SubmitScorePopup  = require '../js/submit_score_popup'
 TestUtils         = React.addons.TestUtils
 
 describe 'Game'
@@ -32,12 +38,12 @@ describe 'Game'
 
   describe 'responding to ws messages'
     ws                = null
-    componentInstance = null
+    gameComponentInstance = null
 
     beforeEach
       ws := { send = sandbox.spy() }
       wsSpy := @() @{ ws }
-      componentInstance := TestUtils.renderIntoDocument(React.createElement(gameComponent))
+      gameComponentInstance := TestUtils.renderIntoDocument(React.createElement(gameComponent))
 
     context 'server sent "wait"'
       beforeEach
@@ -47,6 +53,8 @@ describe 'Game'
         expect(ws.send).to.have.been.calledWith(JSON.stringify { "acknowledged" = "wait" })
 
       it 'shows share instructions'
+        TestUtils.findRenderedComponentWithType(gameComponentInstance, ShareInstructions)
 
-      it 'hides game grid (in case "wait" was the result of other player disconnect whilst playing)'
-      it 'hides "game is paused" (in case "wait" was the result of other player disconnect whilst game was paused by them)'
+      ['ButtonBar', 'GameIsPaused', 'Grid', 'HelpPopup', 'SubmitScorePopup'].forEach @(type)
+        it "does NOT show #(type)"
+          expect(TestUtils.scryRenderedComponentsWithType(gameComponentInstance, eval(type)).length).to.eq 0

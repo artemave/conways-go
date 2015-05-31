@@ -67,10 +67,11 @@ StartMenu = React.createClass {
         { className = 'start_menu_button', onClick = self.showLeaderboards }
         D.span { className = 'button_label' } 'leaderboards'
       )
-      HelpPopup {
-        show        = self.state.showHelpPopup
-        wantsToHide = self.hideHelpPopup
-      }
+      (if (self.state.showHelpPopup)
+        HelpPopup {
+          wantsToHide = self.hideHelpPopup
+        }
+      else @{ null })
     )
 
 }

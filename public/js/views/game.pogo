@@ -21,7 +21,8 @@ Game = React.createClass {
 
   getInitialState() =
     {
-      showShareInstructions    = true
+      // TODO showConnecting = true
+      showShareInstructions    = false
       showGameIsPaused         = false
       showGame                 = false
       showHelpPopup            = false
@@ -172,28 +173,31 @@ Game = React.createClass {
   render() =
     D.div(
       null
-      HelpPopup {
-        show                     = self.state.showHelpPopup
-        wantsToHide              = self.helpPopupWantsToHide
-        withDontShowThisCheckbox = self.state.withDontShowThisCheckbox
-      }
+      (if (self.state.showHelpPopup)
+        HelpPopup {
+          wantsToHide              = self.helpPopupWantsToHide
+          withDontShowThisCheckbox = self.state.withDontShowThisCheckbox
+        }
+      else @{ null })
       (if (self.state.showShareInstructions) @{ ShareInstructions() } else @{ null })
       (if (self.state.showGameIsPaused) @{ GameIsPaused() } else @{ null })
-      ButtonBar {
-        player              = self.state.player
-        show                = self.state.showGame
-        freeCellsCount      = self.state.freeCellsCount
-        onHelpButtonClicked = self.onHelpButtonClicked
-      }
-      Grid {
-        ref        = "grid"
-        show       = self.state.showGame
-        generation = self.state.generation
-        player     = self.state.player
-        cols       = self.state.cols
-        rows       = self.state.rows
-        winSpots   = self.state.winSpots
-      }
+      (if (self.state.showGame)
+        ButtonBar {
+          player              = self.state.player
+          freeCellsCount      = self.state.freeCellsCount
+          onHelpButtonClicked = self.onHelpButtonClicked
+        }
+      else @{ null })
+      (if (self.state.showGame)
+        Grid {
+          ref        = "grid"
+          generation = self.state.generation
+          player     = self.state.player
+          cols       = self.state.cols
+          rows       = self.state.rows
+          winSpots   = self.state.winSpots
+        }
+      else @{ null })
       (if (self.state.showSubmitScore)
         SubmitScorePopup {
           wantsToHide = self.showSubmitScoreWantsToHide

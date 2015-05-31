@@ -25,7 +25,6 @@ DoNotAutoShowCheckbox = React.createFactory(
 
 HelpPopup = React.createClass {
   propTypes = {
-    show                     = React.PropTypes.bool
     wantsToHide              = React.PropTypes.func
     withDontShowThisCheckbox = React.PropTypes.bool
   }
@@ -40,29 +39,26 @@ HelpPopup = React.createClass {
     { withDontShowThisCheckbox = false }
 
   render() =
-    if (self.props.show)
-      key.setScope 'help_popup'
+    key.setScope 'help_popup'
 
+    D.div(
+      { className = 'helpPopup' }
+      D.div { className = 'icon-cancel', onClick = self.props.wantsToHide }
+      D.div { className = 'popupText', dangerouslySetInnerHTML = { __html = helpText } }
+      D.div { className = 'hr' }
       D.div(
-        { className = 'helpPopup' }
-        D.div { className = 'icon-cancel', onClick = self.props.wantsToHide }
-        D.div { className = 'popupText', dangerouslySetInnerHTML = { __html = helpText } }
-        D.div { className = 'hr' }
-        D.div(
-          {
-            className = 'doNotAutoShowCheckbox'
-            style = { display = if (self.props.withDontShowThisCheckbox) @{'block'} else @{'none'} }
-          }
-          D.label(
-            { htmlFor = 'doNotAutoShow' }
-            DoNotAutoShowCheckbox { id = 'doNotAutoShow' }
-            "Got it. Don't show this again"
-          )
+        {
+          className = 'doNotAutoShowCheckbox'
+          style = { display = if (self.props.withDontShowThisCheckbox) @{'block'} else @{'none'} }
+        }
+        D.label(
+          { htmlFor = 'doNotAutoShow' }
+          DoNotAutoShowCheckbox { id = 'doNotAutoShow' }
+          "Got it. Don't show this again"
         )
-        D.div { className = 'icon-play-circled', onClick = self.props.wantsToHide }
       )
-    else
-      null
+      D.div { className = 'icon-play-circled', onClick = self.props.wantsToHide }
+    )
 }
 
 module.exports = HelpPopup
