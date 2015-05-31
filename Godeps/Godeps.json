@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/artemave/conways-go",
-	"GoVersion": "go1.4.1",
+	"GoVersion": "go1.4.2",
 	"Deps": [
 		{
 			"ImportPath": "code.google.com/p/go-uuid/uuid",
@@ -10,11 +10,6 @@
 		{
 			"ImportPath": "github.com/araddon/gou",
 			"Rev": "83835b52401515352c9234fecfa61e55aaab793b"
-		},
-		{
-			"ImportPath": "github.com/boj/redistore",
-			"Comment": "v1-2-g0cd5558",
-			"Rev": "0cd55584b172cefd31c4cb84e2904585d898c7b2"
 		},
 		{
 			"ImportPath": "github.com/codegangsta/negroni",
@@ -82,6 +77,11 @@
 		{
 			"ImportPath": "google.golang.org/cloud/internal",
 			"Rev": "f20d6dcccb44ed49de45ae3703312cb46e627db1"
+		},
+		{
+			"ImportPath": "gopkg.in/boj/redistore.v1",
+			"Comment": "v1",
+			"Rev": "9d1554b400d726c7aa54b6e4a836f273b72b97f7"
 		}
 	]
 }

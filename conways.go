@@ -6,8 +6,8 @@ import (
 
 	"github.com/araddon/gou"
 	"github.com/artemave/conways-go/config"
-	"github.com/boj/redistore"
 	"github.com/codegangsta/negroni"
+	"gopkg.in/boj/redistore.v1"
 )
 
 var sessionCache *redistore.RediStore
