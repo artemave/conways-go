@@ -15,5 +15,4 @@ RUN go get github.com/tools/godep
 RUN godep restore
 RUN godep go build
 
-ENV PORT 9999
 CMD ["./conways-go"]
