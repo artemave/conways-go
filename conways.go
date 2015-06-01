@@ -22,7 +22,7 @@ func main() {
 	n := negroni.Classic()
 
 	// TODO real secret maybe
-	r, err := redistore.NewRediStore(10, "tcp", config.RedisURL(), "", []byte("secret123"))
+	r, err := redistore.NewRediStore(10, "tcp", config.RedisHost(), config.RedisPassword(), []byte("secret123"))
 	if err != nil {
 		panic(err)
 	}

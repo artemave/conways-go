@@ -1,6 +1,7 @@
 package config
 
 import "os"
+import "net/url"
 
 // Config - app config
 type Config struct{}
@@ -16,7 +17,7 @@ func GoogleClientID() string {
 
 // GoogleClientSecret - returns google client secret
 func GoogleClientSecret() string {
-	secret := os.Getenv("GOOGLE_CLIENT_SECRET")
+secret := os.Getenv("GOOGLE_CLIENT_SECRET")
 	if secret == "" {
 		panic("GOOGLE_CLIENT_SECRET is not set")
 	}
@@ -32,11 +33,33 @@ func OauthRedirectURL() string {
 	return url
 }
 
-// RedisURL - returns redis address url
-func RedisURL() string {
-	url := os.Getenv("REDIS_URL")
-	if url == "" {
+func redisURL() *url.URL {
+	s := os.Getenv("REDIS_URL")
+	if s == "" {
 		panic("REDIS_URL is not set")
 	}
-	return url
+
+	redisURL, err := url.Parse(s)
+
+	if err != nil {
+		panic("Bad password from redis url: " + s)
+	}
+
+	return redisURL
+}
+
+func RedisHost() string {
+	return redisURL().Host
+}
+
+// RedisPassword - returns redis password if any
+func RedisPassword() string {
+	pass := ""
+	if redisURL().User != nil {
+		p, ok := redisURL().User.Password()
+		if ok {
+			pass = p
+		}
+	}
+	return pass
 }
